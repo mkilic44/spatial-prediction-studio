@@ -4,7 +4,7 @@ Spatial Prediction Studio is an ArcMap 10.8 add-in for spatial prediction of soi
 
 The add-in keeps model development, independent testing and later use of the model apart. Every preprocessing, selection and tuning step is learned inside the training part of each fold. Reports state what each number means and what it does not show.
 
-Version 0.5.0. Research software. The original Turkish version is kept at the tag [`v0.5.0-tr`](../../tree/v0.5.0-tr).
+Version 0.5.0. Research software. The original Turkish version is kept in the branch [`turkish-original`](../../tree/turkish-original).
 
 ## Install
 
