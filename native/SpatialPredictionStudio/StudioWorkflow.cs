@@ -398,7 +398,7 @@ namespace SpatialPredictionStudio
         private void ExportModel()
         {
             var package = ModelExport.ReadPackage(lastManifest);
-            if (!currentResult) Log("The model to save belongs to a previous run; the current settings were not applied to this model. Run: " + package.RunId);
+            if (!currentResult) Log("The model to save is from a previous run; the current settings were not applied to it. Run: " + package.RunId);
             using (var dialog = new SaveFileDialog {
                 Title = "Save the model of the completed run: " + package.RunId,
                 Filter = "Spatial Prediction Studio model (*.spsmodel.zip)|*.spsmodel.zip",

@@ -195,7 +195,7 @@ namespace SpatialPredictionStudio
             saveModel.Enabled = !busy && hasResult;
             modelExportState.Text = !hasResult ? "Saving a model requires a completed run." : currentResult
                 ? "The model to save is the model of the last completed run."
-                : "The model to save belongs to a previous run. The current settings were not applied to this model.";
+                : "This model is from a previous run; the current settings were not applied to it.";
         }
         private void SetBusy(bool value) { busy = value; foreach (var control in guarded) control.Enabled = !value; selected.Enabled = !value && !IsCsv; cancel.Enabled = value; UpdateGate(); }
         private void Safe(Action action) { try { action(); } catch (Exception ex) { if (remoteCommandDepth > 0 || projectLoadDepth > 0) throw; Fail(ex); } }
