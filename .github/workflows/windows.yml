@@ -21,6 +21,10 @@ jobs:
       run:
         shell: powershell
     steps:
+      # Users download a ZIP whose files keep the line endings stored in the repository.
+      - name: Keep stored line endings on checkout
+        run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
 
       - name: Install with Install.cmd's script (staging, ArcObjects stand-ins, MCP server)
@@ -33,6 +37,8 @@ jobs:
           .\installer\bootstrap.ps1 -Action Verify -InstallRoot "$env:RUNNER_TEMP\sps" -Staging "$env:RUNNER_TEMP\stage"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      # Each test command runs through annotate_failure.py, which repeats the end of a failing
+      # command's output as annotations, because job logs are not readable from every environment.
       - name: Backend tests with the installed runtime
         # R/CAST tests need the optional R runtime; TabPFN tests need the licensed weights.
         run: |
@@ -40,7 +46,8 @@ jobs:
           $py = "$app\runtime-d\Scripts\python.exe"
           & $py -I tools\make_examples.py --output examples
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $py -m pytest tests installer\test_sps_install.py -q -p no:cacheprovider --ignore=tests\test_package.py -k "not tabpfn" `
+          & $py -I -X utf8 .github\scripts\annotate_failure.py backend-tests `
+            $py -m pytest tests installer\test_sps_install.py -q -rfE --tb=short -p no:cacheprovider --ignore=tests\test_package.py -k "not tabpfn" `
             --deselect tests/test_applicability_c.py::test_cast_104_intermediate_distances_threshold_and_mask `
             --deselect tests/test_applicability_c.py::test_applicability_prediction_does_not_change_training_threshold `
             --deselect tests/test_applicability_c.py::test_applicability_rejects_repeated_or_invalid_folds_and_constant_design `
@@ -57,27 +64,28 @@ jobs:
           $csc = (Get-ChildItem "$cache\csharp-compiler-*\csc.exe" | Select-Object -First 1).FullName
           $ref = (Get-ChildItem "$cache\net48-reference-assemblies-*" -Directory | Select-Object -First 1).FullName
           $out = "$env:RUNNER_TEMP\native"
+          $py = "$app\runtime-d\Scripts\python.exe"
           New-Item -ItemType Directory -Force -Path $out | Out-Null
           $common = @('-nologo', '-noconfig', '-nostdlib+', '-target:exe', '-platform:x86', '-langversion:7.3')
           foreach ($name in 'mscorlib', 'System', 'System.Core', 'System.Web.Extensions', 'System.Windows.Forms', 'System.Drawing', 'System.Data', 'Microsoft.VisualBasic') {
             $common += "-reference:$ref\$name.dll"
           }
           $s = 'native\SpatialPredictionStudio'
-          & $csc @common "-out:$out\NativeContracts.exe" native\tests\NativeContracts.cs "$s\JobClient.cs" "$s\ArtifactIntegrity.cs" native\tests\RegistryContracts.cs native\tests\ModelExportContracts.cs "$s\MethodRegistry.cs" "$s\RegistryEditor.cs" "$s\WorkflowEditors.cs" "$s\ArtifactViewer.cs" native\tests\ArtifactViewerContracts.cs native\tests\McpBridgeContracts.cs "$s\McpPipeBridge.cs" "$s\OwnedProcessJob.cs" "$s\ModelExport.cs"
+          $report = @('-I', '-X', 'utf8', '.github\scripts\annotate_failure.py')
+          & $py @report compile-NativeContracts $csc @common "-out:$out\NativeContracts.exe" native\tests\NativeContracts.cs "$s\JobClient.cs" "$s\ArtifactIntegrity.cs" native\tests\RegistryContracts.cs native\tests\ModelExportContracts.cs "$s\MethodRegistry.cs" "$s\RegistryEditor.cs" "$s\WorkflowEditors.cs" "$s\ArtifactViewer.cs" native\tests\ArtifactViewerContracts.cs native\tests\McpBridgeContracts.cs "$s\McpPipeBridge.cs" "$s\OwnedProcessJob.cs" "$s\ModelExport.cs"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $csc @common "-out:$out\OwnedProcessContracts.exe" native\tests\OwnedProcessContracts.cs "$s\JobClient.cs" "$s\OwnedProcessJob.cs"
+          & $py @report compile-OwnedProcessContracts $csc @common "-out:$out\OwnedProcessContracts.exe" native\tests\OwnedProcessContracts.cs "$s\JobClient.cs" "$s\OwnedProcessJob.cs"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $csc @common "-out:$out\PanelContracts.exe" native\tests\PanelContracts.cs
+          & $py @report compile-PanelContracts $csc @common "-out:$out\PanelContracts.exe" native\tests\PanelContracts.cs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Copy-Item "$app\build\SpatialPredictionStudio.dll" $out
           Copy-Item "$app\build\esri-stubs\*.dll" $out
-          $py = "$app\runtime-d\Scripts\python.exe"
           $evidence = "$out\evidence"
-          & "$out\NativeContracts.exe" $py native\tests\worker_stub.py $evidence backend\sps\registry.json
+          & $py @report NativeContracts "$out\NativeContracts.exe" $py native\tests\worker_stub.py $evidence backend\sps\registry.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & "$out\PanelContracts.exe" "$out\SpatialPredictionStudio.dll" "$evidence\accepted_methods.fixture.json" "$evidence\panel"
+          & $py @report PanelContracts "$out\PanelContracts.exe" "$out\SpatialPredictionStudio.dll" "$evidence\accepted_methods.fixture.json" "$evidence\panel"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & "$out\OwnedProcessContracts.exe" $py native\tests\owned_worker_stub.py "$evidence\owned-process"
+          & $py @report OwnedProcessContracts "$out\OwnedProcessContracts.exe" $py native\tests\owned_worker_stub.py "$evidence\owned-process"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: MCP server tests on Windows (named pipes included)
@@ -85,7 +93,7 @@ jobs:
           $app = (Get-Content "$env:RUNNER_TEMP\sps\current.json" -Raw | ConvertFrom-Json).application_root
           $py = "$app\runtime-mcp\Scripts\python.exe"
           Push-Location mcp-server
-          & $py -m pytest tests -q -p no:cacheprovider
+          & $py -I -X utf8 ..\.github\scripts\annotate_failure.py mcp-tests $py -m pytest tests -q -rfE --tb=short -p no:cacheprovider
           $code = $LASTEXITCODE
           Pop-Location
           exit $code
