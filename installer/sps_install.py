@@ -347,7 +347,7 @@ def copy_application(source, app_root, with_mcp, log):
     (app_root / 'installer').mkdir(parents=True, exist_ok=True)
     for name in ('verify_runtime.py', 'verify_r.R', 'sps_install.py'):
         shutil.copy2(source / 'installer' / name, app_root / 'installer' / name)
-    for name in ('requirements-lock.txt', 'requirements-d-lock.txt', 'requirements-mcp-lock.txt', 'Config.xml', 'README.md'):
+    for name in ('requirements-lock.txt', 'requirements-d-lock.txt', 'requirements-mcp-lock.txt', 'Config.xml', 'README.md', 'LICENSE'):
         shutil.copy2(source / name, app_root / name)
     if (source / 'docs').is_dir():
         shutil.copytree(source / 'docs', app_root / 'docs', ignore=skip)

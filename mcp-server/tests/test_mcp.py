@@ -232,6 +232,8 @@ def test_all_seven_template_schemas(client, tmp_path):
         entry = patch["mcpServers"][KEY]
         assert isinstance(entry["command"], str)
     assert "server.py" in json.dumps(entry)
+    arguments = entry["command"][1:] if client == "opencode" else entry["args"]
+    assert arguments[:3] == ["-s", "-X", "utf8"]
 
 
 def test_json_merge_preserves_unrelated_data_and_backup(tmp_path):
@@ -464,3 +466,20 @@ def test_real_windows_named_pipe_transport_with_synthetic_peer(behavior):
         thread.join(timeout=3)
         assert not thread.is_alive()
 
+
+
+def test_crs_names_stay_visible_while_coordinates_stay_hidden():
+    from sps_mcp.artifacts import PlainHtml, REDACTED
+    html = ("<table>"
+            "<tr><td>Coordinate reference system (CRS)</td><td>EPSG:32637</td></tr>"
+            "<tr><td>warnings</td><td>Select a projected coordinate reference system in meters.</td></tr>"
+            "<tr><td>Coordinate reference system</td><td>x 502475.0</td></tr>"
+            "<tr><td>Sample coordinates</td><td>502475.0, 4199625.0</td></tr>"
+            "</table>")
+    parser = PlainHtml(include_coordinates=False)
+    parser.feed(html)
+    parser.close()
+    text = "".join(parser.parts)
+    assert "EPSG:32637" in text and "projected coordinate reference system" in text
+    # The CRS phrase does not hide other coordinate tokens in the same row.
+    assert "502475.0" not in text and text.count(REDACTED) == 2

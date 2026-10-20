@@ -61,7 +61,7 @@ class DiagnosticRpc(mod.Rpc):
             'windows_error_codes': re.findall(r'\b(?:os error|winerror) (\d+)\b', raw)})
 
 
-install = Path(r'C:\Users\MIRAC\AppData\Local\Programs\SpatialPredictionStudio\versions\0.5.0-70573b90e438')
+install = Path.home() / r'AppData\Local\Programs\SpatialPredictionStudio\versions\0.5.0-70573b90e438'
 codex = shutil.which('codex.exe')
 result = {'codex_executable': codex, 'scope': 'read_only_host_probe', 'raw_diagnostics_saved': False}
 try:

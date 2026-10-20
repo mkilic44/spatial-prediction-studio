@@ -51,14 +51,15 @@ def template(client, root):
         raise BridgeError("CLIENT_UNKNOWN", "Unknown client.")
     python, server = runtime_paths(root)
     env = {"SPS_MCP_OWNER": OWNER}
-    entry = {"command": str(python), "args": ["-X", "utf8", str(server)], "env": env}
+    # -s: the user's own site-packages folder (%APPDATA%\\Python) must not shadow the pinned packages.
+    entry = {"command": str(python), "args": ["-s", "-X", "utf8", str(server)], "env": env}
     if client in {"codex", "chatgpt_desktop"}:
         entry.update({"cwd": str(Path(root).resolve()), "startup_timeout_sec": 30,
                       "tool_timeout_sec": 60})
         return "toml", {"mcp_servers": {KEY: entry}}
     if client == "opencode":
         return "json", {"$schema": "https://opencode.ai/config.json", "mcp": {
-            KEY: {"type": "local", "command": [str(python), "-X", "utf8", str(server)],
+            KEY: {"type": "local", "command": [str(python), "-s", "-X", "utf8", str(server)],
                   "environment": env, "enabled": True, "timeout": 60000}}}
     if client == "claude_code":
         entry["type"] = "stdio"

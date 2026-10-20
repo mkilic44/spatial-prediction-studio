@@ -13,9 +13,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSIONS = Path(r'C:\Users\MIRAC\AppData\Local\Programs\SpatialPredictionStudio\versions')
-TARGET = Path(r'C:\Users\MIRAC\.ai\mcp\mcp.json')
-XML = Path(r'C:\Users\MIRAC\AppData\Roaming\JetBrains\PyCharm2026.2\options\llm.mcpServers.xml')
+VERSIONS = Path.home() / r'AppData\Local\Programs\SpatialPredictionStudio\versions'
+TARGET = Path.home() / r'.ai\mcp\mcp.json'
+XML = Path.home() / r'AppData\Roaming\JetBrains\PyCharm2026.2\options\llm.mcpServers.xml'
 sys.path.insert(0, str(ROOT / 'mcp-server'))
 import register_clients as registration
 from sps_mcp.bridge import BridgeError, reject_reparse, strict_json

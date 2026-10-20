@@ -82,4 +82,4 @@ The installer downloads open-source packages with pinned versions; each keeps it
 
 ## License
 
-No license has been chosen for Spatial Prediction Studio yet.
+Spatial Prediction Studio is released under the [MIT License](LICENSE). The packages that the installer downloads keep their own licenses ([docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md)). The TabPFN model and its weights are covered by the Prior Labs License 1.1, not by the MIT License.

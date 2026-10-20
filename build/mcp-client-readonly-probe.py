@@ -14,7 +14,7 @@ from sps_mcp.jsonc import Document
 
 product_root = Path(r'C:\Program Files\JetBrains\PyCharm 2026.2.0.1')
 product = json.loads((product_root / 'product-info.json').read_text(encoding='utf-8'))
-jar = Path(r'C:\Users\MIRAC\AppData\Roaming\JetBrains\PyCharm2026.2\plugins\ml-llm\lib\ml-llm.jar')
+jar = Path.home() / r'AppData\Roaming\JetBrains\PyCharm2026.2\plugins\ml-llm\lib\ml-llm.jar'
 with zipfile.ZipFile(jar) as package:
     plugin = ET.fromstring(package.read('META-INF/plugin.xml'))
 disabled_file = jar.parents[3] / 'disabled_plugins.txt'
@@ -30,7 +30,7 @@ evidence = {'schema_version': 1, 'pycharm': {
     'official_documented_direct_write_api': 'not_found',
     'official_source': 'https://www.jetbrains.com/help/ai-assistant/mcp.html',
     'live_ai_assistant_connection': 'pending'}}
-path = Path(r'C:\Users\MIRAC\.config\opencode\opencode.jsonc')
+path = Path.home() / r'.config\opencode\opencode.jsonc'
 raw = path.read_bytes()
 original = raw.decode('utf-8-sig')
 parsed = Document(original)

@@ -15,9 +15,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INSTALL = Path(r'C:\Users\MIRAC\AppData\Local\Programs\SpatialPredictionStudio\versions\0.5.0-70573b90e438')
-TARGET = Path(r'C:\Users\MIRAC\AppData\Local\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json')
-REGULAR = Path(r'C:\Users\MIRAC\AppData\Roaming\Claude\claude_desktop_config.json')
+INSTALL = Path.home() / r'AppData\Local\Programs\SpatialPredictionStudio\versions\0.5.0-70573b90e438'
+TARGET = Path.home() / r'AppData\Local\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json'
+REGULAR = Path.home() / r'AppData\Roaming\Claude\claude_desktop_config.json'
 sys.path.insert(0, str(INSTALL / 'mcp-server'))
 from register_clients import KEY, atomic_merge, merge_owned_text, template
 from sps_mcp.bridge import BridgeError, reject_reparse, strict_json

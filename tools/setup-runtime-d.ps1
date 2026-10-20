@@ -1,4 +1,4 @@
-param([string]$BasePython = 'C:\Users\MIRAC\anaconda3\python.exe', [switch]$RestoreLock)
+param([Parameter(Mandatory=$true)][string]$BasePython, [switch]$RestoreLock)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $runtimePath = Join-Path $projectRoot 'runtime-d'

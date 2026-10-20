@@ -65,7 +65,7 @@ def main():
     if (output / "acceptance.json").exists():
         raise ValueError("Refusing to replace previous installation acceptance")
     local_appdata = Path(os.environ["LOCALAPPDATA"]).resolve()
-    assert local_appdata == Path("C:/Users/MIRAC/AppData/Local").resolve(), "Use the verified real-user environment; sandbox AppData is not an installation target."
+    assert local_appdata == (Path.home() / "AppData/Local").resolve(), "Use the verified real-user environment; sandbox AppData is not an installation target."
     target = local_appdata / "Programs/SpatialPredictionStudio"
     installed = target / "versions" / build["build_id"]
     assert not (installed / "deployment-record.json").exists(), "This release is already installed; do not overwrite it."

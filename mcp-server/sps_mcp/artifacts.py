@@ -34,9 +34,15 @@ def is_raw_source(name):
     return value in {"raw_record", "properties"} or value.startswith(("property.", "properties."))
 
 
+# The name of a coordinate reference system is not a coordinate. Without this exception the English
+# reports lose their CRS rows and CRS warnings, which the Turkish reports showed.
+CRS_PHRASE = re.compile(r"coordinate\s+reference\s+systems?", re.IGNORECASE)
+
+
 def sensitive_reference(value):
+    text = CRS_PHRASE.sub(" ", str(value))
     return any(is_coordinate(token) or is_raw_source(token)
-               for token in re.findall(r"[\w.]+", str(value)))
+               for token in re.findall(r"[\w.]+", text))
 
 
 def coordinate_parameter_row(value):

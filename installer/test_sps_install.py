@@ -73,6 +73,7 @@ def test_install_builds_registers_and_records(setup):
     assert sum(a.startswith('-reference:') for a in arguments) == 8 + 12
     assert sum(a.endswith('.cs') for a in arguments) == 15
     assert (app / 'backend/worker.py').is_file() and (app / 'installer/verify_runtime.py').is_file()
+    assert (app / 'LICENSE').read_bytes() == (ROOT / 'LICENSE').read_bytes()
     assert json.loads((setup['root'] / 'current.json').read_text(encoding='utf-8'))['application_root'] == str(app)
     # A copy of the uninstaller stays in the install root, so the downloaded folder can be deleted.
     assert (setup['root'] / 'Uninstall.cmd').read_bytes() == (ROOT / 'Uninstall.cmd').read_bytes()
