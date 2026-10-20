@@ -1,10 +1,20 @@
 runtime/
+runtime-d/
+runtime-mcp/
+reference-r/
 dist/
-build/
+release/
+models/
+licenses/
 native/**/bin/
 native/**/obj/
 __pycache__/
 .pytest_cache/
 examples/
+examples-d/
 runs/
 *.pyc
+# build/ holds tracked scripts and generated evidence; keep only the scripts.
+build/*
+!build/*.py
+!build/*.ps1
