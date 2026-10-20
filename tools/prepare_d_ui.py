@@ -23,7 +23,7 @@ def main():
     raster=dest/'synthetic-covariates.tif'
     with rasterio.open(raster,'w',driver='GTiff',height=8,width=8,count=2,dtype='float32',crs='EPSG:32637',transform=transform,nodata=-9999) as dst:
         dst.write(a.astype('float32'),1);dst.write(b.astype('float32'),2)
-        dst.set_band_description(1,'Sentetik çevre 1');dst.set_band_description(2,'Sentetik çevre 2')
+        dst.set_band_description(1,'Synthetic covariate 1');dst.set_band_description(2,'Synthetic covariate 2')
         dst.set_band_unit(1,'1');dst.set_band_unit(2,'1')
         dst.update_tags(provenance='SYNTHETIC SOFTWARE ACCEPTANCE FIXTURE; NOT OBSERVED SOIL DATA')
     sample=dest/'synthetic-dated-samples.csv';rows=[]
@@ -31,7 +31,7 @@ def main():
         r,c=divmod(int(index),8);x,y=rasterio.transform.xy(transform,r,c)
         rows.append(dict(sample_id='D%03d'%i,x=x,y=y,soil_value=8+1.2*a[r,c]-.6*b[r,c]+rng.normal(0,.1),
                          observation_date=(date(2020,1,1)+timedelta(days=3*(i//2))).isoformat(),
-                         profile='profile%03d'%i,landuse='sentetik_A' if i%2 else 'sentetik_B'))
+                         profile='profile%03d'%i,landuse='synthetic_A' if i%2 else 'synthetic_B'))
     with sample.open('w',newline='',encoding='utf-8-sig') as stream:
         w=csv.DictWriter(stream,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
     project={'schema_version':2,'project_type':'SpatialPredictionStudio','input_type':'csv',
@@ -44,14 +44,14 @@ def main():
                         'mapping':{'align_rasters':False,'reference_id':'d_cov_1','mask_extrapolation':False,'figure_dpi':150,'max_missing_fraction':.5},
                         'diagnostics':{'applicability':False,'permutation':False,'permutation_repeats':3,
                                        'subgroup_fields':['landuse'],'min_subgroup_samples':5,'min_subgroup_groups':3}},
-             'covariates':[{'id':'d_cov_%d'%band,'name':'Sentetik çevre %d'%band,'path':str(raster),'band':band,
+             'covariates':[{'id':'d_cov_%d'%band,'name':'Synthetic covariate %d'%band,'path':str(raster),'band':band,
                             'unit':'1','kind':'continuous','sampling':'nearest'} for band in (1,2)]}
     project.update(csv_path=str(sample),output_root=str(ROOT/'build/arcmap-evidence/d-runs'),window_size=256,
                    last_manifest='',preview_fingerprint='',preview_manifest='',preview_signature='',preview_sources='',
                    registry_digest=hashlib.sha256((ROOT/'backend/sps/registry.json').read_bytes()).hexdigest())
     project['samples'].update(crs='EPSG:32637',date_field='observation_date',group_fields=['profile'])
     for j,cov in enumerate(project['covariates']):
-        cov.update(path=str(raster),id='d_cov_%d'%(j+1),name='Sentetik çevre %d'%(j+1),unit='1')
+        cov.update(path=str(raster),id='d_cov_%d'%(j+1),name='Synthetic covariate %d'%(j+1),unit='1')
     science=project['science']
     science['mapping']['reference_id']='d_cov_1'
     science['diagnostics'].update(applicability=False,permutation=False,subgroup_fields=['landuse'])

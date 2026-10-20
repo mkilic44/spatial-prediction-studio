@@ -33,7 +33,7 @@ def test_temporal_end_to_end_records_and_initial_history(tmp_path):
     assert preview['independent_test_count']==0
     geo=json.loads((tmp_path/'run/folds.geojson').read_text(encoding='utf-8'))
     assert not any(v['properties']['role']=='independent' for v in geo['features'])
-    assert 'Son kullanılan tarih' in (tmp_path/'run/report.html').read_text(encoding='utf-8')
+    assert 'Last date used' in (tmp_path/'run/report.html').read_text(encoding='utf-8')
 
 
 def test_temporal_date_or_gap_change_invalidates_preview(tmp_path):
@@ -72,4 +72,4 @@ def test_spatial_interval_real_raster_missing_support(tmp_path):
     assert len(ev['oof'])==63
     for row in ev['oof']:
         if row['interval_status']=='unavailable':assert row['lower'] is None and row['upper'] is None and row['reason_code']
-    assert 'Yerel destek bulunmayan hücre' in (tmp_path/'run/report.html').read_text(encoding='utf-8')
+    assert 'Cells without local support' in (tmp_path/'run/report.html').read_text(encoding='utf-8')

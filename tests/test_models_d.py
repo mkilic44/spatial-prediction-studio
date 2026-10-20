@@ -139,7 +139,7 @@ def test_actual_fixed_epoch_fit_reload_and_window_predictions(tmp_path, name):
     np.testing.assert_allclose(prediction[:3], singles, rtol=0, atol=1e-5)
     assert saved.fit_diagnostics_["versions"]["torch"] == "2.8.0+cpu"
     assert saved.predict(X[:0]).shape == (0,)
-    with pytest.raises(JobError, match='boyutu'):
+    with pytest.raises(JobError, match='dimensions'):
         saved.predict(X[:, :4])
     with pytest.raises(JobError) as error:
         saved.predict(np.broadcast_to(0., (7_000_000, 5)))

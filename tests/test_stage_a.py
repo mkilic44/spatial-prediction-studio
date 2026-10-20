@@ -271,7 +271,7 @@ def test_declared_per_observation_units_must_match(case):
 def test_model_file_is_bound_to_run_id(case):
     req, _, _ = case
     assert engine().run_job(req, lambda _: None)["status"] == "completed"
-    with pytest.raises(Exception, match="Model kimliği"):
+    with pytest.raises(Exception, match="model ID"):
         engine().load_model(Path(req["output_dir"]) / "model.json", expected_run_id="another-run")
 
 

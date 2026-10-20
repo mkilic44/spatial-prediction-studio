@@ -10,7 +10,7 @@ import pytest
 from test_science_b import scientific, fit
 
 pytestmark = pytest.mark.skipif(importlib.util.find_spec("torch") is None,
-                               reason="D modelleri için ayrılmış Python çalışma ortamı gerekir.")
+                               reason="Requires the dedicated Python environment for D models.")
 
 
 @pytest.mark.parametrize("name", ["tabm", "realmlp", "tabpfn"])

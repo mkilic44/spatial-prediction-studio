@@ -42,7 +42,7 @@ def regression_metrics(y, prediction):
     """
     y, prediction = np.asarray(y, dtype=float), np.asarray(prediction, dtype=float)
     if y.ndim != 1 or prediction.shape != y.shape or not len(y) or not np.isfinite(np.concatenate([y, prediction])).all():
-        raise JobError("METRICS", "Başarı ölçütleri için sonlu ve eşleşen gözlem-tahmin çiftleri gereklidir.")
+        raise JobError("METRICS", "Performance metrics require finite, matched observation-prediction pairs.")
     result = {"n": len(y), "reasons": {}}
 
     def value(name, number=None, reason=None):
@@ -97,7 +97,7 @@ def _point_rows(model, X, y, ids, groups, repeat, fold, coordinates, *, scope=No
     """Point predictions only: calibration observations never request intervals."""
     predictions = np.asarray(prediction_call(model, 'predict', X, coordinates), dtype=float)
     if predictions.shape != (len(ids),) or not np.isfinite(predictions).all():
-        raise JobError("METRICS", "Nokta tahminleri gözlem sayısıyla eşleşen sonlu bir vektör olmalıdır.")
+        raise JobError("METRICS", "Point predictions must be a finite vector matching the number of observations.")
     rows = [{"sample_id": identity, "group_id": str(groups[i]), "repeat": repeat, "fold": fold,
              "observed": float(y[i]), "predicted": float(predictions[i]), "residual": float(predictions[i] - y[i])}
             for i, identity in enumerate(ids)]
@@ -131,12 +131,12 @@ def _interval_summary(rows, coverage):
         lower, upper = row.get("lower"), row.get("upper")
         if lower is None or upper is None:
             if lower is not None or upper is not None or row.get("interval_status") != "unavailable" or not row.get("reason_code"):
-                raise JobError("INTERVAL", "Eksik aralık için iki boş sınır ve açıklamalı kullanılamaz durumu gereklidir.")
+                raise JobError("INTERVAL", "A missing interval requires two empty bounds and an unavailable status with a reason.")
             reason = row["reason_code"]
             reasons[reason] = reasons.get(reason, 0) + 1
         else:
             if not np.isfinite([lower, upper]).all() or lower > upper or row.get("interval_status", "available") != "available":
-                raise JobError("INTERVAL", "Kullanılabilir aralık sınırları sonlu ve sıralı olmalıdır.")
+                raise JobError("INTERVAL", "Available interval bounds must be finite and ordered.")
             available.append(row)
     n = len(rows)
     summary = {"nominal_coverage": float(coverage), "n": n, "available_n": len(available),
@@ -156,7 +156,7 @@ def _interval_summary(rows, coverage):
     else:
         summary.update(status="partial" if available else "unavailable",
                        reason_code="PARTIAL_SPATIAL_SUPPORT" if available else "NO_SPATIAL_INTERVALS",
-                       reason="Yerel destek bütün gözlemlerde yeterli değil; aralık ölçütleri yalnız kullanılabilir altkümeye aittir.")
+                       reason="Local support is not sufficient at all observations; interval metrics refer only to the available subset.")
         if values is not None:
             summary["available_subset"] = values
     return summary
@@ -166,19 +166,19 @@ def _spatial_interval_rows(model, X, y, ids, groups, repeat, fold, coverage, coo
     from .spatial_uncertainty_d import spatial_interval_details, REASONS
     calibration = model.record["calibration"]
     if set(ids) & (set(calibration["ids"]) | set(calibration["training_ids"])) or set(map(str, groups)) & (set(calibration["groups"]) | set(calibration["training_groups"])):
-        raise JobError("SPATIAL_EVALUATION_LEAKAGE", "Değerlendirme örnekleri veya grupları eğitim ya da kalibrasyonla çakışıyor.")
+        raise JobError("SPATIAL_EVALUATION_LEAKAGE", "Evaluation samples or groups overlap with training or calibration data.")
     details = spatial_interval_details(model, X, coordinates, coverage)
     available = np.asarray(details["interval_available"], dtype=bool)
     lower, upper = np.asarray(details["lower"]), np.asarray(details["upper"])
     if available.shape != (len(ids),) or lower.shape != available.shape or upper.shape != available.shape:
-        raise JobError("INTERVAL", "Mekânsal aralık maskesi ve sınır boyutları uyuşmuyor.")
+        raise JobError("INTERVAL", "The spatial interval mask and bound sizes do not match.")
     if not np.isfinite(lower[available]).all() or not np.isfinite(upper[available]).all() or np.any(lower[available] > upper[available]) or not np.isnan(lower[~available]).all() or not np.isnan(upper[~available]).all():
-        raise JobError("INTERVAL", "Mekânsal aralık yalnız kullanılamaz maskesinde iki boş sınır içerebilir.")
+        raise JobError("INTERVAL", "A spatial interval may have two empty bounds only where the unavailable mask is set.")
     rows = []
     for i, identity in enumerate(ids):
         reason_code = str(details["interval_reason_code"][i])
         if (not available[i] and reason_code not in REASONS) or (available[i] and reason_code):
-            raise JobError("INTERVAL", "Mekânsal aralık durumu ile açıklama kodu uyuşmuyor.")
+            raise JobError("INTERVAL", "The spatial interval status and the reason code do not match.")
         row = {"nominal_coverage": float(coverage), "repeat": repeat, "fold": fold,
                "sample_id": identity, "observed": float(y[i]), "group_id": str(groups[i]),
                "lower": float(lower[i]) if available[i] else None,
@@ -247,7 +247,7 @@ def _aggregate_coverage(summaries, predictions, levels, observations):
         rows = [row for row in predictions if row["nominal_coverage"] == level]
         if rows and any("interval_status" in row for row in rows):
             if len(rows) != sum(row["n"] for row in folds):
-                raise JobError("INTERVAL", "Mekânsal aralık gözlem sayısı kat toplamıyla uyuşmuyor.")
+                raise JobError("INTERVAL", "The number of spatial interval observations does not match the fold total.")
             result.append({**_interval_summary(rows, level), "fold_count": len(folds),
                 "available_fold_count": sum(row["status"] == "available" for row in folds),
                 "partial_fold_count": sum(row["status"] == "partial" for row in folds),
@@ -261,7 +261,7 @@ def _aggregate_coverage(summaries, predictions, levels, observations):
         if not folds or unavailable:
             summary.update(status="unavailable",
                 reason_code="INCOMPLETE_COVERAGE_LEVEL" if folds else "NO_EVALUATION_ROWS",
-                reason="Bu düzey bütün değerlendirme katlarında üretilemedi; kısmi sonuçlar birleştirilmedi." if folds else "Bu kapsamda değerlendirme gözlemi yok.",
+                reason="This level could not be produced in all evaluation folds; partial results were not combined." if folds else "There are no evaluation observations in this scope.",
                 reason_codes=sorted({row["reason_code"] for row in unavailable}) if folds else ["NO_EVALUATION_ROWS"],
                 unavailable_folds=[{"repeat": row["repeat"], "fold": row["fold"], "reason_code": row["reason_code"]} for row in unavailable])
         else:
@@ -281,9 +281,9 @@ def _selection_arms(settings):
     method = selection.get("method", "none")
     compare = selection.get("compare_without_selection", False)
     if type(compare) is not bool:
-        raise JobError("SELECTION_COMPARISON", "Seçimsiz karşılaştırma mantıksal bir değer olmalıdır.")
+        raise JobError("SELECTION_COMPARISON", "The comparison without selection must be a Boolean value.")
     if compare and (method == "none" or "feature_selection.method" in settings.get("optimization", {}).get("spaces", {})):
-        raise JobError("SELECTION_COMPARISON", "Seçimsiz karşılaştırma tek bir seçili yöntem gerektirir; yöntem arama alanı kullanılamaz.")
+        raise JobError("SELECTION_COMPARISON", "The comparison without selection requires a single selected method; a method search space cannot be used.")
     return [method, "none"] if compare else [method]
 
 
@@ -293,7 +293,7 @@ def _spaces(settings, model_id, selection_method=None):
     result = {}
     for name, spec in settings.get("optimization", {}).get("spaces", {}).items():
         if not isinstance(spec, dict) or set(spec) - {"type", "choices", "low", "high", "log"}:
-            raise JobError("SEARCH_SPACE", "Arama alanı tanınmayan anahtar içeriyor: " + name)
+            raise JobError("SEARCH_SPACE", "Search space contains an unrecognized key: " + name)
         if name in _SHARED_FIELDS:
             if selection_method == "none" and settings.get("feature_selection", {}).get("compare_without_selection") and name.startswith(("feature_selection.", "vif.")):
                 continue
@@ -301,13 +301,13 @@ def _spaces(settings, model_id, selection_method=None):
         elif "." in name:
             family, parameter = name.split(".", 1)
             if family not in family_ids:
-                raise JobError("SEARCH_SPACE", "Bilinmeyen koşullu model adı: " + family)
+                raise JobError("SEARCH_SPACE", "Unknown conditional model name: " + family)
             if family == model_id:
                 result["model.parameters." + parameter] = spec
         elif len(candidates) == 1:
             result["model.parameters." + name] = spec
         else:
-            raise JobError("SEARCH_SPACE", "Çoklu ailede model parametresi aile adıyla başlamalıdır: " + name)
+            raise JobError("SEARCH_SPACE", "With multiple families, a model parameter must start with the family name: " + name)
     return result
 
 
@@ -337,13 +337,13 @@ def _grid_values(spec, budget):
     if kind == "categorical":
         values = spec.get("choices", [])
         if not values:
-            raise JobError("SEARCH_SPACE", "Kategorik arama seçenekleri boş olamaz.")
+            raise JobError("SEARCH_SPACE", "Categorical search choices cannot be empty.")
         return values
     if kind not in ("int", "float") or "low" not in spec or "high" not in spec or spec["low"] > spec["high"]:
-        raise JobError("SEARCH_SPACE", "Sayısal arama sınırları geçersiz.")
+        raise JobError("SEARCH_SPACE", "Numeric search bounds are invalid.")
     low, high = spec["low"], spec["high"]
     if spec.get("log") and low <= 0:
-        raise JobError("SEARCH_SPACE", "Logaritmik arama alt sınırı pozitif olmalıdır.")
+        raise JobError("SEARCH_SPACE", "The lower bound of a logarithmic search must be positive.")
     count = min(max(2, budget), int(high - low + 1)) if kind == "int" else max(2, min(5, budget))
     values = np.geomspace(low, high, count) if spec.get("log") else np.linspace(low, high, count)
     return sorted(set(int(round(x)) if kind == "int" else float(x) for x in values))
@@ -364,15 +364,15 @@ def _candidate_list(settings):
     opt = settings.get("optimization", {})
     models = settings.get("model_candidates") or [settings["model"]]
     if len({m["id"] for m in models}) != len(models):
-        raise JobError("MODEL_CANDIDATES", "Model adaylarında aynı aile yinelenemez; parametre arama alanını kullanın.")
+        raise JobError("MODEL_CANDIDATES", "The same family cannot be repeated among model candidates; use the parameter search space.")
     method = opt.get("method", "manual")
     budget = int(opt.get("trials", 10))
     combinations = [(model, arm) for model in models for arm in _selection_arms(settings)]
     if method != "manual" and budget < len(combinations):
-        raise JobError("SEARCH_BUDGET", "Deneme sayısı model ailesi ve seçim kolu birleşimlerinin sayısından az olamaz.")
+        raise JobError("SEARCH_BUDGET", "The number of trials cannot be less than the number of model family and selection arm combinations.")
     if method == "manual":
         if opt.get("spaces"):
-            raise JobError("SEARCH_SPACE", "Manuel aramada değişken parametre alanı kullanılamaz.")
+            raise JobError("SEARCH_SPACE", "Manual search cannot use a parameter search space.")
         return [(model, {}, arm) for model, arm in combinations]
     if method == "grid":
         per_family = []
@@ -388,7 +388,7 @@ def _candidate_list(settings):
         return [(combinations[i % len(combinations)][0],
                  {name: _random_value(spec, rng) for name, spec in _spaces(settings, combinations[i % len(combinations)][0]["id"], combinations[i % len(combinations)][1]).items()},
                  combinations[i % len(combinations)][1]) for i in range(budget)]
-    raise JobError("OPTIMIZATION", "Desteklenmeyen arama yöntemi.")
+    raise JobError("OPTIMIZATION", "Unsupported search method.")
 
 
 def _search(X, y, ids, coordinates, groups, covariates, settings, *, crs, role, audit, trials, check_cancel):
@@ -396,12 +396,12 @@ def _search(X, y, ids, coordinates, groups, covariates, settings, *, crs, role, 
     opt = settings.get("optimization", {})
     metric = opt.get("metric", "rmse")
     if metric not in ("rmse", "mae"):
-        raise JobError("SEARCH_METRIC", "İç arama ölçütü rmse veya mae olmalıdır.")
+        raise JobError("SEARCH_METRIC", "The inner search metric must be rmse or mae.")
     start = time.monotonic()
     timeout = float(opt.get("timeout_seconds", 300))
     n_jobs = int(opt.get("n_jobs", 1))
     if n_jobs < 1:
-        raise JobError("SEARCH_JOBS", "Arama işçi sayısı pozitif olmalıdır.")
+        raise JobError("SEARCH_JOBS", "The number of search workers must be positive.")
     def evaluate(number, model, params, selection_method):
         check_cancel()
         trial_start = time.monotonic()
@@ -439,7 +439,7 @@ def _search(X, y, ids, coordinates, groups, covariates, settings, *, crs, role, 
                 record["inner_fold_metrics"].append(inner_record)
             loss = float(np.mean(np.abs(errors))) if metric == "mae" else float(np.sqrt(np.mean(np.square(errors))))
             if not np.isfinite(loss):
-                raise JobError("SEARCH_LOSS", "İç arama kaybı sonlu değil.")
+                raise JobError("SEARCH_LOSS", "The inner search loss is not finite.")
             record.update(status="complete", value=loss, validation_status="complete", validation_reason=None,
                 validation_metrics=_point_metrics(record["validation_predictions"]),
                 validation_per_repeat=[{"repeat": repeat, **_point_metrics([r for r in record["validation_predictions"] if r["repeat"] == repeat])}
@@ -462,7 +462,7 @@ def _search(X, y, ids, coordinates, groups, covariates, settings, *, crs, role, 
         models = settings.get("model_candidates") or [settings["model"]]
         arms = _selection_arms(settings)
         if int(opt.get("trials", 10)) < len(models) * len(arms):
-            raise JobError("SEARCH_BUDGET", "Deneme sayısı model ailesi ve seçim kolu birleşimlerinin sayısından az olamaz.")
+            raise JobError("SEARCH_BUDGET", "The number of trials cannot be less than the number of model family and selection arm combinations.")
         sampler = optuna.samplers.TPESampler(seed=int(opt.get("seed", 42)))
         study = optuna.create_study(direction="minimize", sampler=sampler)
         lookup = {model["id"]: model for model in models}
@@ -529,10 +529,10 @@ def _search(X, y, ids, coordinates, groups, covariates, settings, *, crs, role, 
         expected = {(model["id"], arm) for model in (settings.get("model_candidates") or [settings["model"]]) for arm in _selection_arms(settings)}
         attempted = {(record["model"]["id"], record["feature_selection_method"]) for record in records}
         if not expected <= attempted:
-            raise JobError("SEARCH_COMPARISON_INCOMPLETE", "Süre sınırı nedeniyle seçilmiş ve seçimsiz yöntemlerin bütün karşılaştırma kolları denenemedi.")
+            raise JobError("SEARCH_COMPARISON_INCOMPLETE", "Because of the time limit, not all comparison arms with and without selection could be tried.")
     if not successful:
         failures = [t.get("error", "") for t in trials if t["role"] == role]
-        raise JobError("SEARCH_FAILED", "İç aramada başarılı aday yok. " + (failures[0] if failures else "Süre veya deneme sınırı doldu."))
+        raise JobError("SEARCH_FAILED", "No successful candidate in the inner search. " + (failures[0] if failures else "The time or trial limit was reached."))
     best = min(successful, key=lambda row: (row[0], row[1]))
     for record in trials:
         if record["role"] == role:
@@ -608,9 +608,9 @@ def evaluate_nested(X, y, ids, coordinates, groups, covariates, settings, *, crs
     X, y = np.asarray(X, dtype=float), np.asarray(y, dtype=float)
     coordinates, groups = np.asarray(coordinates), np.asarray(groups)
     if settings.get("uncertainty", {}).get("method") == "spatial_conformal" and settings.get("optimization", {}).get("n_jobs", 1) != 1:
-        raise JobError("SPATIAL_PARALLELISM", "Deneysel mekânsal kalibrasyonda arama işçi sayısı 1 olmalıdır.")
+        raise JobError("SPATIAL_PARALLELISM", "With experimental spatial calibration, the number of search workers must be 1.")
     if y.ndim != 1 or not np.isfinite(y).all() or X.shape != (len(ids), len(covariates)) or len(y) != len(ids):
-        raise JobError("EVALUATION_INPUT", "Değerlendirme matrisi, hedef ve kimlikler uyuşmuyor.")
+        raise JobError("EVALUATION_INPUT", "The evaluation matrix, target and IDs do not match.")
     folds = make_folds(ids, coordinates, groups, settings["validation"], crs=crs,check_cancel=check_cancel)
     oof, fold_metrics, trials, learning_audit = [], [], [], []
     permutation_folds=[]
@@ -638,7 +638,7 @@ def evaluate_nested(X, y, ids, coordinates, groups, covariates, settings, *, crs
             coverage_folds.extend(level_summaries)
             coverage_predictions.extend(level_predictions)
             fold_metrics.append({"repeat": fold["repeat"], "fold": fold["fold"], "metrics": _row_metrics(rows, coverage), "model_record": record})
-            progress("evaluation", number + 1, len(folds) + 1, "Dış kat %d/%d tamamlandı." % (number + 1, len(folds)))
+            progress("evaluation", number + 1, len(folds) + 1, "Outer fold %d/%d completed." % (number + 1, len(folds)))
         independent_ids = settings["validation"].get("independent_ids", [])
         development_ids = sorted(set(ids) - set(independent_ids))
         development, independent = indices_for(ids, development_ids), indices_for(ids, independent_ids)
@@ -666,7 +666,7 @@ def evaluate_nested(X, y, ids, coordinates, groups, covariates, settings, *, crs
         "scope": "fixed fitted models; same separate calibration observations; no refit; empirical coverage, not a spatial guarantee",
         "predictions": coverage_predictions, "independent_predictions": independent_coverage_predictions}
     check_cancel()
-    progress("evaluation", len(folds) + 1, len(folds) + 1, "İç içe değerlendirme ve son model tamamlandı.")
+    progress("evaluation", len(folds) + 1, len(folds) + 1, "Nested evaluation and final model completed.")
     comparison = {}
     if oof and all('plain_predicted' in r for r in oof):
         comparison = {'scope':'same fitted base; hybrid settings; no independent baseline tuning; no significance test',
@@ -698,7 +698,7 @@ def save_trusted_model(model, path, run_id, covariates):
     path = Path(path)
     meta_path = path.with_suffix(path.suffix + ".meta.json")
     if path.exists() or meta_path.exists():
-        raise JobError("MODEL_EXISTS", "Model dosyası üzerine yazılamaz.")
+        raise JobError("MODEL_EXISTS", "The model file cannot be overwritten.")
     joblib.dump(model, path, compress=3)
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     metadata = {"schema_version": 1, "run_id": run_id, "sha256": digest, "covariates": _schema(covariates), "versions": _versions(),
@@ -712,12 +712,12 @@ def load_trusted_model(path, expected_run_id, covariates, expected_sha256):
     meta_path = path.with_suffix(path.suffix + ".meta.json")
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     if not isinstance(expected_sha256, str) or digest != expected_sha256:
-        raise JobError("MODEL_HASH", "Model dosyasının özeti beklenen değerle uyuşmuyor.")
+        raise JobError("MODEL_HASH", "The model file digest does not match the expected value.")
     metadata = json.loads(meta_path.read_text(encoding="utf-8"))
     if metadata.get("sha256") != digest or metadata.get("run_id") != expected_run_id or metadata.get("schema_version") != 1:
-        raise JobError("MODEL_PROVENANCE", "Model çalışma kimliği veya kaynak özeti uyuşmuyor.")
+        raise JobError("MODEL_PROVENANCE", "The model run ID or source digest does not match.")
     if metadata.get("covariates") != _schema(covariates):
-        raise JobError("MODEL_SCHEMA", "Model açıklayıcı değişken şeması veya sırası uyuşmuyor.")
+        raise JobError("MODEL_SCHEMA", "The covariate schema or order of the model does not match.")
     if metadata.get("versions") != _versions():
-        raise JobError("MODEL_VERSIONS", "Model kitaplık sürümleri çalışma ortamıyla uyuşmuyor.")
+        raise JobError("MODEL_VERSIONS", "The library versions of the model do not match the runtime environment.")
     return joblib.load(path)

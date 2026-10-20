@@ -46,6 +46,7 @@ def main():
     evidence += list((ROOT/'build/arcmap-evidence/logs').glob('*_42532.log'))
     evidence += list((ROOT/'build/arcmap-evidence/logs').glob('*_35072.log'))
     evidence += list((ROOT/'build').glob('*c*.xml'))
+    # ASAMA_C_KABUL.md is the recorded Turkish stage C acceptance report; keep the file name as recorded.
     evidence += [ROOT/'build/c-review-final.md',ROOT/'build/c-tested-sources.json',ROOT/'ASAMA_C_KABUL.md']
     archive(DEST/'acceptance-evidence-stage-c.zip', evidence)
     record = {'sha256':sha(package),'ui_tested_sha256':sha(tested),'changes':changes,

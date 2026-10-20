@@ -18,6 +18,7 @@ def main():
     out.mkdir(parents=True,exist_ok=False)
     env=os.environ.copy();env.update({'PYTHONHOME':r'Z:\not-a-python-installation','PYTHONPATH':r'Z:\not-an-import-path','PATH':str(Path(os.environ['SystemRoot'])/'System32'),'TABPFN_DISABLE_TELEMETRY':'1','DO_NOT_TRACK':'1','HF_HUB_OFFLINE':'1'})
     env.pop('SPS_START_GATE',None)
+    # The Turkish covariate names are Unicode test data; keep them as is.
     req={'schema_version':2,'run_id':'portable_preview','task':'regression','action':'preview',
          'samples':{'path':str(root/'examples/samples.geojson'),'id_field':'sample_id','target_field':'soil_value','unit':'g/kg'},
          'covariates':[{'id':'a','name':'Türkçe yükselti ıİğĞşŞ','unit':'m','path':str(root/'examples/covariates.tif'),'band':1,'kind':'continuous'},

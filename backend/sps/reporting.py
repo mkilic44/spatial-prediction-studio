@@ -26,40 +26,40 @@ from .contract import JobError
 
 
 METRIC_LABELS = {
-    "rmse": "ortalama kare hatanın karekökü",
-    "mae": "ortalama mutlak hata", "me": "ortalama hata", "bias": "ortalama hata", "mean_error": "ortalama hata",
-    "r2": "belirleme katsayısı (R²)", "coverage": "ampirik kapsama oranı",
-    "mean_width": "ortalama aralık genişliği", "median_width": "medyan aralık genişliği",
-    "lower_miss_rate": "alt sınırın altında kalma oranı",
-    "upper_miss_rate": "üst sınırın üstünde kalma oranı", "interval_score": "aralık skoru",
-    "below_lower_fraction": "alt sınırın altında kalma oranı",
-    "above_upper_fraction": "üst sınırın üstünde kalma oranı", "nominal_coverage": "istenen kapsama oranı",
-    "r2_reason": "belirleme katsayısının durumu",
-    "crossing_count": "kesişen kantil sayısı",
-    "rmse_defined_folds": "kare hata ölçütü hesaplanan kat sayısı",
-    "mae_defined_folds": "mutlak hata ölçütü hesaplanan kat sayısı",
-    "mean_error_defined_folds": "ortalama hata hesaplanan kat sayısı",
-    "r2_defined_folds": "belirleme katsayısı tanımlı kat sayısı",
-    "repeat": "tekrar", "fold": "kat",
-    "pinball_lower": "alt kantil kaybı", "pinball_upper": "üst kantil kaybı",
-    "n": "değerlendirme kaydı sayısı", "n_unique": "tekil gözlem sayısı",
-    "available_subset": "Yalnız aralığı hesaplanan gözlemler",
-    "available_n": "aralığı hesaplanan kayıt", "unavailable_n": "aralığı hesaplanamayan kayıt",
-    "available_fraction": "aralık hesaplanabilen kayıtların payı",
-    "coverage_denominator": "kapsama oranının paydası",
-    "availability_denominator": "aralık hesaplanabilme payının paydası",
+    "rmse": "root mean squared error (RMSE)",
+    "mae": "mean absolute error (MAE)", "me": "mean error (ME)", "bias": "mean error (ME)", "mean_error": "mean error (ME)",
+    "r2": "coefficient of determination (R²)", "coverage": "empirical coverage",
+    "mean_width": "mean interval width", "median_width": "median interval width",
+    "lower_miss_rate": "fraction below the lower bound",
+    "upper_miss_rate": "fraction above the upper bound", "interval_score": "interval score",
+    "below_lower_fraction": "fraction below the lower bound",
+    "above_upper_fraction": "fraction above the upper bound", "nominal_coverage": "nominal coverage",
+    "r2_reason": "status of the coefficient of determination",
+    "crossing_count": "number of crossing quantiles",
+    "rmse_defined_folds": "number of folds with a computed squared error metric",
+    "mae_defined_folds": "number of folds with a computed absolute error metric",
+    "mean_error_defined_folds": "number of folds with a computed mean error",
+    "r2_defined_folds": "number of folds with a defined coefficient of determination",
+    "repeat": "repeat", "fold": "fold",
+    "pinball_lower": "lower pinball loss", "pinball_upper": "upper pinball loss",
+    "n": "number of evaluation records", "n_unique": "number of unique observations",
+    "available_subset": "Only observations with a computed interval",
+    "available_n": "records with a computed interval", "unavailable_n": "records whose interval could not be computed",
+    "available_fraction": "fraction of records with a computable interval",
+    "coverage_denominator": "coverage denominator",
+    "availability_denominator": "denominator of the fraction with a computable interval",
 }
-SCOPE_LABELS = {"pooled_oof": "Birleştirilmiş kat dışı değerlendirme", "per_repeat": "Tekrar bazında değerlendirme",
-                "fold_mean": "Kat ölçütlerinin ortalaması", "independent": "Kilitli bağımsız test"}
-METHOD_LABELS = {"random": "rastgele katlar", "repeated": "tekrarlı rastgele katlar", "group": "gruplu katlar",
-                 "spatial_block": "mekânsal bloklar", "buffered": "tamponlu mekânsal bloklar", "custom": "kullanıcı tanımlı katlar",'knndm':'en yakın komşu uzaklığı eşleştirmeli katlar',
-                 "none": "uygulanmadı", "split_conformal": "bölünmüş konformal tahmin", "quantile_forest": "kantil regresyon ormanı",
-                 "quantile_boosting": "kantil kayıplı gradyan artırma", "cqr": "konformalize kantil regresyonu",
-                 "spatial_conformal": "mekânsal ağırlıklı konformal tahmin (deneysel)",
-                 "temporal": "zaman sıralı ve grupları ayıran doğrulama"}
+SCOPE_LABELS = {"pooled_oof": "Pooled out-of-fold evaluation", "per_repeat": "Per-repeat evaluation",
+                "fold_mean": "Mean of fold metrics", "independent": "Locked independent test set"}
+METHOD_LABELS = {"random": "random k-fold", "repeated": "repeated random k-fold", "group": "grouped k-fold",
+                 "spatial_block": "spatial blocks", "buffered": "buffered spatial blocks", "custom": "user-defined folds",'knndm':'k-fold nearest neighbor distance matching (kNNDM)',
+                 "none": "not applied", "split_conformal": "split conformal prediction", "quantile_forest": "quantile regression forest",
+                 "quantile_boosting": "gradient boosting with quantile loss", "cqr": "conformalized quantile regression (CQR)",
+                 "spatial_conformal": "spatially weighted conformal prediction (experimental)",
+                 "temporal": "time-ordered validation that keeps groups separate"}
 COLORS = ["#0072B2", "#D55E00", "#009E73", "#CC79A7", "#000000"]
 MARKERS = ["o", "s", "^", "D", "v", "P", "X"]
-COVERAGE_SCOPES = {"pooled_oof": "Birleştirilmiş kat dışı", "per_repeat": "Tekrar", "outer_folds": "Dış kat", "independent": "Kilitli test"}
+COVERAGE_SCOPES = {"pooled_oof": "Pooled out-of-fold", "per_repeat": "Repeat", "outer_folds": "Outer fold", "independent": "Locked test set"}
 
 
 def _normal(value, path="", issues=None):
@@ -74,19 +74,19 @@ def _normal(value, path="", issues=None):
     if isinstance(value, float):
         if math.isfinite(value):
             return value
-        reason = "Sayı tanımsız." if math.isnan(value) else "Sayı sonlu değil."
+        reason = "The number is undefined." if math.isnan(value) else "The number is not finite."
         issues.append({"path": path, "reason": reason, "status": "undefined"})
         return None
     if isinstance(value, Path):
         return str(value)
     if isinstance(value, dict):
         if any(not isinstance(key, (str, int)) for key in value):
-            raise JobError("REPORT_SERIALIZATION", "Rapor alan adları metin veya tamsayı olmalıdır.")
+            raise JobError("REPORT_SERIALIZATION", "Report field names must be text or integers.")
         return {str(key): _normal(item, path + "." + str(key) if path else str(key), issues)
                 for key, item in value.items()}
     if isinstance(value, (list, tuple)):
         return [_normal(item, path + "[%d]" % i, issues) for i, item in enumerate(value)]
-    raise JobError("REPORT_SERIALIZATION", "Rapor nesnesi desteklenmiyor: " + path)
+    raise JobError("REPORT_SERIALIZATION", "Unsupported report object: " + path)
 
 
 def _number(value):
@@ -100,23 +100,23 @@ def _coverage_rows(evaluation):
     """Keep unavailable levels explicit; never substitute a smaller fold subset."""
     diagnostics = evaluation.get("coverage_diagnostics", {})
     if not isinstance(diagnostics, dict):
-        raise JobError("REPORT_COVERAGE", "Kapsama tanıları nesne olmalıdır.")
+        raise JobError("REPORT_COVERAGE", "Coverage diagnostics must be an object.")
     result = []
     for scope in COVERAGE_SCOPES:
         for row in diagnostics.get(scope, []):
             if not isinstance(row, dict) or row.get("status") not in ("available", "partial", "unavailable"):
-                raise JobError("REPORT_COVERAGE", "Kapsama düzeyinin hesaplanma durumu açık olmalıdır.")
+                raise JobError("REPORT_COVERAGE", "The computation status of each coverage level must be explicit.")
             nominal = _number(row.get("nominal_coverage"))
             if not math.isfinite(nominal) or not 0 < nominal < 1:
-                raise JobError("REPORT_COVERAGE", "İstenen kapsama düzeyi 0 ile 1 arasında olmalıdır.")
+                raise JobError("REPORT_COVERAGE", "The nominal coverage level must be between 0 and 1.")
             if row["status"] == "available":
                 actual = _number(row.get("coverage"))
                 if not math.isfinite(actual) or not 0 <= actual <= 1:
-                    raise JobError("REPORT_COVERAGE", "Ampirik kapsama oranı 0 ile 1 arasında olmalıdır.")
+                    raise JobError("REPORT_COVERAGE", "Empirical coverage must be between 0 and 1.")
                 if not _number(row.get("n")) > 0 or not 0 < _number(row.get("group_count")) <= _number(row.get("n")):
-                    raise JobError("REPORT_COVERAGE", "Kapsama tablosunda gözlem ve grup sayısı geçersiz.")
+                    raise JobError("REPORT_COVERAGE", "The coverage table has invalid observation or group counts.")
             elif not row.get("reason"):
-                raise JobError("REPORT_COVERAGE", "Hesaplanamayan kapsama düzeyi için açıklama gereklidir.")
+                raise JobError("REPORT_COVERAGE", "A coverage level that could not be computed requires an explanation.")
             if row["status"] == "partial":
                 n, available, unavailable, groups, available_groups = [
                     _number(row.get(key)) for key in ("n", "available_n", "unavailable_n", "group_count", "available_group_count")]
@@ -137,7 +137,7 @@ def _coverage_rows(evaluation):
                         if key in subset and not (math.isfinite(_number(subset[key])) and _number(subset[key]) >= 0):
                             valid = False
                 if not valid:
-                    raise JobError("REPORT_COVERAGE", "Kısmi aralık kapsamının paydası, sayıları veya ölçütleri tutarsız.")
+                    raise JobError("REPORT_COVERAGE", "The denominator, counts or metrics of partial interval coverage are inconsistent.")
             result.append({**row, "scope": scope})
     return result
 
@@ -147,7 +147,7 @@ def _validate(evaluation, samples, settings):
     ids = samples.get("ids", [])
     coordinates = np.asarray(samples.get("coordinates"), dtype=float)
     if len(ids) != len(set(ids)) or coordinates.shape != (len(ids), 2) or not np.isfinite(coordinates).all():
-        raise JobError("REPORT_SAMPLES", "Rapor gözlemleri ve koordinatları tutarsız.")
+        raise JobError("REPORT_SAMPLES", "Report observations and coordinates are inconsistent.")
     known = set(ids)
     independent = set(settings.get("validation", {}).get("independent_ids", []))
     groups = {}
@@ -157,17 +157,17 @@ def _validate(evaluation, samples, settings):
         seen = set()
         for row in rows:
             if row.get("sample_id") not in known:
-                raise JobError("REPORT_SAMPLE_ID", "Rapor, veride olmayan gözlem kimliği içeriyor.")
+                raise JobError("REPORT_SAMPLE_ID", "The report contains an observation ID that is not in the data.")
             if (source == "oof" and row["sample_id"] in independent) or (source == "independent_predictions" and row["sample_id"] not in independent):
-                raise JobError("REPORT_INDEPENDENCE", "Tahminin rolü kilitli bağımsız test kimlikleriyle uyuşmuyor.")
+                raise JobError("REPORT_INDEPENDENCE", "The prediction role does not match the locked independent test set IDs.")
             key = (row.get("repeat", 0), row["sample_id"])
             if key in seen:
-                raise JobError("REPORT_DUPLICATE", "Bir gözlem aynı tekrarda birden fazla test tahmini taşıyor.")
+                raise JobError("REPORT_DUPLICATE", "An observation has more than one test prediction in the same repeat.")
             seen.add(key)
             observed, predicted, residual = [_number(row.get(name)) for name in ("observed", "predicted", "residual")]
             if all(math.isfinite(value) for value in (observed, predicted, residual)) and not math.isclose(
                     residual, predicted - observed, rel_tol=1e-9, abs_tol=1e-10):
-                raise JobError("REPORT_RESIDUAL", "Artık işareti veya değeri tutarsız; artık tahmin eksi gözlem olmalıdır.")
+                raise JobError("REPORT_RESIDUAL", "The residual sign or value is inconsistent; the residual must be prediction minus observation.")
             if "lower" in row and "upper" in row:
                 lower, upper = _number(row["lower"]), _number(row["upper"])
                 if settings.get('uncertainty',{}).get('method')=='spatial_conformal':
@@ -175,25 +175,25 @@ def _validate(evaluation, samples, settings):
                     valid=(status=='available' and math.isfinite(lower) and math.isfinite(upper)) or (
                         status=='unavailable' and row['lower'] is None and row['upper'] is None
                         and row.get('interval_width') is None and bool(row.get('reason_code')))
-                    if not valid:raise JobError('REPORT_INTERVAL','Yerel aralığın sınırları, durumu veya neden kodu tutarsız.')
+                    if not valid:raise JobError('REPORT_INTERVAL','The bounds, status or reason code of the local interval are inconsistent.')
                 if math.isfinite(lower) and math.isfinite(upper):
                     if lower > upper or ("interval_width" in row and not math.isclose(
                             _number(row["interval_width"]), upper - lower, rel_tol=1e-9, abs_tol=1e-10)):
-                        raise JobError("REPORT_INTERVAL", "Aralık sınırları veya genişliği tutarsız.")
+                        raise JobError("REPORT_INTERVAL", "Interval bounds or width are inconsistent.")
             group = row.get("group_id")
             if group is not None:
                 if row["sample_id"] in groups and groups[row["sample_id"]] != str(group):
-                    raise JobError("REPORT_GROUP", "Gözlemin grup kimliği sonuçlar arasında değişiyor.")
+                    raise JobError("REPORT_GROUP", "The group ID of an observation differs between results.")
                 groups[row["sample_id"]] = str(group)
         role_groups[source] = {str(row["group_id"]) for row in rows if row.get("group_id") is not None}
     if role_groups["oof"] & role_groups["independent_predictions"]:
-        raise JobError("REPORT_INDEPENDENCE", "Bağımsız test grubu kat dışı değerlendirmede kullanılmış.")
+        raise JobError("REPORT_INDEPENDENCE", "An independent test group was used in the out-of-fold evaluation.")
     for fold in evaluation.get("folds", []):
         train, test = set(fold["train_ids"]), set(fold["test_ids"])
         if train & test or (train | test) - known or (train | test) & independent:
-            raise JobError("REPORT_FOLD", "Rapor katlarında kimlik veya bağımsız test sınırı ihlali var.")
+            raise JobError("REPORT_FOLD", "The report folds violate an ID or independent test boundary.")
         if {groups[i] for i in train if i in groups} & {groups[i] for i in test if i in groups}:
-            raise JobError("REPORT_GROUP", "Rapor katlarında eğitim ve test grupları örtüşüyor.")
+            raise JobError("REPORT_GROUP", "Training and test groups overlap in the report folds.")
     for scope, source in [("pooled_oof", "oof"), ("independent", "independent_predictions")]:
         metric = evaluation.get("metrics", {}).get(scope, {})
         if not isinstance(metric, dict):
@@ -201,7 +201,7 @@ def _validate(evaluation, samples, settings):
         values = [_number(row.get("observed")) for row in evaluation.get(source, [])]
         values = [value for value in values if math.isfinite(value)]
         if (len(values) < 2 or (values and max(values) == min(values))) and math.isfinite(_number(metric.get("r2"))):
-            raise JobError("REPORT_R2", "Tek gözlem veya sabit hedef için sonlu belirleme katsayısı raporlanamaz.")
+            raise JobError("REPORT_R2", "A finite coefficient of determination cannot be reported for a single observation or a constant target.")
     return groups
 
 
@@ -221,7 +221,7 @@ def _csv_cell(value):
 
 def _write_csv(path, rows, default_columns=()):
     if any(not isinstance(row, dict) for row in rows):
-        raise JobError("REPORT_TABLE", "Rapor tablosunun her satırı nesne olmalıdır.")
+        raise JobError("REPORT_TABLE", "Each row of a report table must be an object.")
     columns = list(default_columns)
     for row in rows:
         columns.extend(key for key in row if key not in columns)
@@ -272,7 +272,7 @@ def _save_figure(figure, folder, name, dpi, record, check_cancel):
             metadata = {"Date": None} if extension == "svg" else {"Software": "Spatial Prediction Studio"}
             figure.savefig(path, format=extension, dpi=dpi, facecolor="white", transparent=False, metadata=metadata)
             if not path.is_file() or path.stat().st_size == 0:
-                raise JobError("REPORT_FIGURE", "Grafik dosyası oluşturulamadı.")
+                raise JobError("REPORT_FIGURE", "The figure file could not be created.")
     finally:
         figure.clear()
         # Release the large Agg raster buffer between 900 dpi exports.
@@ -287,7 +287,7 @@ def _plots(folder, evaluation, samples, unit, dpi, check_cancel):
     folder.mkdir()
     manifest = []
     reused = evaluation.get("independent_test_history", {}).get("settings_changed_since_previous", False)
-    for source, key, label in [("oof", "oof", "Kat dışı"), ("independent", "independent_predictions", "Yeniden kullanılmış test" if reused else "Bağımsız test")]:
+    for source, key, label in [("oof", "oof", "Out-of-fold"), ("independent", "independent_predictions", "Reused test set" if reused else "Independent test")]:
         rows = evaluation.get(key, [])
         if not rows:
             continue
@@ -298,33 +298,33 @@ def _plots(folder, evaluation, samples, unit, dpi, check_cancel):
         for kind in ("observed_predicted", "residual_predicted", "residual_histogram"):
             if kind == "observed_predicted":
                 finite = finite_pair
-                figure, axis = _plot_base(label + ": gözlenen ve tahmin edilen", "Gözlenen (" + unit + ")", "Tahmin edilen (" + unit + ")")
+                figure, axis = _plot_base(label + ": observed and predicted", "Observed (" + unit + ")", "Predicted (" + unit + ")")
                 axis.scatter(observed[finite], predicted[finite], s=26, alpha=0.8, color=COLORS[0], edgecolors="white", linewidths=0.4)
                 if finite.any():
                     lower = min(observed[finite].min(), predicted[finite].min())
                     upper = max(observed[finite].max(), predicted[finite].max())
                     pad = (upper - lower) * .05 if upper > lower else max(abs(lower) * .05, 1.0)
                     limits = [lower - pad, upper + pad]
-                    axis.plot(limits, limits, color="#333333", linestyle="--", linewidth=1, label="1:1 doğrusu")
+                    axis.plot(limits, limits, color="#333333", linestyle="--", linewidth=1, label="1:1 line")
                     axis.set_xlim(limits); axis.set_ylim(limits); axis.set_aspect("equal", adjustable="box")
                     axis.legend(loc="best")
             elif kind == "residual_predicted":
                 finite = np.isfinite(predicted) & np.isfinite(residual)
-                figure, axis = _plot_base(label + ": artıklar", "Tahmin edilen (" + unit + ")", "Tahmin - gözlem (" + unit + ")")
+                figure, axis = _plot_base(label + ": residuals", "Predicted (" + unit + ")", "Predicted - observed (" + unit + ")")
                 axis.scatter(predicted[finite], residual[finite], s=26, alpha=.8, color=COLORS[1], edgecolors="white", linewidths=.4)
                 axis.axhline(0, color="#333333", linestyle="--", linewidth=1)
             else:
                 finite = np.isfinite(residual)
-                figure, axis = _plot_base(label + ": artık dağılımı", "Tahmin - gözlem (" + unit + ")", "Tahmin kaydı sayısı")
+                figure, axis = _plot_base(label + ": residual distribution", "Predicted - observed (" + unit + ")", "Number of prediction records")
                 bins = np.histogram_bin_edges(residual[finite], bins="fd") if finite.any() else np.asarray([0, 1])
                 axis.hist(residual[finite], bins=bins, color=COLORS[0], edgecolor="white")
             omitted = int((~finite).sum())
-            axis.text(.02, .98, "Gösterilen: %d/%d kayıt" % (finite.sum(), len(rows)), transform=axis.transAxes, va="top", fontsize=8,
+            axis.text(.02, .98, "Shown: %d/%d records" % (finite.sum(), len(rows)), transform=axis.transAxes, va="top", fontsize=8,
                       bbox={"facecolor": "white", "edgecolor": "none", "alpha": .85})
             record = {"kind": kind, "source": source, "source_rows": len(rows), "plotted_rows": int(finite.sum()),
                       "nonfinite_rows": omitted, "unit": unit,
-                      "caption": label + (". Histogram sütunları sınıf aralığındaki tahmin kaydı sayısını gösterir. " if kind == "residual_histogram" else ". Her nokta bir değerlendirme kaydıdır. ") + "Artık, tahmin eksi gözlemdir. "
-                                 + ("Sonlu olmayan %d kayıt çizilmedi; kaynak tabloda korunuyor." % omitted if omitted else "Bütün sonlu kayıtlar gösterildi.")}
+                      "caption": label + (". Histogram bars show the number of prediction records in each bin. " if kind == "residual_histogram" else ". Each point is one evaluation record. ") + "The residual is prediction minus observation. "
+                                 + ("Nonfinite records not plotted: %d; they are kept in the source table." % omitted if omitted else "All finite records are shown.")}
             if kind == "residual_histogram":
                 record["bin_edges"] = bins.tolist()
                 record["bin_rule"] = "Freedman-Diaconis; left closed, last bin includes right edge"
@@ -332,15 +332,15 @@ def _plots(folder, evaluation, samples, unit, dpi, check_cancel):
     coordinates = np.asarray(samples["coordinates"], dtype=float)
     locations = dict(zip(samples["ids"], coordinates))
     crs = CRS.from_user_input(samples["crs"])
-    coord_unit = crs.axis_info[0].unit_name if crs.axis_info else "koordinat birimi"
-    coord_unit = {"metre": "m", "meter": "m", "foot": "ft", "US survey foot": "ABD ölçüm ayağı"}.get(coord_unit, coord_unit)
-    xlabel, ylabel = ("Boylam (derece)", "Enlem (derece)") if crs.is_geographic else ("X (" + coord_unit + ")", "Y (" + coord_unit + ")")
+    coord_unit = crs.axis_info[0].unit_name if crs.axis_info else "coordinate unit"
+    coord_unit = {"metre": "m", "meter": "m", "foot": "ft", "US survey foot": "US survey ft"}.get(coord_unit, coord_unit)
+    xlabel, ylabel = ("Longitude (degrees)", "Latitude (degrees)") if crs.is_geographic else ("X (" + coord_unit + ")", "Y (" + coord_unit + ")")
     repeats = sorted({row.get("repeat", 0) for row in evaluation.get("oof", [])} | {fold["repeat"] for fold in evaluation.get("folds", [])})
     finite_residuals = [_number(row.get("residual")) for row in evaluation.get("oof", [])]
     limit = max([abs(value) for value in finite_residuals if math.isfinite(value)] + [1e-12])
     for repeat in repeats:
         folds = sorted((fold for fold in evaluation.get("folds", []) if fold["repeat"] == repeat), key=lambda fold: fold["fold"])
-        figure, axis = _plot_base("Test katları: tekrar %d" % (repeat + 1), xlabel, ylabel)
+        figure, axis = _plot_base("Test folds: repeat %d" % (repeat + 1), xlabel, ylabel)
         total = 0
         for index, fold in enumerate(folds):
             points = np.asarray([locations[identity] for identity in fold["test_ids"]])
@@ -349,7 +349,7 @@ def _plots(folder, evaluation, samples, unit, dpi, check_cancel):
             total += len(points)
             axis.scatter(points[:, 0], points[:, 1], color=COLORS[index % len(COLORS)],
                          marker=MARKERS[index % len(MARKERS)], s=28,
-                         label="Kat %d" % (fold["fold"] + 1), edgecolors="#333333", linewidths=.35)
+                         label="Fold %d" % (fold["fold"] + 1), edgecolors="#333333", linewidths=.35)
         if total:
             axis.legend(loc="best", ncols=2 if len(folds) > 5 else 1, fontsize=8)
         axis.ticklabel_format(useOffset=False, style="plain")
@@ -357,12 +357,12 @@ def _plots(folder, evaluation, samples, unit, dpi, check_cancel):
         manifest.append(_save_figure(figure, folder, "folds_repeat_%d" % repeat, dpi,
                         {"kind": "fold_map", "source": "folds", "repeat": repeat, "source_rows": total,
                          "plotted_rows": total, "nonfinite_rows": 0, "crs": crs.to_string(),
-                         "caption": "Tekrar %d içindeki test katları. Sembol ve renk katı belirtir. Eğitim üyelikleri kat tablosundadır." % (repeat + 1)}, check_cancel))
+                         "caption": "Test folds in repeat %d. Symbol and color identify the fold. Training membership is in the fold table." % (repeat + 1)}, check_cancel))
         rows = [row for row in evaluation.get("oof", []) if row.get("repeat", 0) == repeat]
         residual = np.asarray([_number(row.get("residual")) for row in rows])
         finite = np.isfinite(residual)
         points = np.asarray([locations[row["sample_id"]] for row in rows])
-        figure, axis = _plot_base("Mekânsal artıklar: tekrar %d" % (repeat + 1), xlabel, ylabel)
+        figure, axis = _plot_base("Spatial residuals: repeat %d" % (repeat + 1), xlabel, ylabel)
         if finite.any():
             for mask, marker in [(finite & (residual < 0), "v"), (finite & (residual > 0), "^"), (finite & (residual == 0), "o")]:
                 if not mask.any():
@@ -370,7 +370,7 @@ def _plots(folder, evaluation, samples, unit, dpi, check_cancel):
                 scatter = axis.scatter(points[mask, 0], points[mask, 1], c=residual[mask], s=40, marker=marker,
                                        cmap="RdBu_r", norm=TwoSlopeNorm(vmin=-limit, vcenter=0, vmax=limit),
                                        edgecolors="#333333", linewidths=.4)
-            figure.colorbar(scatter, ax=axis, label="Tahmin - gözlem (" + unit + ")")
+            figure.colorbar(scatter, ax=axis, label="Predicted - observed (" + unit + ")")
         axis.ticklabel_format(useOffset=False, style="plain")
         axis.set_aspect("equal", adjustable="datalim")
         manifest.append(_save_figure(figure, folder, "residual_map_repeat_%d" % repeat, dpi,
@@ -378,7 +378,7 @@ def _plots(folder, evaluation, samples, unit, dpi, check_cancel):
                          "plotted_rows": int(finite.sum()), "nonfinite_rows": int((~finite).sum()),
                          "crs": crs.to_string(), "color_limits": [-limit, limit], "unit": unit,
                          "marker_encoding": "negative=triangle_down; positive=triangle_up; zero=circle",
-                         "caption": "Tekrar %d için kat dışı artıklar. Renk ölçeği sıfır merkezlidir ve bütün tekrarlarda aynıdır. Aşağı üçgen negatif, yukarı üçgen pozitif, daire sıfır artığı gösterir. Noktalar arasında enterpolasyon yapılmadı." % (repeat + 1)}, check_cancel))
+                         "caption": "Out-of-fold residuals for repeat %d. The color scale is centered on zero and is the same in all repeats. A downward triangle shows a negative residual, an upward triangle a positive residual and a circle a zero residual. No interpolation was done between points." % (repeat + 1)}, check_cancel))
     return manifest
 
 
@@ -387,18 +387,18 @@ def _coverage_plot(folder, evaluation, dpi, check_cancel):
     available = [row for row in rows if row["status"] == "available"]
     if not available:
         return []
-    figure, axis = _plot_base("İstenen ve ampirik kapsama", "İstenen kapsama oranı", "Ampirik kapsama oranı")
+    figure, axis = _plot_base("Nominal and empirical coverage", "Nominal coverage", "Empirical coverage")
     reused = evaluation.get("independent_test_history", {}).get("settings_changed_since_previous", False)
     for index, scope in enumerate(("pooled_oof", "independent")):
         values = [row for row in available if row["scope"] == scope]
         if values:
-            label = "Yeniden kullanılmış test" if scope == "independent" and reused else COVERAGE_SCOPES[scope]
+            label = "Reused test set" if scope == "independent" and reused else COVERAGE_SCOPES[scope]
             axis.scatter([row["nominal_coverage"] for row in values], [row["coverage"] for row in values],
                          s=50, color=COLORS[index], marker=MARKERS[index], edgecolors="#333333", linewidths=.4, label=label)
-    axis.plot([0, 1], [0, 1], linestyle="--", color="#333333", linewidth=1, label="İstenen = ampirik")
+    axis.plot([0, 1], [0, 1], linestyle="--", color="#333333", linewidth=1, label="Nominal = empirical")
     axis.set_xlim(-.02, 1.02); axis.set_ylim(-.02, 1.02)
     axis.set_aspect("equal", adjustable="box"); axis.legend(loc="lower right", fontsize=8)
-    caption = "Her sembol, sabit eğitilmiş modellerin bir kapsama düzeyindeki dış değerlendirmesidir. Hesaplanamayan düzeyler çizilmedi; nedenleri tabloda korunur. Tekrarlı kayıtlar bağımsız tekrar sayılmaz."
+    caption = "Each symbol is the outer evaluation of the fixed fitted models at one coverage level. Levels that could not be computed are not plotted; their reasons are kept in the table. Repeated records are not counted as independent replicates."
     record = {"kind": "coverage_calibration", "source": "coverage_diagnostics", "source_rows": len(rows),
               "plotted_rows": len(available), "unavailable_rows": len(rows) - len(available), "nonfinite_rows": 0,
               "values": available, "caption": caption}
@@ -407,9 +407,9 @@ def _coverage_plot(folder, evaluation, dpi, check_cancel):
 
 def _display(value):
     if value is None:
-        return "Tanımsız veya hesaplanmadı"
+        return "Undefined or not computed"
     if isinstance(value, bool):
-        return "Evet" if value else "Hayır"
+        return "Yes" if value else "No"
     if isinstance(value, float):
         return format(value, ".8g")
     if isinstance(value, (dict, list)):
@@ -426,23 +426,23 @@ def _metric_rows(value, prefix=""):
     """Readable metric scope labels; exact field paths remain in metrics.csv."""
     if isinstance(value, list):
         for index, record in enumerate(value):
-            label = "Tekrar %d" % (record.get("repeat", index) + 1) if isinstance(record, dict) else "Kayıt %d" % (index + 1)
+            label = "Repeat %d" % (record.get("repeat", index) + 1) if isinstance(record, dict) else "Record %d" % (index + 1)
             yield from _metric_rows(record, label + ": ")
     elif isinstance(value, dict):
         for key, item in value.items():
             if key == "repeat" and prefix:
                 continue
             if isinstance(item, (dict, list)):
-                label = "Tahmin aralığı" if key == "interval" else ("" if key == "metrics" else METRIC_LABELS.get(key, key))
+                label = "Prediction interval" if key == "interval" else ("" if key == "metrics" else METRIC_LABELS.get(key, key))
                 yield from _metric_rows(item, prefix + (label + ": " if label else ""))
             else:
                 if key == "r2_reason":
-                    item = {"constant_observed_target": "Gözlenen hedef sabit.", "fewer_than_two_observations": "İkiden az gözlem var."}.get(item, item)
+                    item = {"constant_observed_target": "The observed target is constant.", "fewer_than_two_observations": "There are fewer than two observations."}.get(item, item)
                     if item is None and math.isfinite(_number(value.get("r2"))):
-                        item = "Tanımlı"
+                        item = "Defined"
                 yield prefix + METRIC_LABELS.get(key, key), item
     else:
-        yield prefix or "Değerlendirme", value
+        yield prefix or "Evaluation", value
 
 
 def _training_rows(evaluation):
@@ -459,41 +459,41 @@ def _training_rows(evaluation):
 
 def _role_tables(evaluation):
     training = _training_rows(evaluation)
-    pieces = ['<h3>Eğitim sonuçları</h3><p>Eğitim verisine yeniden uygulanan model burada ayrı gösterilir. Bu sonuçlar doğrulama başarısı değildir.</p>',
-              _table(["Model", "Tekrar", "Kat", "Gözlem", METRIC_LABELS["rmse"], METRIC_LABELS["mae"], "Ortalama hata", "Belirleme katsayısı"],
-                     [("Nihai model" if row["scope"] == "final_model_training" else "Dış kat modeli",
+    pieces = ['<h3>Training results</h3><p>The model reapplied to its training data is shown separately here. These results are not validation performance.</p>',
+              _table(["Model", "Repeat", "Fold", "Observations", METRIC_LABELS["rmse"], METRIC_LABELS["mae"], "Mean error (ME)", "Coefficient of determination (R²)"],
+                     [("Final model" if row["scope"] == "final_model_training" else "Outer-fold model",
                        "" if row["repeat"] is None else row["repeat"] + 1, "" if row["fold"] is None else row["fold"] + 1,
                        row.get("n"), row.get("rmse"), row.get("mae"), row.get("mean_error"), row.get("r2")) for row in training]),
-              '<h3>İç doğrulama denemeleri</h3><p>Model ve ayar seçimi iç değerlendirmeye dayanır. Aşağıdaki süre, ilgili denemenin gerçekleşen süresidir.</p>',
-              _table(["Değerlendirme", "Deneme", "Model", "Değişken seçimi", "Bağlantı denetimi", "Ölçüt", "İç kayıp", "Durum", "Süre (s)", "Seçildi"],
-                     [(row.get("role"), int(row.get("trial", 0)) + 1, row.get("model", {}).get("id", "belirtilmedi"),
-                       "Seçim yok" if row.get("feature_selection_method") == "none" else row.get("feature_selection_method", "belirtilmedi"),
-                       {"off": "Kapalı", "diagnostic": "Yalnız tanı", "iterative": "İteratif eleme"}.get(row.get("vif_mode"), "belirtilmedi"),
+              '<h3>Inner validation trials</h3><p>Model and setting selection is based on the inner evaluation. The duration below is the actual duration of each trial.</p>',
+              _table(["Evaluation", "Trial", "Model", "Variable selection", "Multicollinearity check", "Metric", "Inner loss", "Status", "Duration (s)", "Selected"],
+                     [(row.get("role"), int(row.get("trial", 0)) + 1, row.get("model", {}).get("id", "not specified"),
+                       "No selection" if row.get("feature_selection_method") == "none" else row.get("feature_selection_method", "not specified"),
+                       {"off": "Off", "diagnostic": "Diagnostic only", "iterative": "Iterative elimination"}.get(row.get("vif_mode"), "not specified"),
                        METRIC_LABELS.get(row.get("metric"), row.get("metric")), row.get("value"),
-                       {"complete": "Tamamlandı", "failed": "Başarısız"}.get(row.get("status"), row.get("status", "belirtilmedi")),
-                       row.get("elapsed_seconds"), "Evet" if row.get("selected") else "Hayır") for row in evaluation.get("trials", [])]),
-              '<h3>Dış kat sonuçları</h3>',
-              _table(["Tekrar", "Kat", "Gözlem", METRIC_LABELS["rmse"], METRIC_LABELS["mae"], "Ortalama hata", "Belirleme katsayısı"],
+                       {"complete": "Completed", "failed": "Failed"}.get(row.get("status"), row.get("status", "not specified")),
+                       row.get("elapsed_seconds"), "Yes" if row.get("selected") else "No") for row in evaluation.get("trials", [])]),
+              '<h3>Outer-fold results</h3>',
+              _table(["Repeat", "Fold", "Observations", METRIC_LABELS["rmse"], METRIC_LABELS["mae"], "Mean error (ME)", "Coefficient of determination (R²)"],
                      [(row["repeat"] + 1, row["fold"] + 1, row.get("metrics", row).get("n"), row.get("metrics", row).get("rmse"),
                        row.get("metrics", row).get("mae"), row.get("metrics", row).get("mean_error"), row.get("metrics", row).get("r2"))
                       for row in evaluation.get("fold_metrics", [])])]
     if any(row.get("comparison_scope") == "selector_and_vif_elimination" for row in evaluation.get("trials", [])):
-        pieces.append('<p>Seçimsiz karşılaştırmada değişken seçimi ve varyans şişirme faktörüne dayalı eleme kapalıdır. Bağlantı denetimi yalnız tanı üretir.</p>')
+        pieces.append('<p>In the comparison without selection, variable selection and elimination based on the variance inflation factor (VIF) are turned off. The multicollinearity check produces diagnostics only.</p>')
     searches = defaultdict(list)
     for row in evaluation.get("trials", []):
-        searches[row.get("role", "belirtilmedi")].append(row)
+        searches[row.get("role", "not specified")].append(row)
     if searches:
         summary_rows = []
         for role, rows in sorted(searches.items()):
             recorded = rows[-1].get("search_summary", {})
             elapsed = recorded.get("elapsed_seconds", max((_number(row.get("search_elapsed_seconds")) for row in rows
                 if math.isfinite(_number(row.get("search_elapsed_seconds")))), default=None))
-            reason = {"timeout_between_trials": "Denemeler arasında süre sınırı", "candidate_or_trial_budget_exhausted": "Aday listesi veya deneme bütçesi tamamlandı"}.get(
-                recorded.get("stop_reason"), "Sonlandırma nedeni kaydedilmedi")
+            reason = {"timeout_between_trials": "Time limit reached between trials", "candidate_or_trial_budget_exhausted": "Candidate list or trial budget exhausted"}.get(
+                recorded.get("stop_reason"), "Stop reason not recorded")
             summary_rows.append((role, len(rows), sum(row.get("status") == "failed" for row in rows), elapsed, reason))
-        pieces.extend(['<h3>Gerçekleşen arama bütçesi</h3>',
-            _table(["Arama", "Kaydedilen deneme", "Başarısız deneme", "Geçen toplam süre (s)", "Sonlandırma nedeni"], summary_rows),
-            '<p>Paralel denemelerin süreleri toplam çalışma süresi olarak toplanmaz. Süre sınırı denemeler arasında uygulanır; sürmekte olan tahminci eğitimi yarıda kesilmez.</p>'])
+        pieces.extend(['<h3>Search budget used</h3>',
+            _table(["Search", "Recorded trials", "Failed trials", "Total elapsed time (s)", "Stop reason"], summary_rows),
+            '<p>Durations of parallel trials are not summed as total run time. The time limit is applied between trials; a running estimator fit is not interrupted.</p>'])
     return pieces
 
 
@@ -515,19 +515,19 @@ def _preflight_tables(preflight, settings):
             else:
                 conditions.append((fold["repeat"] + 1, fold["fold"] + 1, item.get("id"), item.get("train_min"), item.get("train_max"),
                                    item.get("test_min"), item.get("test_max")))
-    pieces = ['<h2>Katların veri ve uzaklık özeti</h2>',
-              _table(["Tekrar", "Kat", "Eğitim gözlemi", "Test gözlemi", "Eğitim grubu", "Test grubu", "En kısa uzaklık (m)", "Medyan uzaklık (m)", "En uzun uzaklık (m)"], summary),
-              '<p>Uzaklıklar her test gözleminin en yakın eğitim gözlemine uzaklığıdır. Tanımlanmayan uzaklık sıfır anlamına gelmez.</p>',
-              '<h3>Çevresel koşullar</h3>',
-              _table(["Tekrar", "Kat", "Değişken", "Eğitim en küçük", "Eğitim en büyük", "Test en küçük", "Test en büyük"], conditions)]
+    pieces = ['<h2>Fold data and distance summary</h2>',
+              _table(["Repeat", "Fold", "Training observations", "Test observations", "Training groups", "Test groups", "Minimum distance (m)", "Median distance (m)", "Maximum distance (m)"], summary),
+              '<p>Distances are from each test observation to its nearest training observation. An undefined distance does not mean zero.</p>',
+              '<h3>Environmental conditions</h3>',
+              _table(["Repeat", "Fold", "Variable", "Training minimum", "Training maximum", "Test minimum", "Test maximum"], conditions)]
     if categories:
-        pieces.extend(['<h3>Kategorik çevresel koşullar</h3>',
-                       _table(["Tekrar", "Kat", "Değişken", "Eğitim kategorileri", "Test kategorileri", "Testte yeni kategoriler"], categories)])
+        pieces.extend(['<h3>Categorical environmental conditions</h3>',
+                       _table(["Repeat", "Fold", "Variable", "Training categories", "Test categories", "New categories in test"], categories)])
     missing = preflight.get("missing_fraction", [])
     covariates = settings.get("covariates", [])
     if missing:
-        pieces.extend(['<h3>Çevresel değişkenlerde eksik gözlem oranı</h3>',
-                       _table(["Değişken", "Eksik oranı"], [(covariates[i].get("id") if i < len(covariates) else "Değişken %d" % (i + 1), value)
+        pieces.extend(['<h3>Fraction of missing values in environmental covariates</h3>',
+                       _table(["Variable", "Missing fraction"], [(covariates[i].get("id") if i < len(covariates) else "Variable %d" % (i + 1), value)
                                                             for i, value in enumerate(missing)])])
     for fold in folds:
         warning = fold.get("diagnostics", {}).get("distance_warning") or fold.get("diagnostics", {}).get("warning")
@@ -537,11 +537,11 @@ def _preflight_tables(preflight, settings):
         pieces.append('<p class="note">' + html.escape(str(warning)) + '</p>')
     workload = preflight.get("workload", {})
     if workload:
-        labels = {"candidate_arms": "Aday model ailesi", "trial_budget": "Deneme bütçesi", "inner_folds": "İç kat",
-                  "outer_folds": "Dış kat", "estimated_pipeline_fits_upper_bound": "Tahmin edilen işlem hattı eğitimi üst sınırı",
-                  "extra_selector_fits_not_included": "Seçicinin ek eğitimleri sayıya dahil değil", "threads_per_fit": "Eğitim başına iş parçacığı"}
-        pieces.extend(['<h3>Öngörülen iş yükü</h3>', _table(["Bileşen", "Öngörü"], [(labels.get(key, key), value) for key, value in workload.items()]),
-                       '<p>Bu sayılar eğitimden önce hesaplanan iş yükü öngörüsüdür. Gerçekleşen deneme sayısı ve süreler ayrı tabloda verilmiştir.</p>'])
+        labels = {"candidate_arms": "Candidate model families", "trial_budget": "Trial budget", "inner_folds": "Inner folds",
+                  "outer_folds": "Outer folds", "estimated_pipeline_fits_upper_bound": "Estimated upper bound of pipeline fits",
+                  "extra_selector_fits_not_included": "Additional selector fits not included in the count", "threads_per_fit": "Threads per fit"}
+        pieces.extend(['<h3>Estimated workload</h3>', _table(["Component", "Estimate"], [(labels.get(key, key), value) for key, value in workload.items()]),
+                       '<p>These numbers are a workload estimate computed before training. The actual number of trials and the durations are given in a separate table.</p>'])
     return pieces
 
 
@@ -551,27 +551,27 @@ def _coverage_tables(evaluation):
         return []
     def status(row):
         if row["status"] == "unavailable":
-            return "Hesaplanamadı: " + str(row["reason"])
+            return "Could not be computed: " + str(row["reason"])
         if row["status"] == "partial":
-            return "Yalnız bazı gözlemlerde aralık hesaplandı: " + str(row["reason"])
-        return "Yetersiz ampirik kapsama" if row["coverage"] < row["nominal_coverage"] else "İstenen düzeye ulaştı (ampirik)"
-    pieces = ['<h3>Birden fazla düzeyde kapsama</h3>',
-              '<p>Aynı eğitilmiş modeller farklı kapsama düzeylerinde değerlendirilmiştir. Kalibrasyon gözlemleri bu değerlendirme tablosuna katılmaz. Hesaplanamayan düzeyler sıfırla veya yalnız uygun katların sonucuyla doldurulmaz.</p>',
-              _table(["Kapsam", "Tekrar", "Kat", "İstenen oran", "Ampirik oran", "Kayıt", "Grup", "Durum"],
+            return "Interval computed for only some observations: " + str(row["reason"])
+        return "Insufficient empirical coverage" if row["coverage"] < row["nominal_coverage"] else "Nominal level reached (empirical)"
+    pieces = ['<h3>Coverage at multiple levels</h3>',
+              '<p>The same fitted models were evaluated at different coverage levels. Calibration observations are not included in this evaluation table. Levels that could not be computed are not filled with zero or with results from suitable folds only.</p>',
+              _table(["Scope", "Repeat", "Fold", "Nominal coverage", "Empirical coverage", "Records", "Groups", "Status"],
                      [(COVERAGE_SCOPES[row["scope"]], row["repeat"] + 1 if row.get("repeat") is not None else "",
                        row["fold"] + 1 if row.get("fold") is not None else "", row["nominal_coverage"],
                        row.get("coverage") if row["status"] == "available" else None, row.get("n"), row.get("group_count"), status(row)) for row in rows]),
-              '<p>Yetersiz ampirik kapsama, gözlenen oranın istenen düzeyin altında kaldığını belirtir. Bu işaret tek başına istatistiksel anlamlılık testi değildir.</p>',
-              '<h3>Aralık genişliği ve aşım tanıları</h3>',
-              _table(["Kapsam", "İstenen oran", "Ortalama genişlik", "Medyan genişlik", "Alt aşım", "Üst aşım", "Alt kantil kaybı", "Üst kantil kaybı", "Aralık skoru"],
+              '<p>Insufficient empirical coverage means that the observed fraction is below the nominal level. This flag is not by itself a statistical significance test.</p>',
+              '<h3>Interval width and exceedance diagnostics</h3>',
+              _table(["Scope", "Nominal coverage", "Mean width", "Median width", "Below lower bound", "Above upper bound", "Lower pinball loss", "Upper pinball loss", "Interval score"],
                      [(COVERAGE_SCOPES[row["scope"]], row["nominal_coverage"], row.get("mean_width"), row.get("median_width"),
                        row.get("below_lower_fraction"), row.get("above_upper_fraction"), row.get("pinball_lower"), row.get("pinball_upper"), row.get("interval_score"))
                       for row in rows if row["status"] == "available"])]
     partial = [row for row in rows if row["status"] == "partial"]
     if partial:
-        pieces.extend(['<h3>Yalnız aralığı hesaplanan gözlemler</h3>',
-                       '<p class="note">Aşağıdaki kapsama oranının paydası yalnız aralığı hesaplanan kayıtlardır. Aralığı bulunmayan gözlemler bu orana dahil edilmez. Sonuç bütün gözlemlerin kapsaması değildir.</p>',
-                       _table(["Kapsam", "Tekrar", "Kat", "İstenen oran", "Toplam kayıt", "Aralık var", "Aralık yok", "Aralık hesaplanabilen pay", "Alt kümede kapsama", "Alt kümede ortalama genişlik", "Alt kümede aralık skoru"],
+        pieces.extend(['<h3>Only observations with a computed interval</h3>',
+                       '<p class="note">The denominator of the coverage below is only the records with a computed interval. Observations without an interval are not included in this fraction. The result is not the coverage of all observations.</p>',
+                       _table(["Scope", "Repeat", "Fold", "Nominal coverage", "Total records", "With interval", "Without interval", "Fraction with computable interval", "Coverage in subset", "Mean width in subset", "Interval score in subset"],
                               [(COVERAGE_SCOPES[r["scope"]], r.get("repeat"), r.get("fold"), r["nominal_coverage"], r["n"],
                                 r["available_n"], r["unavailable_n"], r["available_fraction"], r["available_subset"]["coverage"],
                                 r["available_subset"].get("mean_width"), r["available_subset"].get("interval_score")) for r in partial])])
@@ -579,167 +579,167 @@ def _coverage_tables(evaluation):
 
 
 def _html(evaluation, samples, settings, counts, figures, issues, study_section=""):
-    unit = str(settings.get("samples", {}).get("unit", "birim belirtilmedi"))
-    target = str(settings.get("samples", {}).get("target_field", "Hedef"))
+    unit = str(settings.get("samples", {}).get("unit", "unit not specified"))
+    target = str(settings.get("samples", {}).get("target_field", "Target"))
     validation = settings.get("validation", {})
     uncertainty = settings.get("uncertainty", {})
     history = evaluation.get("independent_test_history", {})
     reused = history.get("settings_changed_since_previous", False)
-    pieces = ['<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
+    pieces = ['<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
               '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src \'self\' data:; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'">',
-              '<title>Mekânsal tahmin değerlendirmesi</title><style>body{font-family:Segoe UI,Arial,sans-serif;color:#18222c;background:#fff;max-width:1100px;margin:2rem auto;padding:0 1rem;line-height:1.55}h1,h2{line-height:1.25}table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{border:1px solid #cad1d7;padding:.45rem;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#eef2f5}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f5f7;padding:1rem}figure{margin:2rem 0}img{max-width:100%;height:auto}.note{border-left:4px solid #006a99;padding:.6rem 1rem;background:#eef7fc}a{color:#005983}code{overflow-wrap:anywhere}</style></head><body>',
-              '<h1>Mekânsal tahmin değerlendirmesi</h1>',
-              '<p>Hedef: <strong>' + html.escape(target) + '</strong>. Birim: ' + html.escape(unit) + '.</p>',
-              '<p>Çalışma kimliği: ' + html.escape(str(settings.get("run_id", "belirtilmedi"))) + '.</p>',
-              '<h2>Veri ve değerlendirme kapsamı</h2>',
-              _table(["Kapsam", "Sayı"], [("Girdi gözlemi", counts["input_samples"]), ("Tekil kat dışı gözlem", counts["oof_unique_samples"]),
-                      ("Kat dışı tahmin kaydı", counts["oof_rows"]), ("Değerlendirilen tekrar", counts["oof_repeats"]),
-                      ("Tekil bağımsız test gözlemi", counts["independent_unique_samples"]),
-                      ("Sonuçlarda bildirilen ayrı grup", counts["reported_unique_groups"])]),
-              '<p class="note">Tekrarlar bağımsız örnek sayısı değildir. Grup sayısı yalnız seçilen bağımlılık alanlarına dayanır; mekânsal bağımsızlığı tek başına kanıtlamaz.</p>',
-              '<p>Örnek desteği: ' + html.escape({"point": "nokta", "composite": "kompozit örnek", "parcel_mean": "parsel ortalaması"}.get(samples.get("support"), "belirtilmedi")) + '. Derinlik: ' + html.escape(_display(samples.get("depth"))) +
-              '. Laboratuvar yöntemi: ' + html.escape(_display(samples.get("laboratory_method"))) + '.</p>',
-              '<h2>Doğruluk ölçütleri</h2>',
-              '<p>Ortalama hata ve grafiklerdeki artık, tahmin eksi gözlem olarak hesaplanır. Belirleme katsayısı negatif olabilir. Sabit hedefte veya tek gözlemde tanımsızdır.</p>',
-              '<p>Hata ölçütleri hedefin özgün birimindedir. Birleştirilmiş kat dışı ölçütler, kat ölçütlerinin ortalamasından ayrı verilir.</p>']
+              '<title>Spatial prediction evaluation</title><style>body{font-family:Segoe UI,Arial,sans-serif;color:#18222c;background:#fff;max-width:1100px;margin:2rem auto;padding:0 1rem;line-height:1.55}h1,h2{line-height:1.25}table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{border:1px solid #cad1d7;padding:.45rem;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#eef2f5}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f5f7;padding:1rem}figure{margin:2rem 0}img{max-width:100%;height:auto}.note{border-left:4px solid #006a99;padding:.6rem 1rem;background:#eef7fc}a{color:#005983}code{overflow-wrap:anywhere}</style></head><body>',
+              '<h1>Spatial prediction evaluation</h1>',
+              '<p>Target: <strong>' + html.escape(target) + '</strong>. Unit: ' + html.escape(unit) + '.</p>',
+              '<p>Run ID: ' + html.escape(str(settings.get("run_id", "not specified"))) + '.</p>',
+              '<h2>Data and evaluation scope</h2>',
+              _table(["Scope", "Count"], [("Input observations", counts["input_samples"]), ("Unique out-of-fold observations", counts["oof_unique_samples"]),
+                      ("Out-of-fold prediction records", counts["oof_rows"]), ("Evaluated repeats", counts["oof_repeats"]),
+                      ("Unique independent test observations", counts["independent_unique_samples"]),
+                      ("Distinct groups reported in the results", counts["reported_unique_groups"])]),
+              '<p class="note">Repeats do not count as independent samples. The group count is based only on the selected dependence fields; it does not by itself prove spatial independence.</p>',
+              '<p>Sample support: ' + html.escape({"point": "point", "composite": "composite sample", "parcel_mean": "parcel mean"}.get(samples.get("support"), "not specified")) + '. Depth: ' + html.escape(_display(samples.get("depth"))) +
+              '. Laboratory method: ' + html.escape(_display(samples.get("laboratory_method"))) + '.</p>',
+              '<h2>Accuracy metrics</h2>',
+              '<p>The mean error (ME) and the residual in the figures are computed as prediction minus observation. The coefficient of determination (R²) can be negative. It is undefined for a constant target or a single observation.</p>',
+              '<p>Error metrics are in the original unit of the target. Pooled out-of-fold metrics are reported separately from the mean of fold metrics.</p>']
     for scope, metrics in evaluation.get("metrics", {}).items():
         if scope not in SCOPE_LABELS:
             continue
-        title = "Yeniden kullanılmış test" if scope == "independent" and reused else SCOPE_LABELS.get(scope, scope)
+        title = "Reused test set" if scope == "independent" and reused else SCOPE_LABELS.get(scope, scope)
         pieces.append("<h3>" + html.escape(title) + "</h3>")
-        pieces.append(_table(["Ölçüt veya kayıt", "Değer"], _metric_rows(metrics)))
+        pieces.append(_table(["Metric or record", "Value"], _metric_rows(metrics)))
     pieces.extend(_role_tables(evaluation))
     pieces.extend(_preflight_tables(evaluation.get("preflight", {}), settings))
     if history:
-        pieces.append("<h3>Kilitli testin kullanım geçmişi</h3>")
-        pieces.append(_table(["Kayıt", "Değer"], [("Önceki değerlendirme sayısı", history.get("previous_evaluations", 0)),
-                             ("Önceki kullanımdan sonra ayarlar değişti", "Evet" if reused else "Hayır")]))
+        pieces.append("<h3>Use history of the locked test set</h3>")
+        pieces.append(_table(["Record", "Value"], [("Number of previous evaluations", history.get("previous_evaluations", 0)),
+                             ("Settings changed since previous use", "Yes" if reused else "No")]))
         if history.get("warning"):
             pieces.append('<p class="note">' + html.escape(str(history["warning"])) + '</p>')
         if reused:
-            pieces.append('<p class="note">Bu test verisi ayarlar değiştirildikten sonra yeniden kullanıldı. Sonuç, yeni ve bağımsız bir nihai başarı ölçümü olarak yorumlanamaz.</p>')
+            pieces.append('<p class="note">This test data was reused after the settings were changed. The result cannot be interpreted as a new, independent final performance measurement.</p>')
     if not counts["independent_unique_samples"]:
-        pieces.append('<p>Bağımsız test sonucu yoktur. Kat dışı değerlendirme bağımsız dış veriyle sınama olarak sunulmaz.</p>')
-    pieces.extend(['<h2>Doğrulama ve belirsizlik</h2>',
-                   '<p>Doğrulama yöntemi: ' + html.escape(METHOD_LABELS.get(validation.get("method"), str(validation.get("method", "belirtilmedi")))) +
-                   '. Kat sayısı: ' + html.escape(str(validation.get("n_splits", "belirtilmedi"))) +
-                   '. Tohum: ' + html.escape(str(validation.get("seed", "belirtilmedi"))) + '.</p>',
-                   '<p>Belirsizlik yöntemi: ' + html.escape(METHOD_LABELS.get(uncertainty.get("method", "none"), str(uncertainty.get("method")))) +
-                   '. İstenen kapsama oranı: ' + html.escape(_display(uncertainty.get("coverage"))) + '.</p>'])
+        pieces.append('<p>There is no independent test result. The out-of-fold evaluation is not presented as a test on independent external data.</p>')
+    pieces.extend(['<h2>Validation and uncertainty</h2>',
+                   '<p>Validation method: ' + html.escape(METHOD_LABELS.get(validation.get("method"), str(validation.get("method", "not specified")))) +
+                   '. Number of folds: ' + html.escape(str(validation.get("n_splits", "not specified"))) +
+                   '. Random seed: ' + html.escape(str(validation.get("seed", "not specified"))) + '.</p>',
+                   '<p>Uncertainty method: ' + html.escape(METHOD_LABELS.get(uncertainty.get("method", "none"), str(uncertainty.get("method")))) +
+                   '. Nominal coverage: ' + html.escape(_display(uncertainty.get("coverage"))) + '.</p>'])
     if uncertainty.get("method", "none") == "none":
-        pieces.append('<p>Tahmin aralığı üretilmedi. Nokta tahmininin doğruluk ölçütü, hücreye özgü belirsizlik değildir.</p>')
+        pieces.append('<p>No prediction interval was produced. An accuracy metric of the point prediction is not cell-specific uncertainty.</p>')
     else:
-        pieces.append('<p class="note">Nominal kapsama, mekânsal veya gruplu veride kesin kapsama güvencesi olarak yorumlanmaz. Kapsama ve aralık genişliği dış değerlendirmede birlikte okunmalıdır.</p>')
-        pieces.append('<p>Geliştirme, kalibrasyon ve test kimlikleri kayıt dosyalarında ayrı tutulur. Kalibrasyon hedefleri, model seçimi veya temel model eğitimi için kullanılmamalıdır.</p>')
-        pieces.append('<p>Toplam kapsama bütün değerlendirme kayıtlarını birleştirir. Koşullu kapsama, belirli çevresel koşullar içindeki kapsamadır. Seçilen altgruplar ayrı değerlendirilir; yeterli gözlem veya aralık yoksa kapsama hesaplanmaz.</p>')
-        pieces.append('<p>Dar aralık tek başına iyi sonuç değildir. Tahmin aralığı haritası, her hücrede doğruluğu kanıtlanmış bir ürün olarak yorumlanamaz.</p>')
+        pieces.append('<p class="note">Nominal coverage is not to be interpreted as an exact coverage guarantee for spatial or grouped data. Coverage and interval width must be read together in the outer evaluation.</p>')
+        pieces.append('<p>Development, calibration and test IDs are kept separate in the record files. Calibration targets must not be used for model selection or for training the underlying model.</p>')
+        pieces.append('<p>Overall coverage pools all evaluation records. Conditional coverage is the coverage within specific environmental conditions. Selected subgroups are evaluated separately; coverage is not computed if there are not enough observations or intervals.</p>')
+        pieces.append('<p>A narrow interval is not by itself a good result. The prediction interval map cannot be interpreted as a product with proven accuracy in every cell.</p>')
     pieces.extend(_coverage_tables(evaluation))
     if validation.get('method')=='temporal':
-        pieces.append('<h3>Zaman sırası ve değerlendirme sınırı</h3><p>İlk eğitim geçmişi dış katlarda sınanmaz. Birleştirilmiş doğruluk yalnız gerçekten sınanan gözlemlerden hesaplanır. Aynı profil ve çakışan tarih dönemleri bölünmez.</p>')
-        pieces.append('<p class="note">Sınama, sonraki tarihlerdeki yeni profil veya parselleri kapsar. Mekânsal aktarım ve zaman içindeki değişim ayrı ayrı ölçülmüş değildir. Sabit yardımcı rasterler, belirli bir gelecek tarihe ait haritayı doğrulamaz.</p>')
-        pieces.append(_table(['Kat','Eğitim başlangıcı','Eğitim sonu','Sınama başlangıcı','Sınama sonu','Sınama süresi (takvim günü)','Boş gün'],
+        pieces.append('<h3>Time order and evaluation limits</h3><p>The initial training history is not tested in the outer folds. Pooled accuracy is computed only from observations that were actually tested. The same profile and overlapping date periods are not split.</p>')
+        pieces.append('<p class="note">The test covers new profiles or parcels at later dates. Spatial transfer and change over time are not measured separately. Static covariate rasters do not validate a map for a specific future date.</p>')
+        pieces.append(_table(['Fold','Training start','Training end','Test start','Test end','Test duration (calendar days)','Gap days'],
             [(f['fold']+1,*[f.get('diagnostics',{}).get('temporal',{}).get(k) for k in ('train_start','train_end','test_start','test_end','test_calendar_days','gap_days')]) for f in evaluation.get('folds',[])]))
         temporal=evaluation.get('final_record',{}).get('temporal',{})
         if temporal:
-            pieces.append(_table(['Nihai modelin zaman kaydı','Değer'],[
-                ('Saat dilimi',temporal.get('timezone')),('Son kullanılan tarih',temporal.get('last_used_date')),
-                ('Geliştirme tarihleri',temporal.get('development_dates')),('Kalibrasyon tarihleri',temporal.get('calibration_dates')),
-                ('İstenen kalibrasyon grup oranı',temporal.get('requested_calibration_group_fraction')),
-                ('Gerçekleşen kalibrasyon grup oranı',temporal.get('actual_calibration_group_fraction')),
-                ('Gerçekleşen kalibrasyon gözlem oranı',temporal.get('actual_calibration_sample_fraction'))]))
-            pieces.append('<p>Kalibrasyon oranlarının paydası, takvim ve mekânsal boşluk uygulanmadan önceki model kurma altkümesidir. Dönemler bölünmediği için gerçekleşen oran değişebilir.</p>')
+            pieces.append(_table(['Time record of the final model','Value'],[
+                ('Time zone',temporal.get('timezone')),('Last date used',temporal.get('last_used_date')),
+                ('Development dates',temporal.get('development_dates')),('Calibration dates',temporal.get('calibration_dates')),
+                ('Requested calibration group fraction',temporal.get('requested_calibration_group_fraction')),
+                ('Actual calibration group fraction',temporal.get('actual_calibration_group_fraction')),
+                ('Actual calibration observation fraction',temporal.get('actual_calibration_sample_fraction'))]))
+            pieces.append('<p>The denominator of the calibration fractions is the model-building subset before the calendar and spatial gaps are applied. Because periods are not split, the actual fraction can differ.</p>')
     if uncertainty.get("method") == "spatial_conformal":
-        pieces.append('<p class="note">Bu deneysel uyarlama, ayrı kalibrasyon artıklarını uzaklığa göre ağırlıklandırır. Bant genişliği değerlendirmeden önce sabittir; dış test hedefleriyle seçilmez. Mekânsal kapsama güvencesi vermez.</p>')
-        pieces.append(_table(["Mekânsal kalibrasyon ayarı", "Değer"], [
-            ("Bant genişliği (metre)", uncertainty.get("spatial_bandwidth_m")),
-            ("Ağırlık işlevi", uncertainty.get("spatial_kernel")),
-            ("Asgari etkin gözlem sayısı", uncertainty.get("spatial_min_effective_n")),
-            ("Asgari etkin grup sayısı", uncertainty.get("spatial_min_groups"))]))
+        pieces.append('<p class="note">This experimental adaptation weights separate calibration residuals by distance. The bandwidth is fixed before evaluation; it is not selected with outer test targets. It gives no spatial coverage guarantee.</p>')
+        pieces.append(_table(["Spatial calibration setting", "Value"], [
+            ("Bandwidth (meters)", uncertainty.get("spatial_bandwidth_m")),
+            ("Weight function", uncertainty.get("spatial_kernel")),
+            ("Minimum effective number of observations", uncertainty.get("spatial_min_effective_n")),
+            ("Minimum effective number of groups", uncertainty.get("spatial_min_groups"))]))
     interval_support = evaluation.get("mapping_diagnostics", {}).get("interval_support")
     if interval_support:
-        pieces.append('<h3>Haritada yerel kalibrasyon desteği</h3>')
-        pieces.append(_table(["Kapsam", "Değer"], [
-            ("Geçerli girdi hücresi", interval_support["valid_input_pixels"]),
-            ("Aralık hesaplanan hücre", interval_support["available_input_pixels"]),
-            ("Yerel destek bulunmayan hücre", interval_support["unavailable_input_pixels"]),
-            ("Aralık hesaplanabilen hücrelerin payı", interval_support["available_fraction"])]))
-        pieces.append('<p>Payda, tahmin maskesi uygulanmadan önceki geçerli girdi hücreleridir. Bu pay, tahmin aralığının kapsama başarısı değildir. Yerel destek yoksa nokta tahmini korunur; yalnız aralık sınırları ve genişliği eksik bırakılır.</p>')
+        pieces.append('<h3>Local calibration support on the map</h3>')
+        pieces.append(_table(["Scope", "Value"], [
+            ("Valid input cells", interval_support["valid_input_pixels"]),
+            ("Cells with a computed interval", interval_support["available_input_pixels"]),
+            ("Cells without local support", interval_support["unavailable_input_pixels"]),
+            ("Fraction of cells with a computable interval", interval_support["available_fraction"])]))
+        pieces.append('<p>The denominator is the valid input cells before the prediction mask is applied. This fraction is not the coverage performance of the prediction interval. Where there is no local support, the point prediction is kept; only the interval bounds and width are left missing.</p>')
     subgroup=evaluation.get('subgroup_diagnostics',{})
     subrows=[{'scope':scope,**r} for scope in ('per_repeat','independent') for r in subgroup.get(scope,[])]
     if subrows:
-        pieces.append('<h2>Altgruplarda belirsizlik</h2><p>Her tekrar ayrı tutulur. Küçük gruplarda kapsama güvencesi çıkarılmaz. Kapsama farkları için anlamlılık testi yapılmadı.</p>')
-        pieces.append(_table(['Kapsam','Tekrar','Alan','Altgrup','Gözlem','Grup','Durum','Kapsama','Ortalama genişlik'],
+        pieces.append('<h2>Uncertainty in subgroups</h2><p>Each repeat is kept separate. No coverage guarantee is inferred for small groups. No significance test was done for coverage differences.</p>')
+        pieces.append(_table(['Scope','Repeat','Field','Subgroup','Observations','Groups','Status','Coverage','Mean width'],
             [(SCOPE_LABELS.get(r['scope'],r['scope']),r['repeat'],r['field'],r['subgroup'],r['n'],r['group_count'],(r.get('interval') or {}).get('status'),
               (r.get('interval') or {}).get('coverage'),(r.get('interval') or {}).get('mean_width')) for r in subrows]))
-    else:pieces.append('<p>Altgrup belirsizlik tanısı için alan seçilmedi.</p>')
+    else:pieces.append('<p>No field was selected for subgroup uncertainty diagnostics.</p>')
     importance=evaluation.get('permutation_importance',{})
     if importance.get('rows'):
-        pieces.append('<h2>Değişkenleri karıştırarak model açıklama</h2><p>Önem, sabit dış kat modelinin karıştırılmış girdideki hatası eksi aynı katın temel hatasıdır. İlişkili değişkenler önemi paylaşabilir. Sonuç nedensel değildir ve yeniden seçim için kullanılmadı.</p>')
-        pieces.append('<p>Satırlar arasında karıştırma grup içi veya mekânsal bağımlılığı korumaz. Tekrarların yayılımı güven aralığı değildir.</p>')
-        pieces.append(_table(['Tekrar','Değişken','Hata ölçütü','Ortalama önem','Durum'],
+        pieces.append('<h2>Model explanation by permuting variables</h2><p>Importance is the error of the fixed outer-fold model on permuted input minus the baseline error of the same fold. Correlated variables can share importance. The result is not causal and was not used for reselection.</p>')
+        pieces.append('<p>Permuting across rows does not preserve within-group or spatial dependence. The spread across repeats is not a confidence interval.</p>')
+        pieces.append(_table(['Repeat','Variable','Error metric','Mean importance','Status'],
             [(r.get('repeat'),r.get('feature'),r.get('metric'),r.get('importance_mean'),r.get('status')) for r in importance.get('per_repeat',[])]))
     applicability=evaluation.get('final_record',{}).get('applicability')
     if applicability:
-        pieces.append('<h2>Uygulanabilirlik alanı</h2><p>Çevresel temsil tanısı, CAST 1.0.4 ile doğrulanan Öklid uzaklığı hesabını kullanır. Seçilen sayısal tasarımda eşit ağırlık uygulanır. Kalibrasyon ve bağımsız test gözlemleri eşiği öğrenmez.</p>')
-        pieces.append('<p>Uygulanabilirlik rasterinde 1 alan içini, 0 alan dışını gösterir. Benzemezlik arttıkça eğitim koşullarından uzaklaşılır. Bu ürün tahmin aralığı veya hücre doğruluğu güvencesi değildir.</p>')
+        pieces.append('<h2>Area of applicability (AOA)</h2><p>The environmental representativeness diagnostic uses the Euclidean distance computation validated against CAST 1.0.4. Equal weights are applied in the selected numeric design. Calibration and independent test observations are not used to learn the threshold.</p>')
+        pieces.append('<p>In the applicability raster, 1 means inside the area and 0 means outside the area. Higher dissimilarity means greater distance from the training conditions. This product is not a prediction interval and does not guarantee cell accuracy.</p>')
     mapped_applicability=evaluation.get('mapping_diagnostics',{}).get('applicability_coverage')
     if mapped_applicability:
-        pieces.append('<h3>Haritada uygulanabilirlik kapsamı</h3>')
-        pieces.append(_table(['Kapsam','Değer'],[
-            ('Geçerli girdi hücresi',mapped_applicability['valid_input_pixels']),
-            ('Uygulanabilirlik alanı içindeki hücre',mapped_applicability['inside_pixels']),
-            ('Uygulanabilirlik alanı dışındaki hücre',mapped_applicability['outside_pixels']),
-            ('Alan içi: '+mapped_applicability['measure_label'],mapped_applicability['inside_fraction']),
-            ('Alan dışı: '+mapped_applicability['measure_label'],mapped_applicability['outside_fraction'])]))
+        pieces.append('<h3>Applicability coverage on the map</h3>')
+        pieces.append(_table(['Scope','Value'],[
+            ('Valid input cells',mapped_applicability['valid_input_pixels']),
+            ('Cells inside the area of applicability',mapped_applicability['inside_pixels']),
+            ('Cells outside the area of applicability',mapped_applicability['outside_pixels']),
+            ('Inside the area: '+mapped_applicability['measure_label'],mapped_applicability['inside_fraction']),
+            ('Outside the area: '+mapped_applicability['measure_label'],mapped_applicability['outside_fraction'])]))
         pieces.append('<p>'+html.escape(mapped_applicability['scope_limit'])+'</p>')
         pieces.append('<p class="note">'+html.escape(mapped_applicability['area_limit'])+'</p>')
         if mapped_applicability['status']=='no_valid_input_pixels':
-            pieces.append('<p>Geçerli girdi hücresi bulunmadığı için pay hesaplanmadı; sıfır olarak gösterilmedi.</p>')
-        pieces.append('<p>'+('Alan dışındaki tahmin ve aralık hücreleri maskelendi. Tanı rasterleri maskelenmedi.'
+            pieces.append('<p>The fraction was not computed because there are no valid input cells; it is not shown as zero.</p>')
+        pieces.append('<p>'+('Prediction and interval cells outside the area were masked. Diagnostic rasters were not masked.'
                              if mapped_applicability['prediction_mask_includes_outside_applicability'] else
-                             'Uygulanabilirlik alanı dışında kalan tahminler bu tanı nedeniyle maskelenmedi.')+'</p>')
+                             'This diagnostic did not mask predictions outside the area of applicability.')+'</p>')
     comparison=evaluation.get('plain_model_comparison',{})
     if comparison:
-        pieces.append('<h2>Artık kriging katkısı</h2><p>Yalın model ve hibrit aynı dış gözlemlerde karşılaştırılır. Yalın model, hibrit için seçilen ayarlarla kurulan aynı temel modeldir. Bağımsız biçimde yeniden optimize edilmiş bir karşılaştırıcı değildir.</p>')
-        pieces.append(_table(['Yöntem','Ortalama kare hatanın karekökü','Ortalama mutlak hata','Belirleme katsayısı'],
-            [(name,r.get('rmse'),r.get('mae'),r.get('r2')) for name,r in [('Yalın',comparison['pooled_oof_plain']),('Hibrit',comparison['pooled_oof_hybrid'])]]))
-    pieces.append('<p>Bu çalıştırmada Shapley katkı açıklamaları, Moran otokorelasyon sınaması ve tasarıma dayalı alan doğruluğu hesaplanmadı. Mekânsal kapsama güvencesi veya nedensel etki çıkarılmaz.</p>')
-    pieces.extend(['<h2>Grafikler</h2>',
-                   '<p>Bütün grafikler özgün hedef ölçeğini kullanır. Gözlem noktaları sıraya göre çizgiyle bağlanmaz. Mekânsal grafikler koordinatları gösterir; bir artık yüzeyi üretmez.</p>',
-                   '<p>Grafik baskı yoğunluğu inç başına %s noktadır (dpi); raster haritanın hücre boyutunu değiştirmez.</p>' % settings.get("mapping", {}).get("figure_dpi", 150)])
+        pieces.append('<h2>Contribution of residual kriging</h2><p>The base model and the hybrid are compared on the same outer test observations. The base model is the same underlying model, built with the settings selected for the hybrid. It is not an independently reoptimized comparator.</p>')
+        pieces.append(_table(['Method','Root mean squared error (RMSE)','Mean absolute error (MAE)','Coefficient of determination (R²)'],
+            [(name,r.get('rmse'),r.get('mae'),r.get('r2')) for name,r in [('Base model',comparison['pooled_oof_plain']),('Hybrid',comparison['pooled_oof_hybrid'])]]))
+    pieces.append('<p>Shapley value explanations, the Moran autocorrelation test and design-based map accuracy were not computed in this run. No spatial coverage guarantee or causal effect is inferred.</p>')
+    pieces.extend(['<h2>Figures</h2>',
+                   '<p>All figures use the original target scale. Observation points are not joined by lines in sequence. Spatial figures show coordinates; they do not produce a residual surface.</p>',
+                   '<p>Figure resolution is %s dots per inch (dpi); it does not change the cell size of the raster map.</p>' % settings.get("mapping", {}).get("figure_dpi", 150)])
     for figure in figures:
         caption = figure["caption"]
         pieces.append('<figure><img src="' + html.escape(figure["files"][1], quote=True) + '" alt="' + html.escape(caption, quote=True) +
-                      '"><figcaption>' + html.escape(caption) + ' <a href="' + html.escape(figure["files"][0], quote=True) + '">Vektörel grafik</a></figcaption></figure>')
+                      '"><figcaption>' + html.escape(caption) + ' <a href="' + html.escape(figure["files"][0], quote=True) + '">Vector graphic</a></figcaption></figure>')
     if issues:
-        pieces.append('<h2>Tanımsız veya sonlu olmayan sayılar</h2><p>Bu değerler sıfırla değiştirilmedi. Makine tarafından okunabilen kayıtta null olarak saklandı.</p>')
-        pieces.append(_table(["Alan", "Açıklama"], [(issue["path"], issue["reason"]) for issue in issues]))
+        pieces.append('<h2>Undefined or nonfinite numbers</h2><p>These values were not replaced with zero. They are stored as null in the machine-readable record.</p>')
+        pieces.append(_table(["Field", "Explanation"], [(issue["path"], issue["reason"]) for issue in issues]))
     final_record = evaluation.get("final_record", {})
     if final_record.get('experimental_model_diagnostics',{}).get('output_clamping_to_training_range'):
-        pieces.append('<p>RealMLP üretici ayarı, nokta tahminini eğitim hedef aralığında tutar. Bu model davranışı bütün katlarda korunmuştur; kullanıcıya ait fiziksel sınır uygulaması değildir.</p>')
+        pieces.append('<p>The RealMLP developer default keeps the point prediction within the training target range. This model behavior is kept in all folds; it is not an application of physical bounds set by the user.</p>')
     if final_record.get('model',{}).get('id')=='tabpfn':
-        pieces.append('<p>Built with PriorLabs-TabPFN. TabPFN 2.2.1 ve sabit v2 regresyon ağırlığı yerel işlemcide kullanıldı. Lisans: Prior Labs License 1.1.</p>')
+        pieces.append('<p>Built with PriorLabs-TabPFN. TabPFN 2.2.1 and the fixed v2 regression weights were used on the local CPU. License: Prior Labs License 1.1.</p>')
     selected = final_record.get("selected_features", final_record.get("selected_ids", []))
-    pieces.append('<h2>Nihai modelde kullanılan özellikler</h2>')
-    pieces.append(_table(["Sıra", "Özellik"], [(i + 1, value) for i, value in enumerate(selected)]))
+    pieces.append('<h2>Features used in the final model</h2>')
+    pieces.append(_table(["Order", "Feature"], [(i + 1, value) for i, value in enumerate(selected)]))
     pieces.append(study_section)
-    pieces.extend(['<h2>Nihai model kaydı</h2><pre>' + html.escape(json.dumps(final_record, ensure_ascii=False, indent=2)) + '</pre>',
-                   '<h2>Kullanılan ayarlar</h2><pre>' + html.escape(json.dumps(settings, ensure_ascii=False, indent=2)) + '</pre>',
-                   '<h2>İndirilebilir kayıtlar</h2><ul>'])
-    for filename, label in [("evaluation.json", "Değerlendirme ve sayısal durumlar"), ("metrics.csv", "Doğruluk ölçütleri"),
-                            ("oof_predictions.csv", "Kat dışı tahminler"), ("independent_predictions.csv", "Bağımsız test tahminleri"),
-                            ("validation_folds.csv", "Kat üyelikleri"), ("optimization_trials.csv", "Model arama denemeleri"),
-                            ("learning_audit.json", "Öğrenme sırasında kullanılan kimlikler"), ("final_record.json", "Nihai model ve değişkenler"),
-                            ("selected_features.csv", "Nihai modelde kullanılan özellikler"),
-                            ("training_metrics.csv", "Eğitim sonuçları"), ("coverage_diagnostics.csv", "Çok düzeyli kapsama tanıları"),
-                            ('subgroup_diagnostics.csv','Altgrup belirsizlik tanıları'),('permutation_summary.csv','Değişkenlerin permütasyon önemi'),('plain_model_comparison.csv','Yalın ve hibrit karşılaştırması'),
-                            ("figure_manifest.json", "Grafik verileri ve dışa aktarma bilgileri")]:
+    pieces.extend(['<h2>Final model record</h2><pre>' + html.escape(json.dumps(final_record, ensure_ascii=False, indent=2)) + '</pre>',
+                   '<h2>Settings used</h2><pre>' + html.escape(json.dumps(settings, ensure_ascii=False, indent=2)) + '</pre>',
+                   '<h2>Downloadable records</h2><ul>'])
+    for filename, label in [("evaluation.json", "Evaluation and numeric value status"), ("metrics.csv", "Accuracy metrics"),
+                            ("oof_predictions.csv", "Out-of-fold predictions"), ("independent_predictions.csv", "Independent test predictions"),
+                            ("validation_folds.csv", "Fold membership"), ("optimization_trials.csv", "Model search trials"),
+                            ("learning_audit.json", "IDs used during learning"), ("final_record.json", "Final model and variables"),
+                            ("selected_features.csv", "Features used in the final model"),
+                            ("training_metrics.csv", "Training results"), ("coverage_diagnostics.csv", "Multilevel coverage diagnostics"),
+                            ('subgroup_diagnostics.csv','Subgroup uncertainty diagnostics'),('permutation_summary.csv','Permutation variable importance'),('plain_model_comparison.csv','Base model and hybrid comparison'),
+                            ("figure_manifest.json", "Figure data and export details")]:
         pieces.append('<li><a href="' + filename + '">' + label + '</a></li>')
     if evaluation.get("preflight"):
-        pieces.append('<li><a href="preflight.json">Veri, katlar ve öngörülen iş yükü</a></li>')
+        pieces.append('<li><a href="preflight.json">Data, folds and estimated workload</a></li>')
     if evaluation.get("audit_path") == "audit.json":
-        pieces.append('<li><a href="audit.json">Kaynak özetleri, paket ve kod sürümleri, çalışma tarihleri, işletim sistemi ve donanım kaydı</a></li>')
-    pieces.append('</ul><p>Veri kayıtları, JavaScript Object Notation (JSON) biçimindedir. Tablolarda formül gibi başlayan metinlerin başına tek tırnak eklenir. Tam metin değerleri veri kayıtlarında korunur.</p></body></html>')
+        pieces.append('<li><a href="audit.json">Source file digests, package and code versions, run dates, operating system and hardware record</a></li>')
+    pieces.append('</ul><p>Data records are in JavaScript Object Notation (JSON) format. In tables, a single quote is added before text that starts like a formula. Full text values are kept in the data records.</p></body></html>')
     return "\n".join(pieces)
 
 
@@ -754,7 +754,7 @@ def build_reports(output_dir, evaluation_result, samples, settings, *, check_can
     output.mkdir(parents=True, exist_ok=True)
     for name in ("report.html", "evaluation.json", "figure_manifest.json", "figures"):
         if (output / name).exists():
-            raise JobError("REPORT_EXISTS", "Mevcut raporun üzerine yazılmaz: " + name)
+            raise JobError("REPORT_EXISTS", "An existing report is not overwritten: " + name)
     check_cancel()
     groups = _validate(evaluation_result, samples, settings)
     issues = []
@@ -763,12 +763,12 @@ def build_reports(output_dir, evaluation_result, samples, settings, *, check_can
         try:
             report_data["preflight"] = json.loads((output / "preflight.json").read_text(encoding="utf-8-sig"))
         except (ValueError, OSError) as exc:
-            raise JobError("REPORT_PREFLIGHT", "Ön kontrol kaydı okunamadı.") from exc
+            raise JobError("REPORT_PREFLIGHT", "The preflight check record could not be read.") from exc
     evaluation = _normal(report_data, "evaluation", issues)
     clean_settings = _normal(settings, "settings", issues)
     dpi = settings.get("mapping", {}).get("figure_dpi", 150)
     if type(dpi) is not int or dpi not in (150, 900):
-        raise JobError("REPORT_DPI", "Grafik baskı yoğunluğu 150 veya 900 olmalıdır.")
+        raise JobError("REPORT_DPI", "Figure resolution must be 150 or 900 dpi.")
     counts = _counts(evaluation_result, samples, groups)
     stage = Path(tempfile.mkdtemp(prefix=".report-", dir=output))
     published = []
@@ -812,7 +812,7 @@ def build_reports(output_dir, evaluation_result, samples, settings, *, check_can
                                     "axes.labelsize": 10, "svg.fonttype": "none", "svg.hashsalt": "spatial-prediction-stage-b",
                                     "axes.unicode_minus": False}):
             figures = _plots(stage / "figures", evaluation_result, samples,
-                             str(settings.get("samples", {}).get("unit", "birim belirtilmedi")), dpi, check_cancel)
+                             str(settings.get("samples", {}).get("unit", "unit not specified")), dpi, check_cancel)
             figures.extend(_coverage_plot(stage / "figures", evaluation, dpi, check_cancel))
         _write_json(stage / "figure_manifest.json", {"schema_version": 1, "counts": counts, "figures": figures,
                     "matplotlib_version": matplotlib.__version__, "normalization": issues,
@@ -829,7 +829,7 @@ def build_reports(output_dir, evaluation_result, samples, settings, *, check_can
         staged = sorted(path for path in stage.rglob("*") if path.is_file())
         destinations = [output / path.relative_to(stage) for path in staged]
         if any(path.exists() for path in destinations):
-            raise JobError("REPORT_EXISTS", "Rapor dosyalarından biri zaten var; üzerine yazılmadı.")
+            raise JobError("REPORT_EXISTS", "One of the report files already exists; it was not overwritten.")
         for source, destination in zip(staged, destinations):
             check_cancel()
             destination.parent.mkdir(parents=True, exist_ok=True)

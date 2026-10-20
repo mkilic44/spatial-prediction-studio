@@ -114,7 +114,7 @@ internal static class PanelContracts
             Call(panel, "StartJob", "preview", true, cancellation.Token);
             var client = Field<object>(panel, "client");
             Check(!(bool)client.GetType().GetProperty("Running", Flags).GetValue(client, null) && !Field<bool>(panel, "busy"), "expired preparation cannot start a worker or leave panel busy");
-            Check((string)Field<Dictionary<string, object>>(panel, "lastJob")["status"] == "cancelled" && Field<Label>(panel, "state").Text.Contains("işçi başlatılmadı"), "cancelled preparation is not reported as a started or successful job");
+            Check((string)Field<Dictionary<string, object>>(panel, "lastJob")["status"] == "cancelled" && Field<Label>(panel, "state").Text.Contains("the worker was not started"), "cancelled preparation is not reported as a started or successful job");
             foreach (string command in new[] { "project.open", "project.save", "job.start" })
             {
                 bool refused = false;
@@ -189,13 +189,13 @@ internal static class PanelContracts
         Check(serializer.Serialize(restored) == serialized, "restoring metadata does not mutate source project record");
         var grid = Field<DataGridView>(panel, "rasters"); row = grid.Rows[0]; grid.CurrentCell = row.Cells["name"]; Call(panel, "UpdateMetadataDetails");
         var detail = Field<TextBox>(panel, "covariateMetadata");
-        Check(detail.ReadOnly && detail.Text.Contains("2026-01") && detail.Text.Contains("20") && detail.Text.Contains("synthetic") && detail.Text.Contains("Hayır"), "panel displays time resolution provenance and target-derived metadata read only");
+        Check(detail.ReadOnly && detail.Text.Contains("2026-01") && detail.Text.Contains("20") && detail.Text.Contains("synthetic") && detail.Text.Contains("Derived from target observations: No" + Environment.NewLine), "panel displays time resolution provenance and target-derived metadata read only");
         row.Cells["use"].Value = false; Call(panel, "RefreshRasterRows", inventory); row = grid.Rows[0];
         Check(!Convert.ToBoolean(row.Cells["use"].Value) && serializer.Serialize(((Dictionary<string, object>)Call(panel, "ReadCovariateRow", row))["provenance"]) == serializer.Serialize(saved["provenance"]), "refresh preserves metadata even while raster selection is disabled");
         row.Cells["use"].Value = true;
-        var exclusions = new object[] { new Dictionary<string, object> { { "id", "S1" }, { "reason", "sentetik dışlama gerekçesi" } } };
+        var exclusions = new object[] { new Dictionary<string, object> { { "id", "S1" }, { "reason", "synthetic exclusion reason" } } };
         var sampleRecord = new Dictionary<string, object> { { "excluded", exclusions } }; Call(panel, "RestoreSampleMetadata", sampleRecord);
-        Check(Field<TextBox>(panel, "sampleExclusions").ReadOnly && Field<TextBox>(panel, "sampleExclusions").Text.Contains("S1: sentetik dışlama gerekçesi"), "panel displays excluded IDs and reasons read only");
+        Check(Field<TextBox>(panel, "sampleExclusions").ReadOnly && Field<TextBox>(panel, "sampleExclusions").Text.Contains("S1: synthetic exclusion reason"), "panel displays excluded IDs and reasons read only");
         var project = new Dictionary<string, object> { { "samples", Call(panel, "SampleSettings") }, { "covariates", Call(panel, "GetSelectedCovariates", true) } };
         string projectPath = Path.Combine(directory, "metadata_project_roundtrip.json"); File.WriteAllText(projectPath, serializer.Serialize(project));
         var projectBack = serializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(projectPath));
@@ -208,7 +208,7 @@ internal static class PanelContracts
         Check(serializer.Serialize(requestCovariate) == serialized, "all seven covariate metadata fields reach preview request unchanged");
         File.WriteAllText(Path.Combine(directory, "metadata_preview_request.json"), serializer.Serialize(request));
         ((Dictionary<string, object>)exclusions[0])["reason"] = "changed external object";
-        Check(serializer.Serialize(((Dictionary<string, object>)Call(panel, "SampleSettings"))["excluded"]).Contains("sentetik dışlama gerekçesi"), "exclusion state is isolated from caller mutation");
+        Check(serializer.Serialize(((Dictionary<string, object>)Call(panel, "SampleSettings"))["excluded"]).Contains("synthetic exclusion reason"), "exclusion state is isolated from caller mutation");
         row = grid.Rows[0]; string before = (string)Call(panel, "CurrentSignature"); ((Dictionary<string, object>)row.Tag)["target_derived"] = true;
         Check(before != (string)Call(panel, "CurrentSignature"), "target-derived metadata participates in preview signature");
         Check(Convert.ToBoolean(((List<Dictionary<string, object>>)Call(panel, "GetSelectedCovariates", true))[0]["target_derived"]), "blocked target-derived setting remains saveable without silent removal");
@@ -237,7 +237,7 @@ internal static class PanelContracts
         Call(panel, "RestoreSampleMetadata", new Dictionary<string, object>()); Call(panel, "RestoreCovariateRows", new List<Dictionary<string, object>> { original });
         Check(!((Dictionary<string, object>)Call(panel, "SampleSettings")).ContainsKey("excluded"), "legacy project without exclusions gains no default exclusion key");
         Check(serializer.Serialize(((List<Dictionary<string, object>>)Call(panel, "GetSelectedCovariates", true))[0]) == serializer.Serialize(original), "legacy project without optional raster metadata roundtrips without added defaults");
-        Check(detail.Text.Contains("Zamanı temsil etme bilgisi: Kaydedilmedi") && detail.Text.Contains("Hedef gözlemlerinden türetildi: Kaydedilmedi"), "missing raster metadata is explicitly displayed as unavailable");
+        Check(detail.Text.Contains("Time representation: Not recorded") && detail.Text.Contains("Derived from target observations: Not recorded"), "missing raster metadata is explicitly displayed as unavailable");
         File.WriteAllText(Path.Combine(directory, "metadata_contract_result.json"), serializer.Serialize(new { status = "passed", preview_target_leakage_rejected_before_output = true, run_target_leakage_rejected_before_output = true, typed_optional_metadata_roundtrip = true, exclusions_roundtrip = true, scope = "managed production panel helpers; actual ArcMap project open and refresh remain separate UI acceptance" }));
     }
     private static void CheckReportExport(UserControl panel, string directory)
@@ -258,14 +258,14 @@ internal static class PanelContracts
         type.GetField("lastManifest", Flags).SetValue(panel, manifest);
         type.GetField("currentResult", Flags).SetValue(panel, true);
         Call(panel, "PopulateOutputs", result); Call(panel, "UpdateGate");
-        Check(Field<ComboBox>(panel, "outputReports").SelectedItem.ToString() == "Ayrıntılı çalışma raporu", "detailed study report is preferred even when another report appears first");
+        Check(Field<ComboBox>(panel, "outputReports").SelectedItem.ToString() == "Detailed study report", "detailed study report is preferred even when another report appears first");
         Check(Path.GetFileName((string)Call(panel, "VerifiedOutput", Field<ComboBox>(panel, "outputReports"))) == "study_report_index.html", "light report index wins over full report regardless of output order");
         Check(Field<ComboBox>(panel, "outputReports").Items.Count == 2, "index jobs hide both full HTML reports from the report dropdown");
         Check(Field<Dictionary<string, Dictionary<string, object>>>(panel, "outputArtifacts").Count == 5, "hidden full HTML reports remain in verified output inventory");
-        Check(Field<Button>(panel, "saveModel").Text == "Modeli kaydet" && Field<Button>(panel, "saveModel").Enabled, "completed report page exposes model export action");
+        Check(Field<Button>(panel, "saveModel").Text == "Save model" && Field<Button>(panel, "saveModel").Enabled, "completed report page exposes model export action");
         Call(panel, "SetBusy", true); Check(!Field<Button>(panel, "saveModel").Enabled, "model export is disabled while a worker runs"); Call(panel, "SetBusy", false);
         Call(panel, "InvalidatePreview", "test scientific settings changed");
-        Check(Field<Label>(panel, "modelExportState").Text.Contains("Güncel ayarlar") && Field<Button>(panel, "saveModel").Enabled, "historical model remains exportable with explicit changed-settings notice");
+        Check(Field<Label>(panel, "modelExportState").Text.Contains("current settings were not applied") && Field<Button>(panel, "saveModel").Enabled, "historical model remains exportable with explicit changed-settings notice");
         Check(Field<string>(panel, "lastManifest") == manifest, "model export remains tied to successful run when settings change");
         artifacts.RemoveAt(2); Call(panel, "PopulateOutputs", result);
         Check(Path.GetFileName((string)Call(panel, "VerifiedOutput", Field<ComboBox>(panel, "outputReports"))) == "study_report.html", "full detailed report remains fallback for legacy jobs without index");
@@ -341,7 +341,7 @@ internal static class PanelContracts
                 Check(Field<ComboBox>(panel, "target").Items.Contains("soil_value") && Field<ComboBox>(panel, "identity").Items.Contains("sample_id"), "CSV field selectors use actual headers");
                 Field<ComboBox>(panel, "csvX").SelectedItem = "x"; Field<ComboBox>(panel, "csvY").SelectedItem = "y";
                 string raster = Path.Combine(directory, "fixture.tif"); File.WriteAllText(raster, "only native request construction; not a real raster");
-                Field<DataGridView>(panel, "rasters").Rows.Add(true, "Sentetik değişken", 1, "1", "r1", "continuous", "nearest", raster);
+                Field<DataGridView>(panel, "rasters").Rows.Add(true, "Synthetic covariate", 1, "1", "r1", "continuous", "nearest", raster);
                 var request = (Dictionary<string, object>)Call(panel, "PrepareRequest", "preview", "managed_fixture", Path.Combine(directory, "request"));
                 var samples = (Dictionary<string, object>)request["samples"];
                 Check((int)request["schema_version"] == 2 && (string)request["action"] == "preview", "panel creates schema 2 preview request");
@@ -371,8 +371,8 @@ internal static class PanelContracts
                 Check(new JavaScriptSerializer().Serialize(diagnostics) == new JavaScriptSerializer().Serialize(restoredC), "stage C diagnostic project settings roundtrip");
                 Call(panel, "SetBusy", true); Check(new[] { "applicability", "permutation", "permutationRepeats", "subgroupFields", "minSubgroupSamples", "minSubgroupGroups" }.All(name => !Field<Control>(panel, name).Enabled), "all stage C controls disabled while worker runs"); Call(panel, "SetBusy", false);
                 var labels = (Dictionary<string, string>)assembly.GetType("SpatialPredictionStudio.ArcMapAdapter").GetField("RasterLabels", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-                Check(labels.ContainsKey("applicability") && labels.ContainsKey("dissimilarity") && labels["applicability"].Contains("1: içinde"), "stage C output raster labels define 0 and 1 semantics");
-                Check(labels.ContainsKey("interval_available") && labels.ContainsKey("interval_effective_n") && labels.ContainsKey("interval_effective_group_n") && labels["interval_available"].Contains("1: var"), "stage D local support layers have distinct labels");
+                Check(labels.ContainsKey("applicability") && labels.ContainsKey("dissimilarity") && labels["applicability"].Contains("1: inside"), "stage C output raster labels define 0 and 1 semantics");
+                Check(labels.ContainsKey("interval_available") && labels.ContainsKey("interval_effective_n") && labels.ContainsKey("interval_effective_group_n") && labels["interval_available"].Contains("1: available"), "stage D local support layers have distinct labels");
                 Check(Field<NumericUpDown>(panel, "permutationRepeats").Minimum == 2 && Field<NumericUpDown>(panel, "permutationRepeats").Maximum == 100 && Field<NumericUpDown>(panel, "minSubgroupSamples").Minimum == 3 && Field<NumericUpDown>(panel, "minSubgroupGroups").Minimum == 2, "stage C numeric bounds match request contract");
                 var serializer = new JavaScriptSerializer { MaxJsonLength = 10000000 }; File.WriteAllText(Path.Combine(directory, "managed_preview_request.json"), serializer.Serialize(request));
                 var science = (Dictionary<string, object>)Call(panel, "ScienceSettings"); string signature = (string)Call(panel, "CurrentSignature"); Call(panel, "RestoreScience", science); Check(signature == (string)Call(panel, "CurrentSignature"), "all scientific settings roundtrip without signature drift");

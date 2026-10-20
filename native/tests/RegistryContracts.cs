@@ -26,7 +26,7 @@ namespace SpatialPredictionStudio
                         Check(ConfigurationIdentity.Digest(config) == ConfigurationIdentity.Digest(editor.Configuration(selector)), "dynamic parameter roundtrip " + category.Key + "/" + method.Id);
                     }
             var disabledFixture = registry.Category("model").ToList();
-            disabledFixture.Add(new MethodSpec { Id = "disabled_fixture", Label = "Kapalı sınama yöntemi", Enabled = false, Reason = "Yalnız sınama", Parameters = new Dictionary<string, object>() });
+            disabledFixture.Add(new MethodSpec { Id = "disabled_fixture", Label = "Disabled test method", Enabled = false, Reason = "Test only", Parameters = new Dictionary<string, object>() });
             using (var editor = new RegistryEditor(disabledFixture, "ridge", key => new Choice[0]))
             {
                 string disabledId = "disabled_fixture";
@@ -52,7 +52,7 @@ namespace SpatialPredictionStudio
             var change = Json.Read(file); ((Dictionary<string, object>)change["science"])["z"] = 2; Check(ConfigurationIdentity.Digest(project) != ConfigurationIdentity.Digest(change), "scientific change changes preview signature");
             Check(ConfigurationIdentity.FileDigest(registryPath) == originalHash, "production registry remains byte identical");
             string report = Path.Combine(root, "report.html"), local = Path.Combine(root, "local.csv"); File.WriteAllText(local, "id,value\nS1,1\n");
-            File.WriteAllText(report, "<html><body><a href=\"local.csv\">Yerel tablo</a></body></html>");
+            File.WriteAllText(report, "<html><body><a href=\"local.csv\">Local table</a></body></html>");
             var hashes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { { report, ConfigurationIdentity.FileDigest(report) }, { local, ConfigurationIdentity.FileDigest(local) } };
             ArtifactViewer.ValidateHtml(report, hashes); Check(true, "embedded report accepts hash verified local linked outputs");
             File.WriteAllText(report, "<html><body><img src=\"https://example.invalid/remote.png\"></body></html>"); hashes[report] = ConfigurationIdentity.FileDigest(report);

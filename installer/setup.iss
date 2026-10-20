@@ -40,30 +40,29 @@ LicenseFile={#Payload}\installer\THIRD_PARTY_NOTICE.txt
 WizardStyle=modern
 
 [Languages]
-Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Types]
-Name: "standard"; Description: "ArcMap ve bilimsel hesaplama"
-Name: "custom"; Description: "Bileşenleri seç"; Flags: iscustom
+Name: "standard"; Description: "ArcMap and scientific computing"
+Name: "custom"; Description: "Select components"; Flags: iscustom
 
 [Components]
-Name: "core"; Description: "ArcMap eklentisi ve özel Python ortamı"; Types: standard custom; Flags: fixed
-Name: "reference_r"; Description: "Sabit R ve CAST ortamı, karşılık gelen kaynaklarla"; Types: standard
-Name: "tabpfn"; Description: "TabPFN model ağırlığı (ayrı lisans onayı)"
+Name: "core"; Description: "ArcMap add-in and private Python environment"; Types: standard custom; Flags: fixed
+Name: "reference_r"; Description: "Pinned R and CAST environment, with corresponding sources"; Types: standard
+Name: "tabpfn"; Description: "TabPFN model weights (separate license acceptance)"
 #ifdef HasMcp
-Name: "mcp"; Description: "Yerel MCP sunucusu ve özel çalışma ortamı"
+Name: "mcp"; Description: "Local MCP server and private runtime environment"
 #endif
 
 [Tasks]
 #ifdef HasMcp
-Name: "codex"; Description: "Codex istemci kaydını ekle"; Components: mcp; Flags: unchecked
-Name: "chatgpt_desktop"; Description: "ChatGPT masaüstü istemci kaydını ekle"; Components: mcp; Flags: unchecked
-Name: "antigravity"; Description: "Antigravity istemci kaydını ekle"; Components: mcp; Flags: unchecked
-Name: "claude_desktop"; Description: "Claude Desktop istemci kaydını ekle"; Components: mcp; Flags: unchecked
-Name: "claude_code"; Description: "Claude Code istemci kaydını ekle"; Components: mcp; Flags: unchecked
-Name: "opencode"; Description: "OpenCode istemci kaydını ekle"; Components: mcp; Flags: unchecked
-Name: "pycharm"; Description: "PyCharm için içe aktarma dosyasını hazırla"; Components: mcp; Flags: unchecked
+Name: "codex"; Description: "Add Codex client registration"; Components: mcp; Flags: unchecked
+Name: "chatgpt_desktop"; Description: "Add ChatGPT desktop client registration"; Components: mcp; Flags: unchecked
+Name: "antigravity"; Description: "Add Antigravity client registration"; Components: mcp; Flags: unchecked
+Name: "claude_desktop"; Description: "Add Claude Desktop client registration"; Components: mcp; Flags: unchecked
+Name: "claude_code"; Description: "Add Claude Code client registration"; Components: mcp; Flags: unchecked
+Name: "opencode"; Description: "Add OpenCode client registration"; Components: mcp; Flags: unchecked
+Name: "pycharm"; Description: "Prepare the import file for PyCharm"; Components: mcp; Flags: unchecked
 #endif
 
 [Files]
@@ -119,19 +118,19 @@ begin
       else SaveStringToFile(ReportPath, '{"status":"failed_preflight","writes_application_files":false,"activates_addin":false}', False);
     end;
     Result := False;
-  end else if not Result then SuppressibleMsgBox('64 bit Windows, ArcMap 10.8 ailesi ve .NET Framework 4.8 gerekir.', mbError, MB_OK, IDOK);
+  end else if not Result then SuppressibleMsgBox('64-bit Windows, the ArcMap 10.8 family and .NET Framework 4.8 are required.', mbError, MB_OK, IDOK);
 end;
 
 procedure InitializeWizard;
 var LicenseText: AnsiString;
 begin
-  LicensePage := CreateCustomPage(wpSelectComponents, 'TabPFN lisansı', 'Ağırlık yalnız bu koşulları kabul ederseniz kurulur.');
+  LicensePage := CreateCustomPage(wpSelectComponents, 'TabPFN license', 'The weights are installed only if you accept these terms.');
   LicenseMemo := TNewMemo.Create(LicensePage); LicenseMemo.Parent := LicensePage.Surface;
   LicenseMemo.Align := alTop; LicenseMemo.Height := LicensePage.SurfaceHeight - ScaleY(40); LicenseMemo.ReadOnly := True; LicenseMemo.ScrollBars := ssVertical;
   ExtractTemporaryFile('LICENSE.txt'); LoadStringFromFile(ExpandConstant('{tmp}\LICENSE.txt'), LicenseText); LicenseMemo.Text := String(LicenseText);
   LicenseAccept := TNewCheckBox.Create(LicensePage); LicenseAccept.Parent := LicensePage.Surface;
   LicenseAccept.Top := LicenseMemo.Height + ScaleY(8); LicenseAccept.Width := LicensePage.SurfaceWidth;
-  LicenseAccept.Caption := 'TabPFN ağırlığının lisans koşullarını okudum ve kabul ediyorum.';
+  LicenseAccept.Caption := 'I have read and accept the license terms of the TabPFN weights.';
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
@@ -150,23 +149,23 @@ begin
   { This pinned Rasterio dependency failed to load at 267 path characters.
     This is a DLL loader check, not a blanket limit on every installed file. }
   if Length(ExpandFileName(VersionRoot + '{#RasterioLongestDllRelative}')) >= 260 then begin
-    Result := 'Seçilen kurulum yolu Rasterio kitaplığı için çok uzun. Varsayılan dizini veya daha kısa bir hedefi seçin.';
+    Result := 'The selected installation path is too long for the Rasterio library. Choose the default folder or a shorter destination.';
     Exit;
   end;
   if FileExists(VersionRoot + '\deployment-record.json') then begin
-    Result := 'Bu içerik sürümü zaten kurulu. Yeniden kurmak için önce o sürümü kaldırın.';
+    Result := 'This content version is already installed. To reinstall it, first uninstall that version.';
     Exit;
   end;
   if IsStaging then begin
     StageRoot := AddBackslash(ExpandFileName(ExpandConstant('{param:STAGINGROOT|}')));
     AppRoot := AddBackslash(ExpandFileName(ExpandConstant('{app}')));
     if CompareText(Copy(AppRoot, 1, Length(StageRoot)), StageRoot) <> 0 then begin
-      Result := 'Yalıtılmış deneme kurulumu belirtilen STAGINGROOT dizininin içinde olmalıdır.';
+      Result := 'An isolated test installation must be inside the specified STAGINGROOT folder.';
       Exit;
     end;
   end;
   if WizardIsComponentSelected('tabpfn') and WizardSilent and (ExpandConstant('{param:ACCEPTTABPFNLICENSE|no}') <> 'yes') then
-    Result := 'Sessiz TabPFN kurulumu için /ACCEPTTABPFNLICENSE=yes gerekir.';
+    Result := 'A silent TabPFN installation requires /ACCEPTTABPFNLICENSE=yes.';
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -189,7 +188,7 @@ begin
     if not RunDeploy(Args) then begin
       DeploymentFailed := True;
       Log('DEPLOYMENT_FAILED: private runtime verification or add-in activation failed.');
-      SuppressibleMsgBox('Kurulum doğrulanamadı. Önceki eklenti korunur. deployment-error.json dosyasını inceleyin ve ArcMap kapalıyken yeniden deneyin.', mbError, MB_OK, IDOK);
+      SuppressibleMsgBox('The installation could not be verified. The previous add-in is kept. Review deployment-error.json and try again with ArcMap closed.', mbError, MB_OK, IDOK);
     end;
   end;
 end;
@@ -200,15 +199,15 @@ begin if DeploymentFailed then Result := 20 else Result := 0; end;
 procedure CurPageChanged(CurPageID: Integer);
 begin
   if (CurPageID = wpFinished) and DeploymentFailed then begin
-    WizardForm.FinishedHeadingLabel.Caption := 'Kurulum doğrulanamadı';
-    WizardForm.FinishedLabel.Caption := 'Yeni sürüm etkinleştirilemedi. deployment-error.json dosyasını inceleyin. Önceki eklenti korunur.';
+    WizardForm.FinishedHeadingLabel.Caption := 'Installation could not be verified';
+    WizardForm.FinishedLabel.Caption := 'The new version could not be activated. Review deployment-error.json. The previous add-in is kept.';
   end;
 end;
 
 function InitializeUninstall: Boolean;
 begin
   Result := RunDeploy('--preflight-only');
-  if not Result then SuppressibleMsgBox('Kaldırmadan önce ArcMap uygulamasını kapatın. Eklenti değişmedi.', mbError, MB_OK, IDOK);
+  if not Result then SuppressibleMsgBox('Close ArcMap before uninstalling. The add-in was not changed.', mbError, MB_OK, IDOK);
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
@@ -216,7 +215,7 @@ begin
   if (CurUninstallStep = usUninstall) and FileExists(VersionRoot + '\deployment-record.json') then
     if not RunDeploy('--uninstall') then begin
       Log('UNINSTALL_OWNERSHIP_FAILED: application files were retained.');
-      SuppressibleMsgBox('Eklenti kaydı güvenle kaldırılamadı. Uygulama dosyaları korunuyor; günlükleri inceleyin.', mbError, MB_OK, IDOK);
+      SuppressibleMsgBox('The add-in registration could not be removed safely. The application files are kept; review the logs.', mbError, MB_OK, IDOK);
       ExitOwnUninstaller(21);
     end;
 end;

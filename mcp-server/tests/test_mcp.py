@@ -65,7 +65,7 @@ def test_stale_and_traversal_session_rejected(tmp_path):
     registry, _ = make_session(tmp_path)
     registry.alive = lambda pid: False
     assert registry.discover()["ignored_records"] == 1
-    with pytest.raises(BridgeError, match="kimliği"):
+    with pytest.raises(BridgeError, match="session ID"):
         registry.get("../test")
 
 
@@ -163,7 +163,7 @@ def test_read_html_drops_executable_content_and_pages(tmp_path):
 
 def test_json_coordinate_redaction_and_geojson_refusal(tmp_path):
     listing = make_listing(tmp_path, "summary.json", b'{"points":[{"coordinates":[37,38],"metric":5}]}')
-    assert "[koordinat veya ham kaynak alanı gizlendi]" in read_text(listing, "summary.json")["text"]
+    assert "[coordinate or raw source field hidden]" in read_text(listing, "summary.json")["text"]
     other = make_listing(tmp_path, "samples.geojson", b'{"type":"FeatureCollection","features":[]}')
     with pytest.raises(BridgeError):
         read_text(other, "samples.geojson")
@@ -183,7 +183,7 @@ def test_model_diagnostic_coordinates_are_redacted_in_all_readable_formats(tmp_p
         writer.writerows([["parameter", "value"], ["metric_coordinates_m", json.dumps(coordinates)], ["alpha", "2"]])
         data = stream.getvalue().encode()
     else:
-        data = ("<h1>Rapor</h1><table><tr><th>Alan</th><th>Değer</th></tr>"
+        data = ("<h1>Report</h1><table><tr><th>Field</th><th>Value</th></tr>"
                 "<tr><td>calibration / metric_coordinates_m</td><td>" + json.dumps(coordinates) + "</td></tr>"
                 "<tr><td>alpha</td><td>2</td></tr></table>"
                 "<pre>" + json.dumps(diagnostic) + "</pre>"

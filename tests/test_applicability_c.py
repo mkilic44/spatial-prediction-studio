@@ -33,9 +33,9 @@ def test_applicability_prediction_does_not_change_training_threshold():
     np.testing.assert_array_equal(a.predict(x)[0],np.concatenate(chunks))
 def test_applicability_rejects_repeated_or_invalid_folds_and_constant_design():
     x,ids,folds=reference()
-    with pytest.raises(JobError,match='tam bir kez'):Applicability().fit(x,ids,folds+folds)
-    with pytest.raises(JobError,match='varyans'):Applicability().fit(np.ones_like(x),ids,folds)
-    with pytest.raises(JobError,match='ağırlık'):Applicability().fit(x,ids,folds,weights=[-1,1,1])
+    with pytest.raises(JobError,match='exactly once'):Applicability().fit(x,ids,folds+folds)
+    with pytest.raises(JobError,match='variance'):Applicability().fit(np.ones_like(x),ids,folds)
+    with pytest.raises(JobError,match='weight'):Applicability().fit(x,ids,folds,weights=[-1,1,1])
 
 def test_outer_and_calibration_ids_never_fit_applicability(scientific):
     from sps.modeling import prediction_call

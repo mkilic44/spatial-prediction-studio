@@ -11,7 +11,7 @@ from test_reporting_b import report_case
 def partial():
     return {'nominal_coverage':.8,'repeat':0,'fold':0,'status':'partial','n':20,'group_count':10,
             'available_n':12,'unavailable_n':8,'available_fraction':.6,'available_group_count':6,
-            'reason_code':'PARTIAL_SPATIAL_SUPPORT','reason':'Sekiz gözlemde yerel destek yetersiz.',
+            'reason_code':'PARTIAL_SPATIAL_SUPPORT','reason':'Local support is insufficient for eight observations.',
             'available_subset':{'coverage':.75,'mean_width':2.,'median_width':2.,'interval_score':3.},
             'metrics_scope':'available_intervals_only'}
 
@@ -25,8 +25,8 @@ def test_partial_coverage_report_labels_both_denominators(tmp_path,report_case):
     settings['uncertainty']={'method':'spatial_conformal','coverage':.8}
     build_reports(tmp_path/'report',ev,samples,settings,check_cancel=lambda:None)
     html=(tmp_path/'report/report.html').read_text(encoding='utf-8')
-    assert 'Yalnız aralığı hesaplanan gözlemler' in html
-    assert 'Yerel destek bulunmayan hücre' in html
+    assert 'Only observations with a computed interval' in html
+    assert 'Cells without local support' in html
     assert '12</td><td>8</td>' in html
     assert '0,75' in html or '0.75' in html
     assert _coverage_rows(ev)[0].get('coverage') is None

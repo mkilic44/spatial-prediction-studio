@@ -39,45 +39,45 @@ def read_samples(spec, check_cancel):
     else:
         obj = read_json(path)
         if not isinstance(obj, dict) or obj.get("type") != "FeatureCollection" or not isinstance(obj.get("features"), list):
-            raise JobError("SAMPLE_FORMAT", "GeoJSON bir FeatureCollection olmalıdır.")
+            raise JobError("SAMPLE_FORMAT", "GeoJSON must be a FeatureCollection.")
         declared_crs = obj.get("crs", {}).get("properties", {}).get("name")
         crs_input = spec.get("crs")
         if crs_input and declared_crs:
             try:
                 agree = CRS.from_user_input(crs_input).equals(CRS.from_user_input(declared_crs), ignore_axis_order=True)
             except Exception as exc:
-                raise JobError("SAMPLE_CRS", "GeoJSON koordinat sistemi geçersiz: " + str(exc)) from exc
+                raise JobError("SAMPLE_CRS", "Invalid GeoJSON coordinate reference system: " + str(exc)) from exc
             if not agree:
-                raise JobError("SAMPLE_CRS_CONFLICT", "GeoJSON ve istek farklı koordinat sistemleri bildiriyor.")
+                raise JobError("SAMPLE_CRS_CONFLICT", "The GeoJSON and the request declare different coordinate reference systems.")
         if not crs_input:
             crs_input = declared_crs or "EPSG:4326"
         rows = []
         for feature in obj["features"]:
             if not isinstance(feature, dict):
-                raise JobError("SAMPLE_GEOMETRY", "Geçersiz GeoJSON kaydı.")
+                raise JobError("SAMPLE_GEOMETRY", "Invalid GeoJSON feature.")
             geometry = feature.get("geometry") or {}
             if geometry.get("type") != "Point":
-                raise JobError("SAMPLE_GEOMETRY", "Aşama A yalnız Point geometrisini destekler.")
+                raise JobError("SAMPLE_GEOMETRY", "Stage A supports only Point geometry.")
             rows.append((feature.get("properties") or {}, geometry.get("coordinates")))
     try:
         crs = CRS.from_user_input(crs_input)
     except Exception as exc:
-        raise JobError("SAMPLE_CRS", "Örneklerin koordinat sistemi geçersiz: " + str(exc)) from exc
+        raise JobError("SAMPLE_CRS", "Invalid coordinate reference system for the samples: " + str(exc)) from exc
     if not 2 <= len(rows) <= 1_000_000:
-        raise JobError("SAMPLE_COUNT", "Aşama A için 2-1000000 gözlem gereklidir.")
+        raise JobError("SAMPLE_COUNT", "Stage A requires 2 to 1000000 observations.")
     ids, targets, coords = [], [], []
     seen_ids, seen_coords = set(), set()
     for properties, coordinates in rows:
         check_cancel()
         identity = properties.get(spec["id_field"])
         if identity is None or isinstance(identity, (dict, list, bool)) or not str(identity).strip():
-            raise JobError("MISSING_ID", "Her gözlem için dolu, tekil kimlik gereklidir.")
+            raise JobError("MISSING_ID", "Each observation requires a non-empty, unique ID.")
         identity = str(identity).strip()
         if identity in seen_ids:
-            raise JobError("DUPLICATE_ID", "Yinelenen gözlem kimliği: " + identity)
+            raise JobError("DUPLICATE_ID", "Duplicate observation ID: " + identity)
         seen_ids.add(identity)
         if spec.get("unit_field") and properties.get(spec["unit_field"]) != spec["unit"]:
-            raise JobError("TARGET_UNIT_MISMATCH", "Gözlem birimi hedef birimiyle uyuşmuyor. Gözlem: " + identity)
+            raise JobError("TARGET_UNIT_MISMATCH", "The observation unit does not match the target unit. Observation: " + identity)
         value = properties.get(spec["target_field"])
         try:
             if value is None or isinstance(value, bool):
@@ -86,7 +86,7 @@ def read_samples(spec, check_cancel):
             if not math.isfinite(value):
                 raise ValueError()
         except (ValueError, TypeError) as exc:
-            raise JobError("MISSING_TARGET", "Eksik veya sonlu olmayan hedef doldurulmaz. Gözlem: " + identity) from exc
+            raise JobError("MISSING_TARGET", "A missing or nonfinite target is not imputed. Observation: " + identity) from exc
         try:
             if not isinstance(coordinates, (list, tuple)) or len(coordinates) < 2:
                 raise ValueError()
@@ -94,9 +94,9 @@ def read_samples(spec, check_cancel):
             if not all(math.isfinite(v) for v in point):
                 raise ValueError()
         except (ValueError, TypeError) as exc:
-            raise JobError("SAMPLE_GEOMETRY", "Geçersiz koordinat. Gözlem: " + identity) from exc
+            raise JobError("SAMPLE_GEOMETRY", "Invalid coordinate. Observation: " + identity) from exc
         if point in seen_coords:
-            raise JobError("DUPLICATE_COORDINATE", "Yinelenen konum Aşama A'da desteklenmiyor. Gözlem: " + identity)
+            raise JobError("DUPLICATE_COORDINATE", "Duplicate locations are not supported in Stage A. Observation: " + identity)
         seen_coords.add(point)
         ids.append(identity)
         targets.append(value)
@@ -118,22 +118,22 @@ class RasterInputs:
                     by_path[cov["path"]] = self.stack.enter_context(rasterio.open(cov["path"], "r"))
                 src = by_path[cov["path"]]
                 if src.driver != "GTiff" or src.crs is None:
-                    raise JobError("RASTER_CRS", "Koordinat sistemi tanımlı GeoTIFF gereklidir.")
+                    raise JobError("RASTER_CRS", "A GeoTIFF with a defined coordinate reference system is required.")
                 if cov["band"] > src.count:
-                    raise JobError("BAND_RANGE", "Rasterde bulunmayan bant: " + str(cov["band"]))
+                    raise JobError("BAND_RANGE", "Band not found in raster: " + str(cov["band"]))
                 if src.scales[cov["band"] - 1] != 1 or src.offsets[cov["band"] - 1] != 0:
-                    raise JobError("RASTER_SCALE", "Ölçek/öteleme üstverisi olan rasterler Aşama A'da desteklenmiyor. Fiziksel değerlere dönüştürülmüş çalışma kopyası gereklidir.")
+                    raise JobError("RASTER_SCALE", "Rasters with scale or offset metadata are not supported in Stage A. A working copy converted to physical values is required.")
                 if np.issubdtype(np.dtype(src.dtypes[cov["band"] - 1]), np.complexfloating):
-                    raise JobError("RASTER_TYPE", "Karmaşık sayılı rasterler desteklenmiyor.")
+                    raise JobError("RASTER_TYPE", "Complex-valued rasters are not supported.")
                 if self.datasets:
                     reference = self.datasets[0]
                     if (src.width, src.height, src.crs) != (reference.width, reference.height, reference.crs) or not np.allclose(tuple(src.transform), tuple(reference.transform), rtol=0, atol=1e-9):
-                        raise JobError("GRID_MISMATCH", "Raster gridleri aynı değil. Aşama A otomatik yeniden örnekleme yapmaz.")
+                        raise JobError("GRID_MISMATCH", "The raster grids are not identical. Stage A does not resample automatically.")
                 if cov.get("band_description") is not None and src.descriptions[cov["band"] - 1] != cov["band_description"]:
-                    raise JobError("BAND_SCHEMA", "Bant açıklaması kayıtlı şemadan farklı.")
+                    raise JobError("BAND_SCHEMA", "The band description differs from the recorded schema.")
                 actual_unit = src.units[cov["band"] - 1]
                 if actual_unit and actual_unit.strip() != cov["unit"]:
-                    raise JobError("COVARIATE_UNIT", "Raster bandının birimi değişken şemasıyla uyuşmuyor.")
+                    raise JobError("COVARIATE_UNIT", "The raster band unit does not match the variable schema.")
                 self.datasets.append(src)
             return self
         except Exception:
@@ -156,13 +156,13 @@ class RasterInputs:
             transform = Transformer.from_crs(samples["crs"], src.crs, always_xy=True)
             x, y = transform.transform(samples["coordinates"][:, 0], samples["coordinates"][:, 1], errcheck=True)
         except Exception as exc:
-            raise JobError("SAMPLE_TRANSFORM", "Örnek koordinatları raster koordinat sistemine dönüştürülemedi: " + str(exc)) from exc
+            raise JobError("SAMPLE_TRANSFORM", "Sample coordinates could not be transformed to the raster coordinate reference system: " + str(exc)) from exc
         coords = np.column_stack((x, y))
         for identity, (px, py) in zip(samples["ids"], coords):
             check_cancel()
             row, col = src.index(px, py)
             if row < 0 or col < 0 or row >= src.height or col >= src.width:
-                raise JobError("SAMPLE_OUTSIDE", "Raster kapsamı dışında gözlem: " + identity)
+                raise JobError("SAMPLE_OUTSIDE", "Observation outside the raster extent: " + identity)
         columns = []
         for cov, dataset in zip(self.covariates, self.datasets):
             check_cancel()
@@ -170,7 +170,7 @@ class RasterInputs:
             for identity, value in zip(samples["ids"], dataset.sample(coords, indexes=cov["band"], masked=True)):
                 check_cancel()
                 if np.ma.getmaskarray(value).any() or not np.isfinite(value).all():
-                    raise JobError("SAMPLE_NODATA", "Eksik çevresel değer bulunan gözlem: " + identity + "; değişken: " + cov["id"])
+                    raise JobError("SAMPLE_NODATA", "Observation with a missing environmental covariate value: " + identity + "; variable: " + cov["id"])
                 values.append(float(value[0]))
             columns.append(values)
         return np.asarray(columns, dtype=np.float64).T, coords

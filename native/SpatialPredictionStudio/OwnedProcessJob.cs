@@ -13,19 +13,19 @@ namespace SpatialPredictionStudio
         internal OwnedProcessJob()
         {
             handle = CreateJobObject(IntPtr.Zero, null);
-            if (handle.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), "İşçi süreç grubu oluşturulamadı.");
+            if (handle.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not create the worker process group.");
             var limits = new ExtendedLimits();
             limits.BasicLimitInformation.LimitFlags = 0x00002000; // JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
             if (!SetInformationJobObject(handle, 9, ref limits, (uint)Marshal.SizeOf(typeof(ExtendedLimits))))
             {
                 var error = Marshal.GetLastWin32Error(); handle.Dispose();
-                throw new Win32Exception(error, "İşçi süreç grubunun kapanma koruması uygulanamadı.");
+                throw new Win32Exception(error, "Could not apply the kill-on-close protection to the worker process group.");
             }
         }
         internal void Assign(Process process)
         {
             if (!AssignProcessToJobObject(handle, process.Handle))
-                throw new Win32Exception(Marshal.GetLastWin32Error(), "İşçi sahipli süreç grubuna atanamadı; iş başlatılmadı.");
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not assign the worker to its owned process group; the job was not started.");
         }
         public void Dispose() { handle.Dispose(); }
 

@@ -19,18 +19,18 @@ namespace SpatialPredictionStudio
         internal MultiChoiceControl()
         {
             Height = 27; Dock = DockStyle.Fill;
-            var button = new Button { Text = "Seç", Dock = DockStyle.Right, Width = 50 };
+            var button = new Button { Text = "Select", Dock = DockStyle.Right, Width = 50 };
             Controls.Add(summary); Controls.Add(button);
             button.Click += (s, e) => {
-                using (var dialog = new Form { Text = "Seçim ve öncelik sırası", Width = 540, Height = 520, StartPosition = FormStartPosition.CenterParent, MinimizeBox = false, MaximizeBox = false })
+                using (var dialog = new Form { Text = "Selection and priority order", Width = 540, Height = 520, StartPosition = FormStartPosition.CenterParent, MinimizeBox = false, MaximizeBox = false })
                 {
                     var options = Options().ToList();
-                    foreach (var id in values) if (!options.Any(o => o.Id == id)) options.Add(new Choice(id, id + " (kaynakta yok)"));
+                    foreach (var id in values) if (!options.Any(o => o.Id == id)) options.Add(new Choice(id, id + " (not in source)"));
                     var order = values.Select(id => options.First(o => o.Id == id)).Concat(options.Where(o => !values.Contains(o.Id))).ToList();
                     var list = new CheckedListBox { Dock = DockStyle.Fill, CheckOnClick = true };
                     foreach (var item in order) list.Items.Add(item, values.Contains(item.Id));
                     var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40 };
-                    var up = new Button { Text = "Yukarı", AutoSize = true }; var down = new Button { Text = "Aşağı", AutoSize = true }; var ok = new Button { Text = "Uygula", DialogResult = DialogResult.OK, AutoSize = true };
+                    var up = new Button { Text = "Up", AutoSize = true }; var down = new Button { Text = "Down", AutoSize = true }; var ok = new Button { Text = "Apply", DialogResult = DialogResult.OK, AutoSize = true };
                     Action<int> move = offset => { int index = list.SelectedIndex, next = index + offset; if (index < 0 || next < 0 || next >= list.Items.Count) return; object item = list.Items[index]; bool check = list.GetItemChecked(index); list.Items.RemoveAt(index); list.Items.Insert(next, item); list.SetItemChecked(next, check); list.SelectedIndex = next; };
                     up.Click += (a, b) => move(-1); down.Click += (a, b) => move(1); buttons.Controls.AddRange(new Control[] { up, down, ok });
                     dialog.Controls.Add(list); dialog.Controls.Add(buttons); dialog.AcceptButton = ok;
@@ -57,7 +57,7 @@ namespace SpatialPredictionStudio
             foreach (var pair in definitions)
             {
                 var spec = pair.Value as Dictionary<string, object>;
-                if (spec == null) throw new InvalidDataException("Parametre tanımı nesne olmalıdır: " + pair.Key);
+                if (spec == null) throw new InvalidDataException("A parameter definition must be an object: " + pair.Key);
                 string type = Json.Text(spec, "type", "string"); object defaultValue; spec.TryGetValue("default", out defaultValue);
                 Control control;
                 if (type == "bool" || type == "boolean") control = new CheckBox { AutoSize = true, Checked = defaultValue != null && Convert.ToBoolean(defaultValue) };
@@ -78,7 +78,7 @@ namespace SpatialPredictionStudio
                 }
                 else if (type == "fields" || type == "ids") control = new MultiChoiceControl { Options = () => ChoiceProvider(pair.Key) };
                 else if (type == "string") control = new TextBox { Dock = DockStyle.Fill, Text = Convert.ToString(defaultValue, CultureInfo.InvariantCulture) ?? "" };
-                else throw new InvalidDataException("Desteklenmeyen arayüz parametre türü: " + type + " (" + pair.Key + ")");
+                else throw new InvalidDataException("Unsupported interface parameter type: " + type + " (" + pair.Key + ")");
                 controls.Add(pair.Key, control);
                 grid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
                 grid.Controls.Add(new Label { Text = Json.Text(spec, "label", pair.Key), Dock = DockStyle.Fill, AutoSize = true, Padding = new Padding(2, 6, 2, 2) }, 0, row);
@@ -110,7 +110,7 @@ namespace SpatialPredictionStudio
                 else if (item.Value is ComboBox) v = (((ComboBox)item.Value).SelectedItem as Choice)?.Id ?? "";
                 else if (item.Value is MultiChoiceControl) v = ((MultiChoiceControl)item.Value).Values;
                 else v = item.Value.Text.Trim();
-                if (spec.ContainsKey("required") && Convert.ToBoolean(spec["required"]) && String.IsNullOrWhiteSpace(Convert.ToString(v, CultureInfo.InvariantCulture))) throw new InvalidDataException(Json.Text(spec, "label", item.Key) + " gereklidir.");
+                if (spec.ContainsKey("required") && Convert.ToBoolean(spec["required"]) && String.IsNullOrWhiteSpace(Convert.ToString(v, CultureInfo.InvariantCulture))) throw new InvalidDataException(Json.Text(spec, "label", item.Key) + " is required.");
                 value.Add(item.Key, v);
             }
             return value;
@@ -122,11 +122,11 @@ namespace SpatialPredictionStudio
         internal void Set(string key, object value, bool strict = true)
         {
             Control control;
-            if (!controls.TryGetValue(key, out control)) { if (strict) throw new InvalidDataException("Kayıtlı yöntem parametresi artık desteklenmiyor: " + key); return; }
+            if (!controls.TryGetValue(key, out control)) { if (strict) throw new InvalidDataException("Saved method parameter is no longer supported: " + key); return; }
             if (control is NumericUpDown)
             {
                 var number = (NumericUpDown)control; decimal numeric = Convert.ToDecimal(value, CultureInfo.InvariantCulture);
-                if (numeric < number.Minimum || numeric > number.Maximum) throw new InvalidDataException("Parametre izin verilen aralık dışında: " + key);
+                if (numeric < number.Minimum || numeric > number.Maximum) throw new InvalidDataException("Parameter outside the allowed range: " + key);
                 number.Value = numeric;
             }
             else if (control is CheckBox) ((CheckBox)control).Checked = Convert.ToBoolean(value);
@@ -134,7 +134,7 @@ namespace SpatialPredictionStudio
             {
                 var combo = (ComboBox)control; string id = Convert.ToString(value, CultureInfo.InvariantCulture);
                 var chosen = combo.Items.Cast<Choice>().FirstOrDefault(c => c.Id == id);
-                if (chosen == null) { if (strict) throw new InvalidDataException("Desteklenmeyen parametre seçimi: " + key + "=" + id); return; }
+                if (chosen == null) { if (strict) throw new InvalidDataException("Unsupported parameter choice: " + key + "=" + id); return; }
                 combo.SelectedItem = chosen;
             }
             else if (control is MultiChoiceControl) ((MultiChoiceControl)control).Values = value is string ? new[] { (string)value } : ((IEnumerable)value).Cast<object>().Select(v => Convert.ToString(v, CultureInfo.InvariantCulture)).ToArray();
@@ -169,18 +169,18 @@ namespace SpatialPredictionStudio
             };
             Parameters.ValueChanged += (s, e) => ValueChanged?.Invoke(this, EventArgs.Empty);
             var initial = methods.Items.Cast<MethodSpec>().FirstOrDefault(m => m.Id == defaultId && m.Enabled) ?? methods.Items.Cast<MethodSpec>().FirstOrDefault(m => m.Enabled);
-            if (initial == null) { Parameters.Enabled = false; description.Text = "Bu kategoride doğrulanmış yöntem yok. Kapalı kayda tıklayarak nedenini okuyabilirsiniz."; }
+            if (initial == null) { Parameters.Enabled = false; description.Text = "No verified method in this category. Click a disabled entry to read the reason."; }
             else methods.SelectedItem = initial;
         }
         internal void Select(string id)
         {
             var method = methods.Items.Cast<MethodSpec>().FirstOrDefault(m => m.Id == id);
-            if (method == null || !method.Enabled) throw new InvalidDataException("Yöntem kullanılamıyor: " + id + ". " + method?.Reason);
+            if (method == null || !method.Enabled) throw new InvalidDataException("Method not available: " + id + ". " + method?.Reason);
             methods.SelectedItem = method;
         }
         internal Dictionary<string, object> Configuration(string selector = "method")
         {
-            if (selected == null) throw new InvalidDataException("Etkin yöntem bulunamadı.");
+            if (selected == null) throw new InvalidDataException("No enabled method found.");
             var config = Parameters.Values(); if (!String.IsNullOrEmpty(selector)) config[selector] = selected.Id; return config;
         }
         internal void Restore(Dictionary<string, object> value, string selector = "method")

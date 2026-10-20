@@ -30,11 +30,11 @@ namespace SpatialPredictionStudio
         {
             var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var path = Path.Combine(directory, "runtime.json");
-            if (!File.Exists(path)) throw new FileNotFoundException("runtime.json eklenti yanında bulunamadı.", path);
+            if (!File.Exists(path)) throw new FileNotFoundException("runtime.json was not found next to the add-in.", path);
             var value = Json.Read(path);
             Func<string, string> resolve = key => {
                 var p = Json.Text(value, key);
-                if (String.IsNullOrWhiteSpace(p)) throw new InvalidDataException("runtime.json alanı eksik: " + key);
+                if (String.IsNullOrWhiteSpace(p)) throw new InvalidDataException("Missing runtime.json field: " + key);
                 return Path.GetFullPath(Path.IsPathRooted(p) ? p : Path.Combine(directory, p));
             };
             return new RuntimeSettings { PythonPath = resolve("python_executable"), WorkerPath = resolve("worker_path"), ExamplesPath = resolve("examples_dir"),
@@ -42,8 +42,8 @@ namespace SpatialPredictionStudio
         }
         internal void Validate()
         {
-            if (!File.Exists(PythonPath)) throw new FileNotFoundException("İzole Python yorumlayıcısı bulunamadı.", PythonPath);
-            if (!File.Exists(WorkerPath)) throw new FileNotFoundException("Python işçisi bulunamadı.", WorkerPath);
+            if (!File.Exists(PythonPath)) throw new FileNotFoundException("Isolated Python interpreter not found.", PythonPath);
+            if (!File.Exists(WorkerPath)) throw new FileNotFoundException("Python worker not found.", WorkerPath);
         }
     }
 
@@ -60,12 +60,12 @@ namespace SpatialPredictionStudio
         internal bool Running { get; private set; }
         internal Task<Dictionary<string, object>> RunAsync(RuntimeSettings runtime, string requestPath, string outputDir, string runId, Action<string> log, Action<int, int, string> progress, CancellationToken preparation = default(CancellationToken))
         {
-            if (Running) throw new InvalidOperationException("Bir iş zaten çalışıyor.");
-            lock (processGate) if (shutdownRequested) throw new InvalidOperationException("Kapatılan panel yeni iş başlatamaz.");
+            if (Running) throw new InvalidOperationException("A job is already running.");
+            lock (processGate) if (shutdownRequested) throw new InvalidOperationException("A closed panel cannot start a new job.");
             runtime.Validate();
             var request = Json.Read(requestPath);
             int schema = request.ContainsKey("schema_version") ? Convert.ToInt32(request["schema_version"]) : 1;
-            if (schema != 1 && schema != 2) throw new InvalidDataException("Desteklenmeyen iş şeması.");
+            if (schema != 1 && schema != 2) throw new InvalidDataException("Unsupported job schema.");
             preparation.ThrowIfCancellationRequested();
             outputDirectory = outputDir;
             Running = true;
@@ -103,14 +103,14 @@ namespace SpatialPredictionStudio
                                 var item = Json.Serializer().Deserialize<Dictionary<string, object>>(e.Data);
                                 if (Json.Text(item, "event") == "progress" && Json.Text(item, "run_id") == runId)
                                     progress(Convert.ToInt32(item["completed"]), Convert.ToInt32(item["total"]), Json.Text(item, "message"));
-                            } catch (Exception ex) { log("İlerleme kaydı çözümlenemedi: " + ex.Message); }
+                            } catch (Exception ex) { log("Could not parse progress record: " + ex.Message); }
                         };
-                        process.ErrorDataReceived += (s, e) => { if (!String.IsNullOrWhiteSpace(e.Data)) log("İşçi: " + e.Data); };
+                        process.ErrorDataReceived += (s, e) => { if (!String.IsNullOrWhiteSpace(e.Data)) log("Worker: " + e.Data); };
                         lock (processGate)
                         {
                             preparation.ThrowIfCancellationRequested();
-                            if (shutdownRequested) throw new OperationCanceledException("Panel kapandığı için işçi başlatılmadı.");
-                            if (!process.Start()) throw new InvalidOperationException("İşçi süreci başlatılamadı.");
+                            if (shutdownRequested) throw new OperationCanceledException("The worker was not started because the panel closed.");
+                            if (!process.Start()) throw new InvalidOperationException("Could not start the worker process.");
                             activeProcess = process;
                             try
                             {
@@ -129,25 +129,25 @@ namespace SpatialPredictionStudio
                                 throw;
                             }
                         }
-                        log("İşçi başladı. Süreç kimliği: " + process.Id);
+                        log("Worker started. Process ID: " + process.Id);
                         process.BeginOutputReadLine(); process.BeginErrorReadLine();
                         while (!process.WaitForExit(250)) { }
                         // Close the job before draining redirected pipes: a remaining child
                         // could otherwise keep stdout open after its parent has exited.
                         lock (processGate) { ownedJob.Dispose(); activeJob = null; }
                         process.WaitForExit();
-                        log("İşçi çıkış kodu: " + process.ExitCode);
+                        log("Worker exit code: " + process.ExitCode);
                         lock (processGate)
                         {
-                            if (forcedTermination) throw new OperationCanceledException("İşçi ve bu işe ait alt süreçler kapatıldı; tamamlanmamış çıktılar haritaya eklenmedi.");
+                            if (forcedTermination) throw new OperationCanceledException("The worker and the child processes of this job were closed; incomplete outputs were not added to the map.");
                         }
                         var resultPath = Path.Combine(outputDir, "result.json");
-                        if (!File.Exists(resultPath)) throw new InvalidDataException("İşçi sonuç bildirimi üretmedi. Çıkış kodu: " + process.ExitCode);
+                        if (!File.Exists(resultPath)) throw new InvalidDataException("The worker produced no result manifest. Exit code: " + process.ExitCode);
                         var result = Json.Read(resultPath);
                         if (Json.Text(result, "run_id") != runId || Convert.ToInt32(result["schema_version"]) != schema)
-                            throw new InvalidDataException("Sonuç kimliği veya şema sürümü istekle eşleşmiyor.");
+                            throw new InvalidDataException("The result ID or schema version does not match the request.");
                         if (process.ExitCode != 0 && Json.Text(result, "status") == "completed")
-                            throw new InvalidDataException("İşçi hata koduyla kapandı; başarılı sonuç kabul edilmedi.");
+                            throw new InvalidDataException("The worker exited with an error code; the successful result was not accepted.");
                         result["manifest_path"] = resultPath;
                         return result;
                     }
@@ -173,11 +173,11 @@ namespace SpatialPredictionStudio
                             int processId = activeProcess.Id;
                             forcedTermination = true; activeJob?.Dispose();
                             if (!activeProcess.HasExited) activeProcess.Kill();
-                            activeLog?.Invoke("İptal zaman aşımı: işçi ve sahipli alt süreçler kapatıldı. Süreç kimliği: " + processId);
+                            activeLog?.Invoke("Cancellation timeout: the worker and its owned child processes were closed. Process ID: " + processId);
                         }
                     }
                     catch (InvalidOperationException) { }
-                    catch (System.ComponentModel.Win32Exception ex) { activeLog?.Invoke("İşçi sonlandırılamadı: " + ex.Message); }
+                    catch (System.ComponentModel.Win32Exception ex) { activeLog?.Invoke("Could not terminate the worker: " + ex.Message); }
                 }
             });
         }
@@ -193,12 +193,12 @@ namespace SpatialPredictionStudio
                     if (!activeProcess.HasExited) { forcedTermination = true; activeJob?.Dispose(); if (!activeProcess.HasExited) activeProcess.Kill(); }
                 }
                 catch (InvalidOperationException) { }
-                catch (System.ComponentModel.Win32Exception ex) { activeLog?.Invoke("Panel kapanırken işçi sonlandırılamadı: " + ex.Message); }
+                catch (System.ComponentModel.Win32Exception ex) { activeLog?.Invoke("Could not terminate the worker while the panel was closing: " + ex.Message); }
             }
         }
         private static string Quote(string value)
         {
-            if (value.IndexOf('"') >= 0) throw new ArgumentException("Dosya yolu çift tırnak içeremez.");
+            if (value.IndexOf('"') >= 0) throw new ArgumentException("A file path cannot contain double quotes.");
             return "\"" + value + "\"";
         }
     }

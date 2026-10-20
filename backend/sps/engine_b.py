@@ -73,7 +73,7 @@ def sample_mapping_domain(rasters,config,check_cancel):
         mask=valid & (rr%step==step//2) & (cc%step==step//2)
         a=ref.transform;x=cc[mask]+.5;y=rr[mask]+.5
         points.extend(np.column_stack((a.a*x+a.b*y+a.c,a.d*x+a.e*y+a.f)).tolist())
-    if not 5<=len(points)<=5000:raise JobError('KNNDM_DOMAIN','Geçerli maske üzerinde 5-5000 alan noktası gerekir. Alan örnekleme hedefini değiştirin.')
+    if not 5<=len(points)<=5000:raise JobError('KNNDM_DOMAIN','The valid mask must yield 5 to 5000 area sample points. Change the target number of area samples.')
     # Stable ordering is essential: raster-window layout must not alter the CV.
     config['prediction_coordinates']=sorted(points)
     config['prediction_crs']=ref.crs.to_wkt()
@@ -87,7 +87,7 @@ def preview_workload(req,folds):
             'estimated_pipeline_fits_upper_bound':(len(folds)+1)*(trials*inner+1),
             'extra_selector_fits_not_included':req['feature_selection']['method'] in ('sfs','rfe','boruta','elastic_net'),
             'threads_per_fit':1,'early_stopping':False,
-            'note':'Süre tahmini değildir. Seçici ve kantil altmodelleri ek eğitim yapabilir; zaman bütçesi denemeler arasında denetlenir.'}
+            'note':'This is not a runtime estimate. Selectors and quantile submodels can add training fits; the time budget is checked between trials.'}
 
 
 def record_independent_evaluation(output,req,samples):
@@ -99,7 +99,7 @@ def record_independent_evaluation(output,req,samples):
     path=output.parent.parent/'.sps-independent-history.json';lock=path.with_suffix('.lock')
     try:
         with lock.open('x') as f:f.write(req['run_id'])
-    except FileExistsError:raise JobError('TEST_HISTORY_LOCK','Bağımsız test geçmişi başka bir iş tarafından yazılıyor.')
+    except FileExistsError:raise JobError('TEST_HISTORY_LOCK','The independent test history is being written by another job.')
     try:
         history=json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
         previous=[r for r in history if r['test_fingerprint']==identity]
@@ -107,7 +107,7 @@ def record_independent_evaluation(output,req,samples):
         state='reused_after_settings_change' if changed else 'repeated_same_settings' if previous else 'first_evaluation'
         history.append({'test_fingerprint':identity,'settings_fingerprint':scientific,'run_id':req['run_id'],'finished_utc':datetime.now(timezone.utc).isoformat()})
         write_json(path,history)
-        return {'status':state,'previous_evaluations':len(previous),'settings_changed_since_previous':changed,'test_fingerprint':identity,'warning':'Test sonuçları görüldükten sonra ayarlar değiştiyse bu veri yeni bağımsız başarı kanıtı değildir.' if previous else 'İlk kayıt. Olasılıklı alan doğrulaması olduğu varsayılmaz.'}
+        return {'status':state,'previous_evaluations':len(previous),'settings_changed_since_previous':changed,'test_fingerprint':identity,'warning':'If settings changed after the test results were seen, these data are not new evidence of independent performance.' if previous else 'First record. It is not assumed to be a design-based map validation.'}
     finally:lock.unlink(missing_ok=True)
 
 def map_products(output,rasters,model,record,req,samples,check_cancel,progress):
@@ -122,11 +122,11 @@ def map_products(output,rasters,model,record,req,samples,check_cancel,progress):
     distance_fn=None
     if distance_crs:
         metric=CRS.from_user_input(distance_crs)
-        if not metric.is_projected:raise JobError('METRIC_CRS','Uzaklık rasteri için projeksiyon gerekir.')
+        if not metric.is_projected:raise JobError('METRIC_CRS','The distance raster requires a projected coordinate reference system.')
         factor=np.asarray([a.unit_conversion_factor for a in metric.axis_info[:2]])
         sample_tx=Transformer.from_crs(samples['crs'],metric,always_xy=True);point_tx=Transformer.from_crs(ref.crs,metric,always_xy=True)
         ids=record.get('development_ids')
-        if not ids:raise JobError('MODEL_TRAINING_IDS','Nihai modelin eğitim kimlikleri kayıtta bulunamadı.')
+        if not ids:raise JobError('MODEL_TRAINING_IDS','The training IDs of the final model were not found in the record.')
         index=indices_for(samples['ids'],ids);coords=samples['coordinates'][index]
         training_xy=np.column_stack(sample_tx.transform(*coords.T,errcheck=True))*factor;tree=cKDTree(training_xy)
         def distance_fn(w,valid):
@@ -158,14 +158,14 @@ def map_products(output,rasters,model,record,req,samples,check_cancel,progress):
             available_interval=np.ones(len(X),dtype=bool)
             if spatial_interval:
                 available_interval=np.asarray(diag.get('interval_available',[]))
-                if available_interval.shape!=(len(X),) or not np.isin(available_interval,(0,1)).all():raise JobError('INTERVAL_SUPPORT','Her geçerli hücre için aralık desteği açıkça belirtilmelidir.')
+                if available_interval.shape!=(len(X),) or not np.isin(available_interval,(0,1)).all():raise JobError('INTERVAL_SUPPORT','Interval support must be stated explicitly for every valid cell.')
                 available_interval=available_interval.astype(bool)
                 computed.update(interval_available=available_interval,
                                 interval_effective_n=diag.get('interval_effective_n',[]),
                                 interval_effective_group_n=diag.get('interval_effective_group_n',[]))
             if 'applicability' in kinds:
                 applicable=np.asarray(diag['applicability'])
-                if applicable.shape!=(len(X),) or not np.isin(applicable,(0,1)).all():raise JobError('APPLICABILITY_DIAGNOSTIC','Uygulanabilirlik tanısı her geçerli hücre için 0 veya 1 olmalıdır.')
+                if applicable.shape!=(len(X),) or not np.isin(applicable,(0,1)).all():raise JobError('APPLICABILITY_DIAGNOSTIC','The applicability diagnostic must be 0 or 1 for every valid cell.')
                 applicable=applicable.astype(bool)
                 computed.update(applicability=applicable,dissimilarity=diag['dissimilarity'])
             if 'quantile_crossing' in kinds:computed['quantile_crossing']=np.asarray(diag.get('quantile_crossing',np.zeros(len(X))),dtype=bool)
@@ -173,21 +173,21 @@ def map_products(output,rasters,model,record,req,samples,check_cancel,progress):
             if interval is not None:
                 lower,upper=map(np.asarray,interval)
                 if spatial_interval:
-                    if lower.shape!=(len(X),) or upper.shape!=(len(X),):raise JobError('INTERVAL_SUPPORT','Aralık boyutu hücre sayısıyla uyuşmuyor.')
+                    if lower.shape!=(len(X),) or upper.shape!=(len(X),):raise JobError('INTERVAL_SUPPORT','The interval size does not match the number of cells.')
                     if not (np.isfinite(lower[available_interval]).all() and np.isfinite(upper[available_interval]).all()
                             and np.isnan(lower[~available_interval]).all() and np.isnan(upper[~available_interval]).all()):
-                        raise JobError('INTERVAL_SUPPORT','Aralık desteği ile sonlu sınırlar uyuşmuyor. Desteksiz iki sınır da eksik olmalıdır.')
-                if (lower>upper).any():raise JobError('QUANTILE_CROSSING','Alt sınır üst sınırı aştı.')
+                        raise JobError('INTERVAL_SUPPORT','Interval support and finite bounds do not agree. Both bounds must be missing where there is no support.')
+                if (lower>upper).any():raise JobError('QUANTILE_CROSSING','The lower bound exceeded the upper bound.')
                 computed.update(lower=lower,upper=upper,width=upper-lower)
-            if 'lower' in kinds and interval is None:raise JobError('INTERVAL_MISSING','Seçili belirsizlik yöntemi aralık üretmedi.')
+            if 'lower' in kinds and interval is None:raise JobError('INTERVAL_MISSING','The selected uncertainty method produced no interval.')
             if distance_fn:computed['nearest_distance']=distance_fn(w,valid)
             mask=outside|unknown if req['mapping']['mask_extrapolation'] else np.zeros(len(X),dtype=bool)
             if req['mapping']['mask_extrapolation'] and 'applicability' in kinds:mask|=~applicable
             for kind,array in computed.items():
                 arr=np.asarray(array,dtype=float)
                 expected_finite=available_interval if spatial_interval and kind in ('lower','upper','width') else np.ones(len(X),dtype=bool)
-                if arr.shape!=(len(X),) or not np.isfinite(arr[expected_finite]).all() or (np.abs(arr[expected_finite])>np.finfo('float32').max).any():raise JobError('NONFINITE_PREDICTION','Geçersiz veya sayı türünü aşan çıktı: '+kind)
-                if kind in ('interval_effective_n','interval_effective_group_n') and (arr<0).any():raise JobError('INTERVAL_SUPPORT','Etkin kalibrasyon sayısı negatif olamaz.')
+                if arr.shape!=(len(X),) or not np.isfinite(arr[expected_finite]).all() or (np.abs(arr[expected_finite])>np.finfo('float32').max).any():raise JobError('NONFINITE_PREDICTION','Output is invalid or exceeds the numeric data type: '+kind)
+                if kind in ('interval_effective_n','interval_effective_group_n') and (arr<0).any():raise JobError('INTERVAL_SUPPORT','The effective calibration count cannot be negative.')
                 arr=arr.astype('float32')
                 if kind in ('prediction','lower','upper','width'):arr[mask]=np.nan
                 outputs[kind][valid]=arr
@@ -203,18 +203,18 @@ def map_products(output,rasters,model,record,req,samples,check_cancel,progress):
             for k in flag_counts:flag_counts[k]+=int(np.nansum(computed[k]))
             if 'applicability' in kinds:outside_applicability_count+=int(np.count_nonzero(computed['applicability'][valid]==0))
             if spatial_interval:available_interval_count+=int(np.nansum(computed['interval_available']))
-            progress('mapping',n,total,'Tahmin ve tanı rasterleri yazılıyor.')
+            progress('mapping',n,total,'Writing prediction and diagnostic rasters.')
     paths=[]
     # Verify every product before any of the final names is published.
     with ExitStack() as stack:
         saved={k:stack.enter_context(rasterio.open(output/(name+'.partial.tif'))) for k,(name,u) in kinds.items()}
         for k,dst in saved.items():
-            if (dst.width,dst.height,dst.crs,dst.transform)!=(ref.width,ref.height,ref.crs,ref.transform) or dst.units!=(kinds[k][1],):raise JobError('OUTPUT_METADATA','Kaydedilen raster gridi veya birimi farklı.')
+            if (dst.width,dst.height,dst.crs,dst.transform)!=(ref.width,ref.height,ref.crs,ref.transform) or dst.units!=(kinds[k][1],):raise JobError('OUTPUT_METADATA','The saved raster grid or unit differs.')
         for n,w in enumerate(windows(ref,size),1):
             check_cancel();computed,_=compute(w)
             for kind,dst in saved.items():
-                if not np.array_equal(dst.read(1,window=w),computed[kind],equal_nan=True):raise JobError('OUTPUT_READBACK','Kaydedilen raster tahminle uyuşmuyor: '+kind)
-            progress('verification',n,total,'Kaydedilen rasterler yeniden okunarak doğrulanıyor.')
+                if not np.array_equal(dst.read(1,window=w),computed[kind],equal_nan=True):raise JobError('OUTPUT_READBACK','The saved raster does not match the prediction: '+kind)
+            progress('verification',n,total,'Verifying the saved rasters by reading them back.')
     for kind,(name,u) in kinds.items():
         (output/(name+'.partial.tif')).replace(output/name);paths.append((kind,output/name))
     audit={'valid_input_pixels':valid_count,'diagnostic_pixels':flag_counts,'nearest_distance_crs':distance_crs,'output_raster_readback_verified':True}
@@ -223,7 +223,7 @@ def map_products(output,rasters,model,record,req,samples,check_cancel,progress):
             'unavailable_input_pixels':valid_count-available_interval_count,
             'available_fraction':available_interval_count/valid_count if valid_count else None,
             'denominator':'valid_input_pixels_before_prediction_mask',
-            'scope':'Yerel kalibrasyon desteği bulunmayan hücrelerde yalnız aralık sınırları ve genişliği NoData olur. Bu pay kapsama başarısı değildir.'}
+            'scope':'In cells without local calibration support, only the interval bounds and width are NoData. This fraction is not a measure of coverage.'}
     if 'applicability' in kinds:
         inside=flag_counts['applicability'];flag_counts['outside_applicability']=outside_applicability_count
         projected=bool(ref.crs.is_projected)
@@ -234,13 +234,13 @@ def map_products(output,rasters,model,record,req,samples,check_cancel,progress):
             'inside_fraction':inside/valid_count if valid_count else None,
             'outside_fraction':outside_applicability_count/valid_count if valid_count else None,
             'measure':'projected_grid_plane_area_fraction' if projected else 'grid_cell_fraction',
-            'measure_label':'Geçerli hücrelerin grid düzlemindeki alan payı' if projected else 'Geçerli hücrelerin payı (coğrafi alan oranı değildir)',
+            'measure_label':'Area fraction of valid cells in the grid plane' if projected else 'Fraction of valid cells (not a geographic area fraction)',
             'grid_crs':ref.crs.to_wkt(),'grid_crs_is_projected':projected,'grid_crs_is_geographic':bool(ref.crs.is_geographic),
             'constant_cell_area_grid_units_squared':abs(ref.transform.a*ref.transform.e-ref.transform.b*ref.transform.d) if projected else None,
             'prediction_mask_includes_outside_applicability':bool(req['mapping']['mask_extrapolation']),
-            'scope_limit':'Payda, tahmin maskesi uygulanmadan önce geçerli girdileri olan hücrelerdir. Veri olmayan hücreler ve raster kapsamı dışı yerler dahil değildir.',
-            'area_limit':('Sabit büyüklükteki hücreler projeksiyonun grid düzleminde eşit alanlıdır. Bu pay yeryüzündeki veya elipsoit üzerindeki alan payı olarak yorumlanmaz.'
-                          if projected else 'Coğrafi gridde hücrelerin yeryüzündeki alanları eşit kabul edilmedi. Alan ağırlığı veya jeodezik alan hesabı yapılmadı; yalnız hücre payı verilir.')}
+            'scope_limit':'The denominator is the cells with valid inputs before the prediction mask is applied. Cells without data and locations outside the raster extent are not included.',
+            'area_limit':('Cells of constant size have equal area in the grid plane of the projection. This fraction is not to be interpreted as an area fraction on the surface of the Earth or on the ellipsoid.'
+                          if projected else 'In a geographic grid, cells are not assumed to have equal area on the surface of the Earth. No area weighting or geodesic area calculation was performed; only the cell fraction is given.')}
     return paths,audit
 
 
@@ -257,12 +257,12 @@ def run_job_b(request,emit=lambda event:None):
         emit(event)
     try:
         network.set_network_enabled(False);output=reserve_output(request)
-        write_json(output/'INCOMPLETE.json',{'status':'running','run_id':run_id,'message':'Sonuç kaydı completed olmadıkça bu çalışma tamamlanmış değildir.'})
+        write_json(output/'INCOMPLETE.json',{'status':'running','run_id':run_id,'message':'This run is not complete until the result record says completed.'})
         check_cancel();req=validate_request_b(request)
         c_models={'lightgbm','catboost','cubist','ordinary_kriging','regression_kriging'}
         if req['validation']['method']=='knndm' or any(m['id'] in c_models for m in (req.get('model_candidates') or [req['model']])) or any(req['diagnostics'][k] for k in ('applicability','permutation','subgroup_fields')):result['stage']='C'
         if req['validation']['method']=='temporal' or req['uncertainty']['method']=='spatial_conformal' or any(m['id'] in ('tabm','realmlp','tabpfn') for m in (req.get('model_candidates') or [req['model']])):result['stage']='D'
-        write_json(output/'request.snapshot.json',req);progress('preflight',0,1,'Birimler, derinlikler, kaynaklar ve katlar denetleniyor.')
+        write_json(output/'request.snapshot.json',req);progress('preflight',0,1,'Checking units, depths, sources and folds.')
         samples=read_samples_b(req['samples'],check_cancel)
         req['validation']['independent_ids']=sorted(set(req['validation']['independent_ids'])|set(samples['external_independent_ids']))
         if req['validation']['method']=='temporal':
@@ -278,7 +278,7 @@ def run_job_b(request,emit=lambda event:None):
                 sample_mapping_domain(rasters,req['validation'],check_cancel)
                 write_json(output/'request.snapshot.json',req)
             missing=np.mean(~np.isfinite(X),axis=0)
-            if np.any(missing>req['mapping']['max_missing_fraction']) or np.any(np.all(~np.isfinite(X),axis=0)):raise JobError('MISSING_COVARIATE','Eksik girdi oranı sınırı aşıldı veya tüm sütun eksik.')
+            if np.any(missing>req['mapping']['max_missing_fraction']) or np.any(np.all(~np.isfinite(X),axis=0)):raise JobError('MISSING_COVARIATE','The missing input fraction limit was exceeded, or an entire column is missing.')
             folds=make_folds(samples['ids'],samples['coordinates'],groups,req['validation'],crs=samples['crs'],check_cancel=check_cancel)
             metric,metric_crs=_metric_coordinates(samples['coordinates'],samples['crs'],req['validation'],bool(req['validation'].get('metric_crs')) or samples['crs'].is_projected)
             for f in folds:
@@ -296,16 +296,16 @@ def run_job_b(request,emit=lambda event:None):
                     f['diagnostics'].update(test_to_train_distance_m={'min':float(distances.min()),'median':float(np.median(distances)),'max':float(distances.max())},metric_crs=metric_crs)
             signature=preview_signature(req,samples,req['covariates'],sources)
             result['preview_fingerprint']=signature
-            if req['action']=='run' and req['preview_fingerprint']!=signature:raise JobError('PREVIEW_STALE','Veri veya ayarlar ön gösterimden sonra değişti. Katları yeniden gösterin.')
+            if req['action']=='run' and req['preview_fingerprint']!=signature:raise JobError('PREVIEW_STALE','Data or settings changed after the preview. Show the folds again.')
             write_folds(output/'folds.geojson',folds,samples,groups,independent_ids=req['validation']['independent_ids'])
-            preview={'sample_count':len(samples['ids']),'independent_group_count':len(set(groups)),'independent_test_count':len(req['validation']['independent_ids']),'folds':folds,'missing_fraction':missing.tolist(),'depth':samples['depth'],'laboratory_method':samples['laboratory_method'],'support':samples['support'],'alignment':rasters.alignment,'preview_fingerprint':signature,'workload':preview_workload(req,folds),'warnings':(['Uzaklık tanısı hesaplanmadı: metrik projeksiyon seçilmelidir.'] if metric is None else [])+(['Parsel alanı ortalamalarıyla kurulan model hücrelere uygulanır; hücre ölçüm desteği ayrıca doğrulanmış değildir.'] if samples['support']=='parcel_mean' else [])}
+            preview={'sample_count':len(samples['ids']),'independent_group_count':len(set(groups)),'independent_test_count':len(req['validation']['independent_ids']),'folds':folds,'missing_fraction':missing.tolist(),'depth':samples['depth'],'laboratory_method':samples['laboratory_method'],'support':samples['support'],'alignment':rasters.alignment,'preview_fingerprint':signature,'workload':preview_workload(req,folds),'warnings':(['The distance diagnostic was not computed: select a projected coordinate reference system in meters.'] if metric is None else [])+(['A model built from parcel-area means is applied to cells; cell measurement support has not been validated separately.'] if samples['support']=='parcel_mean' else [])}
             if req['validation']['method']=='temporal':
                 tested={i for f in folds for i in f['test_ids']}
                 preview['initial_training_count']=len(set(samples['ids'])-tested-set(req['validation']['independent_ids']))
                 preview['outer_tested_count']=len(tested)
-                preview['warnings'].append('İlk eğitim geçmişi dış katta sınanmaz. Sabit rasterler, belirli bir gelecek tarihin tahmin haritasını doğrulamaz.')
+                preview['warnings'].append('The initial training history is not tested in an outer fold. Static rasters do not validate a prediction map for a specific future date.')
             write_json(output/'preflight.json',preview);products=[('folds',output/'folds.geojson'),('audit',output/'preflight.json')]
-            progress('preflight',1,1,'Gözlem kimlikleri ve katlar hazırlandı.')
+            progress('preflight',1,1,'Observation IDs and folds prepared.')
             if req['action']=='run':
                 from .evaluation import evaluate_nested,save_trusted_model,load_trusted_model
                 from .reporting import build_reports
@@ -320,9 +320,9 @@ def run_job_b(request,emit=lambda event:None):
                     model_files=save_trusted_model(model,model_path,req['run_id'],req['covariates'])
                     restored=load_trusted_model(model_path,expected_run_id=req['run_id'],covariates=req['covariates'],expected_sha256=model_files['sha256'])
                     bind_runtime_callbacks(restored,check_cancel)
-                    if not np.array_equal(prediction_call(model,'predict',X,samples['coordinates']),prediction_call(restored,'predict',X,samples['coordinates'])):raise JobError('MODEL_ROUNDTRIP','Kaydedilen modelin nokta tahmini farklı.')
+                    if not np.array_equal(prediction_call(model,'predict',X,samples['coordinates']),prediction_call(restored,'predict',X,samples['coordinates'])):raise JobError('MODEL_ROUNDTRIP','The point prediction of the saved model differs.')
                     old_interval=prediction_call(model,'predict_interval',X,samples['coordinates']);new_interval=prediction_call(restored,'predict_interval',X,samples['coordinates'])
-                    if old_interval is not None and any(not np.array_equal(a,b,equal_nan=True) for a,b in zip(old_interval,new_interval)):raise JobError('MODEL_ROUNDTRIP','Kaydedilen modelin aralığı farklı.')
+                    if old_interval is not None and any(not np.array_equal(a,b,equal_nan=True) for a,b in zip(old_interval,new_interval)):raise JobError('MODEL_ROUNDTRIP','The interval of the saved model differs.')
                     products.extend([('model',model_path),('model',Path(model_files['metadata_path']))])
                     map_paths,map_audit=map_products(output,rasters,restored,record,req,samples,check_cancel,progress);products.extend(map_paths)
                     ev['mapping_diagnostics']=map_audit
@@ -346,7 +346,7 @@ def run_job_b(request,emit=lambda event:None):
             current_raster_paths=set()
             for cov in req['covariates']:
                 with rasterio.open(cov['path']) as current:current_raster_paths.update(str(Path(p).resolve()) for p in current.files)
-            if current_raster_paths!=set(rasters.source_paths()) or sources!=[fingerprint(p,check_cancel) for p in paths]:raise JobError('SOURCE_CHANGED','İş sırasında kaynak değişti; sonuç yayımlanmadı.')
+            if current_raster_paths!=set(rasters.source_paths()) or sources!=[fingerprint(p,check_cancel) for p in paths]:raise JobError('SOURCE_CHANGED','A source changed during the job; the result was not published.')
             audit={'run_id':run_id,'started_utc':started,'finished_utc':datetime.now(timezone.utc).isoformat(),'sources':sources,'settings':req,'groups':dict(zip(samples['ids'],map(str,groups))),'folds':folds,'final_record':record,'python':sys.version,'executable':sys.executable,'platform':platform.platform(),'cpu_count':os.cpu_count(),'packages':{n:importlib.metadata.version(n) for n in ['numpy','scipy','scikit-learn','rasterio','pyproj','xgboost','optuna','quantile-forest','Boruta','matplotlib']},'source_code':[fingerprint(p) for p in sorted(Path(__file__).parent.glob('*.py'))],'proj_network_enabled':network.is_network_enabled(),'validation':result['validation'],**map_audit}
             audit['coordinate_grouping_tolerance_m']=1e-5
             audit['packages'].update({n:importlib.metadata.version(n) for n in ('lightgbm','catboost','cubist','PyKrige')})
@@ -363,7 +363,7 @@ def run_job_b(request,emit=lambda event:None):
                 result['outputs'].append({'kind':'study_package','path':study_package.name,'sha256':fingerprint(study_package,check_cancel)['sha256']})
             check_cancel();write_json(output/'result.json',result)
             (output/'INCOMPLETE.json').unlink(missing_ok=True)
-            progress('completed',1,1,'Kat ön gösterimi tamamlandı.' if req['action']=='preview' else 'Dış değerlendirme ve haritalama tamamlandı.')
+            progress('completed',1,1,'Fold preview completed.' if req['action']=='preview' else 'Outer evaluation and mapping completed.')
             return result
     except Exception as exc:
         result['status']='cancelled' if isinstance(exc,Cancelled) else 'failed';result['outputs']=[]

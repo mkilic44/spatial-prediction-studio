@@ -31,9 +31,9 @@ PREDICT_BATCH_SIZE = 512
 
 def _parameters(name, params):
     if name not in ('tabm', 'realmlp'):
-        raise JobError('MODEL', 'Desteklenmeyen Aşama D modeli: ' + str(name))
+        raise JobError('MODEL', 'Unsupported Stage D model: ' + str(name))
     if not isinstance(params, dict):
-        raise JobError('MODEL_PARAMETER', 'Model parametreleri nesne olmalıdır.')
+        raise JobError('MODEL_PARAMETER', 'Model parameters must be an object.')
     defaults = dict(n_epochs=10, batch_size=16, hidden_size=32, n_layers=2,
                     dropout=.1 if name == 'tabm' else .15,
                     lr=.001 if name == 'tabm' else .04,
@@ -42,16 +42,16 @@ def _parameters(name, params):
         defaults['k'] = 4
     unknown = set(params) - set(defaults)
     if unknown:
-        raise JobError('MODEL_PARAMETER', 'Desteklenmeyen model parametresi: ' + sorted(unknown)[0])
+        raise JobError('MODEL_PARAMETER', 'Unsupported model parameter: ' + sorted(unknown)[0])
     defaults.update(params)
     for key, low, high in [('n_epochs', 1, 200), ('batch_size', 4, 512),
                            ('hidden_size', 8, 256), ('n_layers', 1, 4), ('k', 2, 32)]:
         if key in defaults and (type(defaults[key]) is not int or not low <= defaults[key] <= high):
-            raise JobError('MODEL_PARAMETER', key + ' izin verilen tamsayı aralığı dışında.')
+            raise JobError('MODEL_PARAMETER', key + ' is outside the allowed integer range.')
     for key, low, high in [('dropout', 0., .8), ('lr', .000001, .2), ('weight_decay', 0., .1)]:
         value = defaults[key]
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not low <= value <= high:
-            raise JobError('MODEL_PARAMETER', key + ' izin verilen sayısal aralık dışında.')
+            raise JobError('MODEL_PARAMETER', key + ' is outside the allowed numeric range.')
     return defaults
 
 
@@ -69,13 +69,13 @@ def _torch_cpu():
         os.environ[name] = '1'
     import torch
     if torch.__version__ != '2.8.0+cpu' or torch.version.cuda is not None:
-        raise JobError('D_MODEL_RUNTIME', 'Aşama D, kilitli PyTorch 2.8.0+cpu ortamını gerektirir.')
+        raise JobError('D_MODEL_RUNTIME', 'Stage D requires the locked PyTorch 2.8.0+cpu environment.')
     torch.set_num_threads(1)
     try:
         torch.set_num_interop_threads(1)
     except RuntimeError:
         if torch.get_num_interop_threads() != 1:
-            raise JobError('D_MODEL_RUNTIME', 'PyTorch iş parçacığı sınırı uygulanamadı.')
+            raise JobError('D_MODEL_RUNTIME', 'The PyTorch thread limit could not be applied.')
     torch.use_deterministic_algorithms(True)
     return torch
 
@@ -108,15 +108,15 @@ def _bounded_child(target, args, *, timeout_seconds, memory_bytes, check_cancel)
             except psutil.NoSuchProcess:
                 pass
             if peak > memory_bytes:
-                raise JobError('D_MODEL_MEMORY', 'Model eğitimi için bellek sınırı aşıldı.')
+                raise JobError('D_MODEL_MEMORY', 'Model training exceeded the memory limit.')
             if time.monotonic() - started > timeout_seconds:
-                raise JobError('D_MODEL_TIMEOUT', 'Model eğitimi için süre sınırı aşıldı.')
+                raise JobError('D_MODEL_TIMEOUT', 'Model training exceeded the time limit.')
             if not child.is_alive():
                 break
             child.join(.05)
         child.join()
         if child.exitcode != 0:
-            raise JobError('D_MODEL_CHILD', 'Model eğitim süreci başarısız oldu: ' + str(child.exitcode))
+            raise JobError('D_MODEL_CHILD', 'The model training process failed: ' + str(child.exitcode))
         return {'duration_seconds': time.monotonic() - started, 'peak_rss_bytes': peak}
     finally:
         if child.is_alive():
@@ -173,7 +173,7 @@ def _fit_in_child(name, params, seed, X, y, result_path):
                             outputs = model(xt[indices], None).squeeze(-1)
                             loss = ((outputs - yt[indices, None]) ** 2).mean()
                             if not torch.isfinite(loss):
-                                raise JobError('MODEL_NONFINITE', 'TabM eğitim kaybı sonlu değil.')
+                                raise JobError('MODEL_NONFINITE', 'The TabM training loss is not finite.')
                             loss.backward()
                             optimizer.step()
                             steps += 1
@@ -202,10 +202,10 @@ def _fit_in_child(name, params, seed, X, y, result_path):
                     model.fit(X, y, val_idxs=np.empty(0, dtype=np.int64))
                     trained = model.alg_interface_.model
                     if trained.creator.is_cv:
-                        raise JobError('D_MODEL_VALIDATION', 'RealMLP beklenmeyen doğrulama altkümesi oluşturdu.')
+                        raise JobError('D_MODEL_VALIDATION', 'RealMLP created an unexpected validation subset.')
                     epochs = float(trained.progress.epoch_float)
                     if not math.isclose(epochs, params['n_epochs'], abs_tol=1e-6):
-                        raise JobError('D_MODEL_EPOCHS', 'RealMLP istenen eğitim dönemlerini tamamlamadı.')
+                        raise JobError('D_MODEL_EPOCHS', 'RealMLP did not complete the requested epochs.')
                     state = {'model': model}
                     from .modeling import _producer_parameters
                     details['producer_parameters'] = _producer_parameters(model, config=True)
@@ -240,14 +240,14 @@ class BoundedNeuralRegressor(RegressorMixin, BaseEstimator):
         values = np.asarray(X)
         target = np.asarray(y)
         if values.ndim != 2 or not 2 <= values.shape[0] <= 2000 or not 1 <= values.shape[1] <= 256:
-            raise JobError('D_MODEL_BUDGET', 'D modeli eğitimi 2-2000 satır ve 1-256 kodlanmış değişken gerektirir.')
+            raise JobError('D_MODEL_BUDGET', 'Stage D model training requires 2 to 2000 rows and 1 to 256 encoded variables.')
         if target.shape != (len(values),):
-            raise JobError('TARGET', 'Hedef boyutu eğitim satırlarıyla uyuşmuyor.')
+            raise JobError('TARGET', 'The target size does not match the training rows.')
         if not np.isfinite(values).all() or not np.isfinite(target).all():
-            raise JobError('MODEL_NONFINITE', 'Model girdileri ve hedef sonlu olmalıdır.')
+            raise JobError('MODEL_NONFINITE', 'Model inputs and target must be finite.')
         import psutil
         if psutil.virtual_memory().available < FIT_MEMORY + 512 * 1024**2:
-            raise JobError('D_MODEL_MEMORY', 'D eğitimi için en az 2.5 GiB kullanılabilir bellek gereklidir.')
+            raise JobError('D_MODEL_MEMORY', 'Stage D training requires at least 2.5 GiB of available memory.')
         check_cancel()
         with tempfile.TemporaryDirectory(prefix='sps-d-') as folder:
             result = Path(folder) / 'model.joblib'
@@ -261,7 +261,7 @@ class BoundedNeuralRegressor(RegressorMixin, BaseEstimator):
                 failure = json.loads(error.read_text(encoding='utf-8'))
                 raise JobError(failure['code'], failure['message'])
             if not result.is_file():
-                raise JobError('D_MODEL_CHILD', 'Eğitim süreci model dosyası üretmedi.')
+                raise JobError('D_MODEL_CHILD', 'The training process produced no model file.')
             _torch_cpu()
             learned = joblib.load(result)
         self.state_ = learned['state']
@@ -274,14 +274,14 @@ class BoundedNeuralRegressor(RegressorMixin, BaseEstimator):
 
     def predict(self, X):
         if not hasattr(self, 'state_'):
-            raise JobError('MODEL_NOT_FITTED', 'Tahmin öncesinde model eğitilmelidir.')
+            raise JobError('MODEL_NOT_FITTED', 'The model must be trained before prediction.')
         values = np.asarray(X)
         if values.ndim != 2 or values.shape[1] != self.n_features_in_:
-            raise JobError('MODEL_FEATURES', 'Tahmin değişkenlerinin boyutu eğitimle uyuşmuyor.')
+            raise JobError('MODEL_FEATURES', 'The dimensions of the prediction variables do not match training.')
         if values.size * 8 > PREDICT_MATRIX_BYTES:
-            raise JobError('D_MODEL_BUDGET', 'Tahmin matrisi 256 MiB sınırını aşıyor; daha küçük raster penceresi kullanın.')
+            raise JobError('D_MODEL_BUDGET', 'The prediction matrix exceeds the 256 MiB limit; use a smaller raster window.')
         if not np.isfinite(values).all():
-            raise JobError('MODEL_NONFINITE', 'Tahmin girdileri sonlu olmalıdır.')
+            raise JobError('MODEL_NONFINITE', 'Prediction inputs must be finite.')
         if len(values) == 0:
             return np.empty(0, dtype=float)
         torch = _torch_cpu()
@@ -299,7 +299,7 @@ class BoundedNeuralRegressor(RegressorMixin, BaseEstimator):
                 pieces.append(pred.reshape(-1))
         prediction = np.concatenate(pieces)
         if prediction.shape != (len(values),) or not np.isfinite(prediction).all():
-            raise JobError('MODEL_NONFINITE', 'Model sonlu ve doğru boyutta tahmin üretmedi.')
+            raise JobError('MODEL_NONFINITE', 'The model did not produce finite predictions of the correct size.')
         return prediction
 
 

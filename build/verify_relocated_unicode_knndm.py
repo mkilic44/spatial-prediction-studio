@@ -14,6 +14,7 @@ import time
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+# Relocated Unicode installation recorded for the 0.5.0 acceptance; keep the path as recorded.
 INSTALLED = ROOT.parent / "sps-ç/app/versions/0.5.0-6d5fb15e486c"
 FIX = ROOT / "tests/fixtures/cast-1.0.4"
 OUT = ROOT / "build/relocated-unicode-knndm"
@@ -28,7 +29,7 @@ def main():
     assert sys.dont_write_bytecode
     assert Path(sys.executable).resolve() == (INSTALLED / "runtime-d/Scripts/python.exe").resolve()
     OUT.mkdir(exist_ok=True)
-    work = OUT / "çalışma_ölçüm"
+    work = OUT / "çalışma_ölçüm"  # Non-ASCII work directory on purpose: this check exercises Unicode paths.
     work.mkdir(exist_ok=True)
     tempfile.tempdir = str(work)
     os.environ["TEMP"] = str(work)

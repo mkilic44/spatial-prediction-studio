@@ -50,7 +50,7 @@ def verify_weights(directory=None):
     if directory is None:
         models = Path(os.environ.get('SPS_MODELS_DIR', str(Path(__file__).resolve().parents[2] / 'models')))
         if not models.is_absolute():
-            raise JobError('TABPFN_WEIGHTS', 'SPS_MODELS_DIR tam yerel dizin yolu olmalıdır.')
+            raise JobError('TABPFN_WEIGHTS', 'SPS_MODELS_DIR must be a full local directory path.')
         directory = models / 'tabpfn-v2'
     directory = Path(directory)
     weight = directory / WEIGHT_NAME
@@ -58,37 +58,37 @@ def verify_weights(directory=None):
     license_path = directory / 'LICENSE.txt'
     try:
         if not weight.is_file() or not manifest.is_file() or not license_path.is_file():
-            raise ValueError('Dosya, lisans veya kayıt bulunamadı.')
+            raise ValueError('The weights file, license or manifest was not found.')
         record = json.loads(manifest.read_text(encoding='utf-8'))
         if not isinstance(record, dict):
-            raise ValueError('Ağırlık kaydı nesne olmalıdır.')
+            raise ValueError('The weights manifest must be an object.')
         expected = {'package_version': PACKAGE_VERSION, 'revision': WEIGHT_REVISION,
                     'filename': WEIGHT_NAME, 'bytes': WEIGHT_BYTES, 'sha256': WEIGHT_SHA256,
                     'license': 'Prior Labs License 1.1'}
         if any(record.get(key) != value for key, value in expected.items()):
-            raise ValueError('Ağırlık kaydı onaylanan sürümle eşleşmiyor.')
+            raise ValueError('The weights manifest does not match the approved version.')
         if weight.stat().st_size != WEIGHT_BYTES or _digest(weight) != WEIGHT_SHA256:
-            raise ValueError('Ağırlık boyutu veya dosya özeti değişmiş.')
+            raise ValueError('The weights file size or file digest has changed.')
         if _digest(license_path) != record.get('license_sha256'):
-            raise ValueError('Lisans dosyası özeti değişmiş.')
+            raise ValueError('The license file digest has changed.')
         return {**expected, 'path': str(weight.resolve()), 'license_sha256': record['license_sha256'],
                 'required_attribution': 'Built with PriorLabs-TabPFN'}
     except (OSError, ValueError, TypeError) as exc:
-        raise JobError('TABPFN_WEIGHTS', 'Yerel TabPFN ağırlığı doğrulanamadı; otomatik indirme yapılmaz. ' + str(exc)) from exc
+        raise JobError('TABPFN_WEIGHTS', 'The local TabPFN weights could not be verified; no automatic download is performed. ' + str(exc)) from exc
 
 
 def _parameters(parameters):
     if not isinstance(parameters, dict):
-        raise JobError('MODEL_PARAMETER', 'TabPFN parametreleri nesne olmalıdır.')
+        raise JobError('MODEL_PARAMETER', 'TabPFN parameters must be an object.')
     defaults = {'n_estimators': 2, 'softmax_temperature': .9}
     if set(parameters) - set(defaults):
-        raise JobError('MODEL_PARAMETER', 'Desteklenmeyen TabPFN parametresi: ' + sorted(set(parameters) - set(defaults))[0])
+        raise JobError('MODEL_PARAMETER', 'Unsupported TabPFN parameter: ' + sorted(set(parameters) - set(defaults))[0])
     defaults.update(parameters)
     if type(defaults['n_estimators']) is not int or not 1 <= defaults['n_estimators'] <= 4:
-        raise JobError('MODEL_PARAMETER', 'n_estimators parametresi 1-4 arasında tamsayı olmalıdır.')
+        raise JobError('MODEL_PARAMETER', 'The n_estimators parameter must be an integer from 1 to 4.')
     value = defaults['softmax_temperature']
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not .05 <= value <= 5:
-        raise JobError('MODEL_PARAMETER', 'softmax_temperature parametresi 0.05-5 aralığında olmalıdır.')
+        raise JobError('MODEL_PARAMETER', 'The softmax_temperature parameter must be between 0.05 and 5.')
     return defaults
 
 
@@ -102,7 +102,7 @@ def offline_network():
                        'OPENBLAS_NUM_THREADS': '1'}.items():
         os.environ[key] = value
     def denied(*args, **kwargs):
-        raise OSError('TabPFN hesaplama sürecinde ağ bağlantısı kapalıdır.')
+        raise OSError('Network access is disabled in the TabPFN compute process.')
     with contextlib.ExitStack() as stack:
         for attribute in ('connect', 'connect_ex', 'sendto', 'sendmsg'):
             if hasattr(socket.socket, attribute):
@@ -117,9 +117,9 @@ def _runtime():
     try:
         version = importlib.metadata.version('tabpfn')
     except importlib.metadata.PackageNotFoundError as exc:
-        raise JobError('TABPFN_RUNTIME', 'TabPFN 2.2.1 yerel D çalışma ortamında bulunamadı.') from exc
+        raise JobError('TABPFN_RUNTIME', 'TabPFN 2.2.1 was not found in the local Stage D runtime environment.') from exc
     if version != PACKAGE_VERSION:
-        raise JobError('TABPFN_RUNTIME', 'Yalnız doğrulanan TabPFN 2.2.1 sürümü kullanılabilir.')
+        raise JobError('TABPFN_RUNTIME', 'Only the verified TabPFN version 2.2.1 can be used.')
     torch = _torch_cpu()
     from tabpfn import TabPFNRegressor
     return torch, TabPFNRegressor
@@ -172,10 +172,10 @@ def _child(operation, parameters, seed, values, target, state_path, result_path,
                         pieces.append(np.asarray(model.predict(values[start:start + PREDICT_BATCH_SIZE], output_type='mean'), dtype=np.float64))
                 prediction = np.concatenate(pieces)
                 if prediction.shape != (len(values),) or not np.isfinite(prediction).all():
-                    raise JobError('MODEL_NONFINITE', 'TabPFN sonlu ve doğru boyutta tahmin üretmedi.')
+                    raise JobError('MODEL_NONFINITE', 'TabPFN did not produce finite predictions of the correct size.')
                 joblib.dump({'prediction': prediction}, result)
             else:
-                raise JobError('TABPFN_OPERATION', 'Bilinmeyen TabPFN işlemi.')
+                raise JobError('TABPFN_OPERATION', 'Unknown TabPFN operation.')
     except BaseException as exc:
         Path(str(result) + '.error.json').write_text(json.dumps({
             'code': getattr(exc, 'code', 'TABPFN_COMPUTE'), 'message': str(exc),
@@ -188,7 +188,7 @@ def _read_result(path):
         failure = json.loads(error.read_text(encoding='utf-8'))
         raise JobError(failure['code'], failure['message'])
     if not path.is_file():
-        raise JobError('D_MODEL_CHILD', 'TabPFN süreci sonuç üretmedi.')
+        raise JobError('D_MODEL_CHILD', 'The TabPFN process produced no result.')
     # The outer payload contains primitives and arrays, never a TabPFN instance.
     return joblib.load(path)
 
@@ -210,17 +210,17 @@ class BoundedTabPFNRegressor(RegressorMixin, BaseEstimator):
         parameters = _parameters(self.parameters or {})
         values, target = np.asarray(X), np.asarray(y)
         if values.ndim != 2 or not 2 <= len(values) <= 2000 or not 1 <= values.shape[1] <= 256:
-            raise JobError('D_MODEL_BUDGET', 'TabPFN eğitimi 2-2000 satır ve 1-256 kodlanmış değişken gerektirir.')
+            raise JobError('D_MODEL_BUDGET', 'TabPFN training requires 2 to 2000 rows and 1 to 256 encoded variables.')
         if len(values) > 1000:
-            raise JobError('D_MODEL_BUDGET', 'TabPFN 2.2.1 işlemci sınırı 1000 eğitim satırıdır; üretici sınırı kapatılmaz.')
+            raise JobError('D_MODEL_BUDGET', 'The CPU limit of TabPFN 2.2.1 is 1000 training rows; the vendor limit is not overridden.')
         if target.shape != (len(values),):
-            raise JobError('TARGET', 'Hedef boyutu eğitim satırlarıyla uyuşmuyor.')
+            raise JobError('TARGET', 'The target size does not match the training rows.')
         if not np.isfinite(values).all() or not np.isfinite(target).all():
-            raise JobError('MODEL_NONFINITE', 'TabPFN girdileri ve hedef sonlu olmalıdır.')
+            raise JobError('MODEL_NONFINITE', 'TabPFN inputs and target must be finite.')
         weight = verify_weights()
         import psutil
         if psutil.virtual_memory().available < FIT_MEMORY + 512 * 1024**2:
-            raise JobError('D_MODEL_MEMORY', 'TabPFN için en az 2.5 GiB kullanılabilir bellek gereklidir.')
+            raise JobError('D_MODEL_MEMORY', 'TabPFN requires at least 2.5 GiB of available memory.')
         from .models_d import _bounded_child
         self._check_cancel_ = check_cancel
         with tempfile.TemporaryDirectory(prefix='sps-tabpfn-') as folder:
@@ -239,16 +239,16 @@ class BoundedTabPFNRegressor(RegressorMixin, BaseEstimator):
 
     def predict(self, X, *, check_cancel=None):
         if not hasattr(self, 'payload_'):
-            raise JobError('MODEL_NOT_FITTED', 'Tahmin öncesinde TabPFN eğitilmelidir.')
+            raise JobError('MODEL_NOT_FITTED', 'TabPFN must be trained before prediction.')
         values = np.asarray(X)
         if values.ndim != 2 or values.shape[1] != self.n_features_in_:
-            raise JobError('MODEL_FEATURES', 'Tahmin değişkenleri eğitimle uyuşmuyor.')
+            raise JobError('MODEL_FEATURES', 'The prediction variables do not match training.')
         if values.size * 8 > PREDICT_MATRIX_BYTES:
-            raise JobError('D_MODEL_BUDGET', 'Tahmin matrisi 256 MiB sınırını aşıyor; raster penceresini küçültün.')
+            raise JobError('D_MODEL_BUDGET', 'The prediction matrix exceeds the 256 MiB limit; reduce the raster window size.')
         if not np.isfinite(values).all():
-            raise JobError('MODEL_NONFINITE', 'Tahmin girdileri sonlu olmalıdır.')
+            raise JobError('MODEL_NONFINITE', 'Prediction inputs must be finite.')
         if hashlib.sha256(self.payload_).hexdigest() != self.payload_sha256_:
-            raise JobError('TABPFN_STATE', 'Kaydedilen TabPFN modelinin dosya özeti değişmiş.')
+            raise JobError('TABPFN_STATE', 'The file digest of the saved TabPFN model has changed.')
         callback = check_cancel or getattr(self, '_check_cancel_', lambda: None)
         callback()
         weight = verify_weights()

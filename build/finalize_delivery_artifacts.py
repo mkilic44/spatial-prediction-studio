@@ -181,6 +181,7 @@ def main():
     require(sys.flags.optimize == 0, "Do not disable final delivery assertions with Python -O")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-record", type=Path, default=ROOT / "installer/dist/installer-build-record.json")
+    # Staging folder of the recorded 0.5.0 installer acceptance; keep the path as recorded.
     parser.add_argument("--staged-acceptance", type=Path, default=ROOT.parent / "sps-ç2/setup-acceptance.json")
     parser.add_argument("--installed-acceptance", type=Path, default=ROOT / "build/installed-release/acceptance.json")
     args = parser.parse_args()

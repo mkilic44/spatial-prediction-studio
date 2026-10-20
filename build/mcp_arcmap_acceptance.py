@@ -22,7 +22,7 @@ def prepare():
     value["science"]["model"] = {"id": "ridge", "parameters": {"alpha": 1.0}}
     value["science"]["optimization"].update(method="grid", trials=3, spaces={"alpha": {"type": "categorical", "choices": [0.1, 1.0, 10.0]}})
     value["science"]["validation"]["independent_ids"] = ["D046", "D047"]
-    value["samples"]["excluded"] = [{"id": "D000", "reason": "Sentetik yazılım sınaması için önceden belirlenmiş dışlama"}]
+    value["samples"]["excluded"] = [{"id": "D000", "reason": "Predefined exclusion for a synthetic software test"}]
     value["output_root"] = str(EVIDENCE / "mcp-runs")
     write(EVIDENCE / "mcp-grid.sps.json", value)
     return value

@@ -40,7 +40,7 @@ def runtime_paths(root):
         python = root / "runtime-mcp" / "python.exe"
     server = root / "mcp-server" / "server.py"
     if not python.is_file() or not server.is_file():
-        raise BridgeError("INSTALLATION_MISSING", "MCP yorumlayıcısı veya sunucu dosyası bulunamadı.")
+        raise BridgeError("INSTALLATION_MISSING", "The MCP interpreter or server file was not found.")
     reject_reparse(python)
     reject_reparse(server)
     return python, server
@@ -48,7 +48,7 @@ def runtime_paths(root):
 
 def template(client, root):
     if client not in CLIENTS:
-        raise BridgeError("CLIENT_UNKNOWN", "İstemci tanınmıyor.")
+        raise BridgeError("CLIENT_UNKNOWN", "Unknown client.")
     python, server = runtime_paths(root)
     env = {"SPS_MCP_OWNER": OWNER}
     entry = {"command": str(python), "args": ["-X", "utf8", str(server)], "env": env}
@@ -88,7 +88,7 @@ def claude_target_paths(home=None, appdata=None, localappdata=None):
             reject_reparse(package)
             unknown = package / "LocalCache/Roaming/Claude"
             if package.name != CLAUDE_STORE_FAMILY and unknown.exists():
-                raise BridgeError("CLIENT_PROFILE_UNSUPPORTED", "Claude için tanınmayan Store profili bulundu; mevcut dosyalar değiştirilmedi.")
+                raise BridgeError("CLIENT_PROFILE_UNSUPPORTED", "Found an unrecognized Store profile for Claude; existing files were not changed.")
     existing = [path for path in candidates if path.is_file() or path.parent.is_dir()]
     return existing or [candidates[0]]
 
@@ -104,7 +104,7 @@ def target_path(client, home=None, appdata=None):
     if client == "claude_desktop":
         paths = claude_target_paths(home, appdata)
         if len(paths) != 1:
-            raise BridgeError("CLIENT_MULTIPLE_PROFILES", "Claude için birden çok profil var; çoklu hedef kayıt işlemini kullanın.")
+            raise BridgeError("CLIENT_MULTIPLE_PROFILES", "Claude has more than one profile; use the multi-target registration.")
         return paths[0]
     home = Path.home() if home is None else Path(home)
     appdata = Path(os.environ.get("APPDATA", home / "AppData" / "Roaming")) if appdata is None else Path(appdata)
@@ -114,23 +114,23 @@ def target_path(client, home=None, appdata=None):
         current = home / ".gemini" / "config" / "mcp_config.json"
         legacy = home / ".gemini" / "antigravity" / "mcp_config.json"
         if legacy.exists() and not current.exists():
-            raise BridgeError("MANUAL_MERGE_REQUIRED", "Antigravity eski yapılandırması bulundu. View raw config ile etkin dosyayı doğrulayın.")
+            raise BridgeError("MANUAL_MERGE_REQUIRED", "Found a legacy Antigravity configuration. Check the active file with View raw config.")
         return current
     if client == "claude_code":
         return home / ".claude.json"
     if client == "opencode":
         directory = home / ".config" / "opencode"
         if os.environ.get("OPENCODE_CONFIG") or os.environ.get("OPENCODE_CONFIG_DIR") or os.environ.get("XDG_CONFIG_HOME"):
-            raise BridgeError("MANUAL_MERGE_REQUIRED", "OpenCode özel yapılandırma yolu etkin; üretilen parçayı etkin dosyada birleştirin.")
+            raise BridgeError("MANUAL_MERGE_REQUIRED", "A custom OpenCode configuration path is active; merge the generated snippet into the active file.")
         json_path, commented = directory / "opencode.json", directory / "opencode.jsonc"
         if commented.exists() and json_path.exists():
-            raise BridgeError("MANUAL_MERGE_REQUIRED", "OpenCode için JSON ve yorumlu JSON birlikte var. Etkin dosya belirsiz; ikisi de korunuyor.")
+            raise BridgeError("MANUAL_MERGE_REQUIRED", "OpenCode has both a JSON file and a JSON with comments (JSONC) file. The active file is ambiguous; both are kept unchanged.")
         if commented.exists():
             return commented
         return json_path
     if client == "pycharm":
         return None
-    raise BridgeError("CLIENT_UNKNOWN", "İstemci tanınmıyor.")
+    raise BridgeError("CLIENT_UNKNOWN", "Unknown client.")
 
 
 def owned(entry):
@@ -160,7 +160,7 @@ def merge_owned_text(original, fmt, patch):
                     raise ValueError("Server group must be object")
                 entry = patch[group][KEY]
                 if KEY in previous[group] and not same_json_value(previous[group][KEY], entry) and not owned(previous[group][KEY]):
-                    raise BridgeError("OWNERSHIP_CONFLICT", "Aynı adlı kayıt başka bir kuruluma ait; üzerine yazılmadı.")
+                    raise BridgeError("OWNERSHIP_CONFLICT", "An entry with the same name belongs to another installation; it was not overwritten.")
                 text = parsed.set_member(parsed.root.members[group].node, KEY, entry)
             previous.setdefault(group, {})[KEY] = patch[group][KEY]
             if not same_json_value(JsoncDocument(text).root.value, previous):
@@ -176,7 +176,7 @@ def merge_owned_text(original, fmt, patch):
             raise ValueError("Server group must be object")
         entry = patch[group][KEY]
         if KEY in document[group] and document[group][KEY] != entry and not owned(document[group][KEY]):
-            raise BridgeError("OWNERSHIP_CONFLICT", "Aynı adlı kayıt başka bir kuruluma ait; üzerine yazılmadı.")
+            raise BridgeError("OWNERSHIP_CONFLICT", "An entry with the same name belongs to another installation; it was not overwritten.")
         document[group][KEY] = entry
         text = serialize_config(fmt, document)
         loaded = tomlkit.parse(text).unwrap() if fmt == "toml" else strict_json(text)
@@ -188,7 +188,7 @@ def merge_owned_text(original, fmt, patch):
     except BridgeError:
         raise
     except (ValueError, TypeError, KeyError, tomlkit.exceptions.ParseError):
-        raise BridgeError("MANUAL_MERGE_REQUIRED", "Mevcut yapılandırma güvenle ayrıştırılamadı; dosya değiştirilmedi.") from None
+        raise BridgeError("MANUAL_MERGE_REQUIRED", "Could not parse the existing configuration safely; the file was not changed.") from None
 
 
 def remove_owned_text(original, fmt, patch):
@@ -230,14 +230,14 @@ def remove_owned_text(original, fmt, patch):
             raise ValueError("Unrelated config changed")
         return text, "removed_restart_required"
     except (ValueError, TypeError, KeyError, AttributeError, tomlkit.exceptions.ParseError):
-        raise BridgeError("MANUAL_MERGE_REQUIRED", "Yapılandırma güvenle ayrılamadı; kayıt kaldırılmadı.") from None
+        raise BridgeError("MANUAL_MERGE_REQUIRED", "Could not parse the configuration safely; the entry was not removed.") from None
 
 
 def atomic_merge(path, fmt, patch, remove=False):
     path = Path(path)
     if path.suffix.lower() == ".jsonc":
         if "mcp" not in patch:
-            raise BridgeError("MANUAL_MERGE_REQUIRED", "Yorumlu JSON desteği yalnız OpenCode kaydı için kullanılabilir.")
+            raise BridgeError("MANUAL_MERGE_REQUIRED", "JSON with comments (JSONC) is supported only for OpenCode registration.")
         fmt = "jsonc"
     reject_reparse(path)
     if remove and not path.exists():
@@ -252,11 +252,11 @@ def atomic_merge(path, fmt, patch, remove=False):
         existed = path.exists()
         original_bytes = path.read_bytes() if existed else b""
         if len(original_bytes) > 8 * 1024 * 1024:
-            raise BridgeError("CONFIG_LIMIT", "Yapılandırma dosyası boyut sınırını aşıyor.")
+            raise BridgeError("CONFIG_LIMIT", "The configuration file exceeds the size limit.")
         try:
             original_text = original_bytes.decode("utf-8-sig")
         except UnicodeError:
-            raise BridgeError("MANUAL_MERGE_REQUIRED", "Yapılandırma UTF-8 değil; değiştirilmedi.") from None
+            raise BridgeError("MANUAL_MERGE_REQUIRED", "The configuration is not UTF-8; it was not changed.") from None
         removal_status = None
         if remove:
             updated_text, removal_status = remove_owned_text(original_text, fmt, patch)
@@ -280,16 +280,16 @@ def atomic_merge(path, fmt, patch, remove=False):
             stream.flush()
             os.fsync(stream.fileno())
         if path.exists() != existed or (existed and path.read_bytes() != original_bytes):
-            raise BridgeError("CONFIG_CHANGED", "Yapılandırma işlem sırasında değişti; yazılmadı.")
+            raise BridgeError("CONFIG_CHANGED", "The configuration changed during the operation; it was not written.")
         os.replace(temp_name, path)
         temp_name = None
         if path.read_bytes() != updated:
-            raise BridgeError("CONFIG_READBACK", "Yapılandırma yeniden okuma doğrulaması başarısız.")
+            raise BridgeError("CONFIG_READBACK", "Configuration read-back verification failed.")
         return {"status": removal_status or "registered_restart_required", "path": str(path),
                 "backup": str(backup) if backup else None,
                 "sha256": hashlib.sha256(updated).hexdigest(), "connected": False}
     except FileExistsError:
-        raise BridgeError("CONFIG_BUSY", "Başka bir kayıt işlemi devam ediyor.") from None
+        raise BridgeError("CONFIG_BUSY", "Another registration is in progress.") from None
     finally:
         if temp_name:
             Path(temp_name).unlink(missing_ok=True)
@@ -299,10 +299,10 @@ def atomic_merge(path, fmt, patch, remove=False):
 
 def recorded_targets(record, client, root):
     if record.get("owner_key") != KEY or not record.get("applied") or record.get("installation_root") != str(Path(root).resolve()):
-        raise BridgeError("REGISTRATION_RECORD_INVALID", "Kayıt sonucu bu kuruluma ait değil.")
+        raise BridgeError("REGISTRATION_RECORD_INVALID", "The registration record does not belong to this installation.")
     matches = [item for item in record.get("clients", []) if item.get("client") == client]
     if len(matches) != 1:
-        raise BridgeError("REGISTRATION_RECORD_INVALID", "İstemcinin kayıt sonucu eksik veya yinelenmiş.")
+        raise BridgeError("REGISTRATION_RECORD_INVALID", "The client's registration record is missing or duplicated.")
     item = matches[0]
     profiles = item.get("profiles", [item] if item.get("path") else [])
     permitted = claude_candidate_paths() if client == "claude_desktop" else target_paths(client)
@@ -310,7 +310,7 @@ def recorded_targets(record, client, root):
     for profile in profiles:
         path = Path(profile.get("path", ""))
         if not path.is_absolute() or path not in permitted or path in paths:
-            raise BridgeError("REGISTRATION_RECORD_INVALID", "Kayıt sonucundaki hedef desteklenen istemci profili değil.")
+            raise BridgeError("REGISTRATION_RECORD_INVALID", "A target in the registration record is not a supported client profile.")
         reject_reparse(path)
         paths.append(path)
     return paths
@@ -322,17 +322,17 @@ def validate_target_contents(paths, fmt, patch, remove):
         reject_reparse(path)
         data = path.read_bytes() if path.exists() else b""
         if len(data) > 8 * 1024 * 1024:
-            raise BridgeError("CONFIG_LIMIT", "Yapılandırma dosyası boyut sınırını aşıyor.")
+            raise BridgeError("CONFIG_LIMIT", "The configuration file exceeds the size limit.")
         try:
             original = data.decode("utf-8-sig")
         except UnicodeError:
-            raise BridgeError("MANUAL_MERGE_REQUIRED", "Yapılandırma UTF-8 değil; değiştirilmedi.") from None
+            raise BridgeError("MANUAL_MERGE_REQUIRED", "The configuration is not UTF-8; it was not changed.") from None
         actual_format = "jsonc" if path.suffix.lower() == ".jsonc" else fmt
         (remove_owned_text if remove else merge_owned_text)(original, actual_format, patch)
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Spatial Prediction Studio MCP istemci kayıt yardımcısı")
+    parser = argparse.ArgumentParser(description="Spatial Prediction Studio MCP client registration helper")
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--client", action="append", choices=CLIENTS, default=[])
@@ -342,14 +342,14 @@ def main(argv=None):
     operations.add_argument("--remove", action="store_true")
     args = parser.parse_args(argv)
     if (args.apply or args.remove) and not args.client:
-        parser.error("--apply veya --remove için en az bir --client gerekir.")
+        parser.error("--apply or --remove requires at least one --client.")
     if args.registration_record and not args.remove:
-        parser.error("--registration-record yalnız --remove ile kullanılabilir.")
+        parser.error("--registration-record can be used only with --remove.")
     prior_record = None
     if args.registration_record:
         reject_reparse(args.registration_record)
         if not args.registration_record.resolve().is_relative_to(args.root.resolve()):
-            raise BridgeError("REGISTRATION_RECORD_INVALID", "Kayıt sonucu kurulum dizini dışında.")
+            raise BridgeError("REGISTRATION_RECORD_INVALID", "The registration record is outside the installation folder.")
         prior_record = strict_json(args.registration_record.read_bytes())
     args.output_dir.mkdir(parents=True, exist_ok=True)
     reject_reparse(args.output_dir)
@@ -365,7 +365,7 @@ def main(argv=None):
                 paths = recorded_targets(prior_record, client, args.root) if prior_record is not None else target_paths(client)
                 if client == "pycharm":
                     record.update({"status": "manual_removal_required" if args.remove else "manual_import_required",
-                                   "instructions": "PyCharm: Settings > Tools > AI Assistant > Model Context Protocol > Add > STDIO; JSON parçasını kullanın."})
+                                   "instructions": "PyCharm: Settings > Tools > AI Assistant > Model Context Protocol > Add > STDIO; use the JSON snippet."})
                 else:
                     validate_target_contents(paths, fmt, patch, args.remove)
                     profiles = []

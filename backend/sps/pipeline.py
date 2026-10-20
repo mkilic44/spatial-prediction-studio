@@ -34,7 +34,7 @@ class CovariateEncoder:
     def fit(self, X):
         X = np.asarray(X, dtype=float)
         if X.ndim != 2 or X.shape[1] != len(self.covariates) or np.isinf(X).any():
-            raise JobError("FEATURE_MATRIX", "Açıklayıcı değişken matrisi geçersiz.")
+            raise JobError("FEATURE_MATRIX", "The covariate matrix is invalid.")
         self._check_budget(len(X), len(self.covariates))
         self.parents = []
         self.discrete = []
@@ -45,7 +45,7 @@ class CovariateEncoder:
         if self.numeric:
             values = X[:, self.numeric]
             if np.isnan(values).all(axis=0).any():
-                raise JobError("EMPTY_COVARIATE", "Eğitim katında tümü eksik açıklayıcı değişken var.")
+                raise JobError("EMPTY_COVARIATE", "A covariate is entirely missing in the training fold.")
             self.ranges = {i: (float(np.nanmin(X[:, i])), float(np.nanmax(X[:, i]))) for i in self.numeric}
             method = self.config.get("imputation", "median")
             if method == "median":
@@ -53,9 +53,9 @@ class CovariateEncoder:
             elif method == "knn":
                 self.imputer = KNNImputer(n_neighbors=self.config.get("knn_neighbors", 5), keep_empty_features=True).fit(values)
             elif method != "none":
-                raise JobError("IMPUTATION", "Desteklenmeyen eksik değer yöntemi.")
+                raise JobError("IMPUTATION", "Unsupported imputation method.")
             elif np.isnan(values).any():
-                raise JobError("MISSING_COVARIATE", "Eksik değer giderme kapalıyken eksik açıklayıcı değişken var.")
+                raise JobError("MISSING_COVARIATE", "A covariate has missing values while imputation is turned off.")
             filled = self.imputer.transform(values) if self.imputer else values
             scaling = self.config.get("scaling", "standard")
             if scaling == "standard":
@@ -63,13 +63,13 @@ class CovariateEncoder:
             elif scaling == "robust":
                 self.scaler = RobustScaler().fit(filled)
             elif scaling != "none":
-                raise JobError("SCALING", "Desteklenmeyen ölçekleme yöntemi.")
+                raise JobError("SCALING", "Unsupported scaling method.")
             self.parents.extend(self.numeric)
             self.discrete.extend([False] * len(self.numeric))
         if self.categorical:
             values = X[:, self.categorical]
             if not np.isfinite(values).all():
-                raise JobError("MISSING_CATEGORY", "Eksik kategori kodları sayısal yöntemle doldurulamaz.")
+                raise JobError("MISSING_CATEGORY", "Missing category codes cannot be imputed with a numeric method.")
             self.encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore").fit(values)
             for index, categories in zip(self.categorical, self.encoder.categories_):
                 self.parents.extend([index] * len(categories))
@@ -80,7 +80,7 @@ class CovariateEncoder:
     @staticmethod
     def _check_budget(rows, columns):
         if int(rows) * int(columns) * 8 > 256 * 1024 * 1024:
-            raise JobError("MEMORY_BUDGET", "Gösterge matrisi 256 MiB bellek sınırını aşıyor; kategori veya pencere sayısını azaltın.")
+            raise JobError("MEMORY_BUDGET", "The indicator matrix exceeds the 256 MiB memory limit; reduce the number of categories or the window size.")
 
     def record(self):
         return {"numeric_ids": [self.covariates[i]["id"] for i in self.numeric],
@@ -96,7 +96,7 @@ class CovariateEncoder:
     def diagnostics(self, X):
         X = np.asarray(X, dtype=float)
         if X.ndim != 2 or X.shape[1] != len(self.covariates) or np.isinf(X).any():
-            raise JobError("FEATURE_MATRIX", "Tahmin değişkenlerinin sayısı veya değerleri geçersiz.")
+            raise JobError("FEATURE_MATRIX", "The number or values of the prediction variables are invalid.")
         unknown = np.zeros(len(X), dtype=bool)
         if self.encoder:
             for index, categories in zip(self.categorical, self.encoder.categories_):
@@ -111,18 +111,18 @@ class CovariateEncoder:
         self._check_budget(len(X), len(self.parents))
         diagnostics = self.diagnostics(X)
         if diagnostics["unknown_category"].any() and self.config.get("unknown_category", "error") == "error":
-            raise JobError("UNKNOWN_CATEGORY", "Eğitimde görülmeyen kategori bulundu.")
+            raise JobError("UNKNOWN_CATEGORY", "A category not seen in training was found.")
         columns = []
         if self.numeric:
             values = X[:, self.numeric]
             if self.imputer:
                 values = self.imputer.transform(values)
             if not np.isfinite(values).all():
-                raise JobError("MISSING_COVARIATE", "Tahminde giderilemeyen eksik değer var.")
+                raise JobError("MISSING_COVARIATE", "The prediction input has a missing value that cannot be imputed.")
             columns.append(self.scaler.transform(values) if self.scaler else values)
         if self.categorical:
             if not np.isfinite(X[:, self.categorical]).all():
-                raise JobError("MISSING_CATEGORY", "Tahminde eksik kategori kodu var.")
+                raise JobError("MISSING_CATEGORY", "The prediction input has a missing category code.")
             columns.append(self.encoder.transform(X[:, self.categorical]))
         return np.column_stack(columns)
 
@@ -149,7 +149,7 @@ def _vif(values):
 def _drop_choice(candidates, scores, covariates, protected, priority):
     removable = [i for i in candidates if covariates[i]["id"] not in protected]
     if not removable:
-        raise JobError("PROTECTED_COLLINEARITY", "Korunan değişkenler nedeniyle doğrusal bağımlılık giderilemiyor.")
+        raise JobError("PROTECTED_COLLINEARITY", "Linear dependence cannot be removed because of protected variables.")
     priorities = {name: i for i, name in enumerate(priority)}
     return min(removable, key=lambda i: (priorities.get(covariates[i]["id"], len(priorities)), -scores.get(i, 0.), covariates[i]["id"]))
 
@@ -195,7 +195,7 @@ class FeaturePipeline:
         selected = list(active)
         k = int(selector.get("k", 1))
         if not selected:
-            raise JobError("NO_FEATURES", "Ön işlemeden sonra açıklayıcı değişken kalmadı.")
+            raise JobError("NO_FEATURES", "No covariates remain after preprocessing.")
         if method in ("pearson", "spearman"):
             numeric = [i for i in selected if self.covariates[i].get("kind", "continuous") == "continuous"]
             while len(numeric) > 1:
@@ -215,9 +215,9 @@ class FeaturePipeline:
                 selected.remove(dropped)
         elif method in ("mutual_info", "elastic_net", "rfe", "boruta"):
             if not 1 <= k <= len(active) and method != "boruta":
-                raise JobError("FEATURE_COUNT", "Seçilecek değişken sayısı eğitimdeki değişken sayısını aşıyor.")
+                raise JobError("FEATURE_COUNT", "The number of variables to select exceeds the number of variables in training.")
             if len([i for i in active if self.covariates[i]["id"] in protected]) > k and method != "boruta":
-                raise JobError("FEATURE_COUNT", "Korunan değişken sayısı seçilecek sayıdan büyük.")
+                raise JobError("FEATURE_COUNT", "The number of protected variables exceeds the number to select.")
             columns = np.flatnonzero(np.isin(parents, active))
             subset = design[:, columns]
             if method == "mutual_info":
@@ -243,7 +243,7 @@ class FeaturePipeline:
                     estimator.fit(design[:, cols], y)
                     importance = getattr(estimator, "feature_importances_", getattr(estimator, "coef_", None))
                     if importance is None:
-                        raise JobError("RFE_MODEL", "Bu model özyinelemeli değişken eleme için katsayı veya önem sağlamıyor.")
+                        raise JobError("RFE_MODEL", "This model provides no coefficients or importance for recursive feature elimination.")
                     values = np.abs(np.asarray(importance)).reshape(-1)
                     scores = {i: float(values[parents[cols] == i].sum()) for i in remaining}
                     removable = [i for i in remaining if self.covariates[i]["id"] not in protected]
@@ -262,9 +262,9 @@ class FeaturePipeline:
                     selected = sorted(ranked[:k])
                 record["selection_scores"] = {self.covariates[i]["id"]: value for i, value in scores.items()}
         elif method not in ("none", "sfs", "pca"):
-            raise JobError("FEATURE_SELECTION", "Desteklenmeyen değişken seçme yöntemi.")
+            raise JobError("FEATURE_SELECTION", "Unsupported variable selection method.")
         if not selected:
-            raise JobError("NO_SELECTED_FEATURES", "Değişken seçimi hiçbir değişkeni doğrulamadı.")
+            raise JobError("NO_SELECTED_FEATURES", "Variable selection confirmed no variables.")
         # Refit on retained raw variables. In particular, KNN distances may not
         # keep depending on discarded variables through the imputation stage.
         record["final_vif"] = []
@@ -284,7 +284,7 @@ class FeaturePipeline:
             dropped = _drop_choice(high, scores, self.covariates, protected, vif.get("priority_ids", []))
             selected.remove(dropped)
             if not selected:
-                raise JobError("NO_FEATURES", "Son değişkenin doğrusal bağımlılığı giderilemedi.")
+                raise JobError("NO_FEATURES", "The linear dependence of the last variable could not be removed.")
             check_cancel()
         self.initial = list(selected)
         self.columns = np.arange(design.shape[1])
@@ -294,9 +294,9 @@ class FeaturePipeline:
         self.pca = None
         if method == "pca":
             if protected:
-                raise JobError("PCA_PROTECTED", "Temel bileşenlerde ham değişken koruma kuralı uygulanamaz.")
+                raise JobError("PCA_PROTECTED", "The raw variable protection rule cannot be applied to principal components.")
             if not 1 <= k <= min(len(X), len(self.columns)):
-                raise JobError("PCA_COMPONENTS", "Temel bileşen sayısı matris boyutunu aşıyor.")
+                raise JobError("PCA_COMPONENTS", "The number of principal components exceeds the matrix dimensions.")
             self.pca = PCA(n_components=k, svd_solver="full").fit(design[:, self.columns])
             record["pca"] = {"purpose": "transformation_not_variable_selection", "components": self.pca.components_.tolist(), "explained_variance_ratio": self.pca.explained_variance_ratio_.tolist()}
         record["selected_features"] = [self.covariates[i]["id"] for i in selected]
@@ -321,7 +321,7 @@ def sequential_selection(X, y, ids, coordinates, groups, covariates, settings, *
     protected = set(selector.get("protected_ids", [])) | set(settings.get("vif", {}).get("protected_ids", []))
     selected = [i for i, c in enumerate(covariates) if c["id"] in protected]
     if not max(1, len(selected)) <= count <= X.shape[1]:
-        raise JobError("FEATURE_COUNT", "Sıralı seçimde değişken sayısı geçersiz.")
+        raise JobError("FEATURE_COUNT", "Invalid number of variables for sequential selection.")
     selector_validation = deepcopy(settings["validation"])
     if selector_validation.get('method') == 'temporal':
         selector_validation['inner_initial_train_periods'] = selector_validation.get('selector_initial_train_periods', 1)

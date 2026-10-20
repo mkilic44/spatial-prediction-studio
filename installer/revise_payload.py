@@ -25,6 +25,7 @@ def main():
     observed = {p.relative_to(original).as_posix() for p in original.rglob('*') if p.is_file()}
     if observed != set(manifest['files']) | {'payload-manifest.json'}:
         raise ValueError('Parent payload contains unlisted or missing files')
+    # KURULUM_REHBERI.md is the installation guide file name recorded in the Turkish 0.5.0 payload; keep as recorded.
     changes = ['backend/sps/knndm.py', 'installer/verify_runtime.py', 'docs/KURULUM_REHBERI.md']
     for name in changes:
         source = ROOT / name

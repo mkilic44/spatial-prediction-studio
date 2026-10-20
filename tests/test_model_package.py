@@ -48,7 +48,7 @@ def test_real_saved_package_readback_and_restored_predictions(tmp_path, monkeypa
 def test_source_corruption_is_rejected_before_publishing(tmp_path):
     _, _, files, settings, record, context = fixture(tmp_path)
     Path(files['path']).write_bytes(b'changed')
-    with pytest.raises(JobError, match='kaynağı'):
+    with pytest.raises(JobError, match='source'):
         create_model_package(tmp_path, files, settings, record, context, check_cancel=lambda: None)
     assert not list(tmp_path.glob('*.zip*'))
 

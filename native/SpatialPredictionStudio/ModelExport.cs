@@ -22,20 +22,20 @@ namespace SpatialPredictionStudio
         private static ModelPackage ReadPackageKind(string manifestPath, string kind, CancellationToken cancellation)
         {
             if (String.IsNullOrWhiteSpace(manifestPath) || !File.Exists(manifestPath))
-                throw new FileNotFoundException("Önce tamamlanmış bir çalışmayı seçin.", manifestPath);
+                throw new FileNotFoundException("Select a completed run first.", manifestPath);
             manifestPath = Path.GetFullPath(manifestPath);
             using (var manifestLock = new FileStream(manifestPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 var result = Json.Read(manifestPath);
                 if (Json.Text(result, "schema_version") != "2" || Json.Text(result, "status") != "completed" || String.IsNullOrWhiteSpace(Json.Text(result, "run_id")))
-                    throw new InvalidDataException("Paket yalnız tamamlanmış ve geçerli bir çalışma kaydından kaydedilebilir.");
+                    throw new InvalidDataException("A package can only be saved from a completed, valid run record.");
                 object value;
                 var entries = result.TryGetValue("outputs", out value) && !(value is string) ? value as IEnumerable : null;
-                if (entries == null) throw new InvalidDataException("Tamamlanan çalışmanın çıktı listesi yok.");
+                if (entries == null) throw new InvalidDataException("The completed run has no output list.");
                 var outputs = entries.Cast<object>().Select(item => item as Dictionary<string, object>).ToList();
-                if (outputs.Any(item => item == null)) throw new InvalidDataException("Çalışma kaydındaki çıktı listesi geçersiz.");
+                if (outputs.Any(item => item == null)) throw new InvalidDataException("The output list in the run record is invalid.");
                 var packages = outputs.Where(item => Json.Text(item, "kind") == kind).ToList();
-                if (packages.Count != 1) throw new InvalidDataException(kind == "study_package" ? "Tam çalışma paketi bu kayıtta yok veya tek değil. Eski bir çalışma için analizi yeniden çalıştırın." : "Çalışmada tek bir model paketi bulunmalıdır. Eski bir çalışma için modeli yeniden çalıştırın.");
+                if (packages.Count != 1) throw new InvalidDataException(kind == "study_package" ? "The full study package is missing from this record or is not unique. For an older run, run the analysis again." : "The run must contain exactly one model package. For an older run, run the model again.");
                 string directory = Path.GetDirectoryName(manifestPath);
                 string source = ArtifactIntegrity.ResolveOutputPath(directory, Json.Text(packages[0], "path"));
                 string sha = Json.Text(packages[0], "sha256");
@@ -51,15 +51,15 @@ namespace SpatialPredictionStudio
 
         internal static void Save(ModelPackage package, string destination, bool allowOverwrite, CancellationToken cancellation = default(CancellationToken))
         {
-            if (package == null) throw new InvalidDataException("Doğrulanmış model paketi bulunamadı.");
+            if (package == null) throw new InvalidDataException("Verified model package not found.");
             if (String.IsNullOrWhiteSpace(destination) || !Path.IsPathRooted(destination))
-                throw new InvalidDataException("Modelin kaydedileceği tam dosya yolunu seçin.");
+                throw new InvalidDataException("Choose the full file path for saving the model.");
             destination = Path.GetFullPath(destination);
             if (package.ProtectedPaths.Any(path => String.Equals(path, destination, StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidDataException("Tamamlanan çalışmanın kaynak dosyalarının üzerine yazılamaz. Başka bir dosya adı seçin.");
+                throw new InvalidDataException("The source files of the completed run cannot be overwritten. Choose another file name.");
             string directory = Path.GetDirectoryName(destination);
-            if (!Directory.Exists(directory)) throw new DirectoryNotFoundException("Modelin kaydedileceği klasör bulunamadı.");
-            if (File.Exists(destination) && !allowOverwrite) throw new IOException("Var olan modelin üzerine yazılması onaylanmadı.");
+            if (!Directory.Exists(directory)) throw new DirectoryNotFoundException("The folder for saving the model was not found.");
+            if (File.Exists(destination) && !allowOverwrite) throw new IOException("Overwriting the existing model was not confirmed.");
             string token = Guid.NewGuid().ToString("N");
             string temporary = Path.Combine(directory, ".sps-model-" + token + ".tmp");
             string backup = Path.Combine(directory, ".sps-model-" + token + ".bak");
@@ -83,7 +83,7 @@ namespace SpatialPredictionStudio
                     cancellation.ThrowIfCancellationRequested();
                     if (File.Exists(destination))
                     {
-                        if (!allowOverwrite) throw new IOException("Kaydetme sırasında hedef dosya oluştu; üzerine yazılması onaylanmadı.");
+                        if (!allowOverwrite) throw new IOException("The destination file appeared during saving; overwriting it was not confirmed.");
                         File.Replace(temporary, destination, backup);
                     }
                     else File.Move(temporary, destination);
@@ -110,7 +110,7 @@ namespace SpatialPredictionStudio
                     }
                     catch (Exception recovery)
                     {
-                        throw new IOException("Model kaydı doğrulanamadı ve eski hedef geri yüklenemedi. Korunan yedek: " + backup,
+                        throw new IOException("The saved model could not be verified and the previous destination could not be restored. Kept backup: " + backup,
                             new AggregateException(failure, recovery));
                     }
                 }

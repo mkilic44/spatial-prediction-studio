@@ -43,7 +43,7 @@ class FixedModel:
     def predict(self, values):
         values = np.asarray(values, dtype=np.float64)
         if values.ndim != 2 or values.shape[1] != len(self.coefficients) or not np.isfinite(values).all():
-            raise JobError("PREDICTION_SCHEMA", "Tahmin değişkenlerinin sayısı veya değerleri modelle uyuşmuyor.")
+            raise JobError("PREDICTION_SCHEMA", "The number or values of the prediction variables do not match the model.")
         # Fixed per-row reduction is independent of raster window dimensions.
         return np.sum(values * self.coefficients, axis=1) + self.intercept
 
@@ -52,29 +52,29 @@ def load_model(path, *, expected_run_id):
     """Read the non-executable JSON model produced by this run; never unpickle input."""
     obj = read_json(path)
     if obj.get("schema_version") != 1 or obj.get("run_id") != expected_run_id or obj.get("model_id") not in ("mean", "ridge"):
-        raise JobError("MODEL_SCHEMA", "Model kimliği veya sürümü çalışmayla uyuşmuyor.")
+        raise JobError("MODEL_SCHEMA", "The model ID or version does not match the run.")
     coefficients = np.asarray(obj.get("coefficients"), dtype=np.float64)
     intercept = float(obj["intercept"])
     if coefficients.ndim != 1 or len(coefficients) != len(obj["covariates"]) or not np.isfinite(coefficients).all() or not math.isfinite(intercept):
-        raise JobError("MODEL_SCHEMA", "Model katsayıları geçersiz.")
+        raise JobError("MODEL_SCHEMA", "The model coefficients are invalid.")
     return FixedModel(coefficients, intercept)
 
 
 def reserve_output(raw):
-    value = required_text(raw.get("output_dir") if isinstance(raw, dict) else None, "OUTPUT_PATH", "Tam çıktı dizini gereklidir.")
+    value = required_text(raw.get("output_dir") if isinstance(raw, dict) else None, "OUTPUT_PATH", "A full output folder path is required.")
     path = Path(value)
     if not path.is_absolute():
-        raise JobError("OUTPUT_PATH", "Çıktı yolu mutlak olmalıdır.")
+        raise JobError("OUTPUT_PATH", "The output path must be absolute.")
     path = path.resolve()
     if path.exists() and (not path.is_dir() or any(p.name != "cancel.request" for p in path.iterdir())):
-        raise JobError("OUTPUT_NOT_EMPTY", "Çıktı dizini yeni veya boş olmalıdır; önceki işin üzerine yazılmaz.")
+        raise JobError("OUTPUT_NOT_EMPTY", "The output folder must be new or empty; a previous job is not overwritten.")
     path.mkdir(parents=True, exist_ok=True)
     # Exclusive claim prevents two worker processes from owning the same empty run directory.
     try:
         with (path / ".run.lock").open("x", encoding="ascii") as stream:
             stream.write(str(os.getpid()))
     except FileExistsError as exc:
-        raise JobError("OUTPUT_NOT_EMPTY", "Çıktı dizini başka bir işçi tarafından kullanılıyor.") from exc
+        raise JobError("OUTPUT_NOT_EMPTY", "The output folder is in use by another worker.") from exc
     return path
 
 
@@ -104,7 +104,7 @@ def run_job(request: dict, emit=lambda event: None) -> dict:
         proj_network.set_network_enabled(False)
         output = reserve_output(request)
         check_cancel()
-        progress("preflight", 0, 1, "Aşama A veri ve sürüm denetimi başladı.")
+        progress("preflight", 0, 1, "Stage A data and version check started.")
         req = validate_request(request)
         req["output_dir"] = str(output)
         write_json(output / "request.snapshot.json", req)
@@ -115,11 +115,11 @@ def run_job(request: dict, emit=lambda event: None) -> dict:
             source_by_path = {p["path"].casefold(): p for p in sources}
             for cov in req["covariates"]:
                 if cov.get("sha256") and cov["sha256"] != source_by_path[str(Path(cov["path"]).resolve()).casefold()]["sha256"]:
-                    raise JobError("SOURCE_FINGERPRINT", "Raster içeriği kayıtlı şemadan farklı.")
+                    raise JobError("SOURCE_FINGERPRINT", "The raster content differs from the recorded schema.")
             X, map_coordinates = rasters.extract(samples, check_cancel)
-            progress("preflight", 1, 1, "Girdi kimlikleri, hedefler, bantlar ve grid doğrulandı.")
+            progress("preflight", 1, 1, "Input IDs, targets, bands and grid verified.")
             check_cancel()
-            progress("training", 0, 1, "Sabit model eğitiliyor; çapraz doğrulama yapılmıyor.")
+            progress("training", 0, 1, "Training a fixed model; no cross-validation is performed.")
             if req["model"]["id"] == "mean":
                 trained = FixedModel(np.zeros(X.shape[1]), float(samples["y"].mean()))
             else:
@@ -138,8 +138,8 @@ def run_job(request: dict, emit=lambda event: None) -> dict:
             produced.append(model_path)
             restored = load_model(model_path, expected_run_id=run_id)
             if not np.array_equal(trained.predict(X), restored.predict(X)):
-                raise JobError("MODEL_ROUNDTRIP", "Kaydedilip yüklenen modelin tahminleri değişti.")
-            progress("training", 1, 1, "Model kaydedildi ve aynı tahminleri ürettiği denetlendi.")
+                raise JobError("MODEL_ROUNDTRIP", "Predictions changed after the model was saved and reloaded.")
+            progress("training", 1, 1, "Model saved and checked to reproduce the same predictions.")
             training_path = output / "training_samples.csv"
             with training_path.open("w", encoding="utf-8-sig", newline="") as stream:
                 writer = csv.writer(stream)
@@ -158,7 +158,7 @@ def run_job(request: dict, emit=lambda event: None) -> dict:
                        "count": 1, "dtype": "float32", "crs": reference.crs, "transform": reference.transform,
                        "nodata": float("nan"), "compress": "deflate", "tiled": True,
                        "blockxsize": 256, "blockysize": 256, "BIGTIFF": "IF_SAFER"}
-            progress("mapping", 0, total, "Tahmin rasteri pencereler halinde yazılıyor.")
+            progress("mapping", 0, total, "Writing the prediction raster in windows.")
             check_cancel()
             valid_count = 0
             with rasterio.open(temporary, "w", **profile) as dst:
@@ -178,19 +178,19 @@ def run_job(request: dict, emit=lambda event: None) -> dict:
                         if valid.any():
                             computed = restored.predict(values[valid])
                             if not np.isfinite(computed).all() or (np.abs(computed) > np.finfo(np.float32).max).any():
-                                raise JobError("NONFINITE_PREDICTION", "Sonlu olmayan veya çıktı türünü aşan tahmin üretildi.")
+                                raise JobError("NONFINITE_PREDICTION", "A prediction was nonfinite or exceeded the output data type.")
                             prediction[valid] = computed.astype(np.float32)
                         dst.write(prediction, indexes=1, window=window)
                         valid_count += int(valid.sum())
                         completed += 1
-                        progress("mapping", completed, total, "Raster penceresi tamamlandı.")
+                        progress("mapping", completed, total, "Raster window completed.")
             check_cancel()
-            progress("verification", 0, total, "Kaydedilen raster yeniden okunarak denetleniyor.")
+            progress("verification", 0, total, "Checking the saved raster by reading it back.")
             with rasterio.open(temporary) as saved:
                 if (saved.width, saved.height, saved.crs, saved.transform) != (reference.width, reference.height, reference.crs, reference.transform):
-                    raise JobError("OUTPUT_GRID", "Çıktı gridi referans gridle uyuşmuyor.")
+                    raise JobError("OUTPUT_GRID", "The output grid does not match the reference grid.")
                 if saved.units != (req["samples"]["unit"],) or saved.descriptions != (req["samples"]["target_field"],):
-                    raise JobError("OUTPUT_METADATA", "Çıktı bandının birimi veya hedef açıklaması kaydedilemedi.")
+                    raise JobError("OUTPUT_METADATA", "The output band unit or target description could not be saved.")
                 completed = 0
                 for row in range(0, reference.height, size):
                     for col in range(0, reference.width, size):
@@ -199,14 +199,14 @@ def run_job(request: dict, emit=lambda event: None) -> dict:
                         values, valid = rasters.read_window(window)
                         actual = saved.read(1, window=window, masked=True)
                         if not np.array_equal(np.ma.getmaskarray(actual), ~valid):
-                            raise JobError("OUTPUT_MASK", "Çıktı maskesi girdilerle uyuşmuyor.")
+                            raise JobError("OUTPUT_MASK", "The output mask does not match the inputs.")
                         if valid.any() and not np.array_equal(actual.data[valid], restored.predict(values[valid]).astype(np.float32)):
-                            raise JobError("OUTPUT_VALUES", "Kaydedilen raster tahminlerle uyuşmuyor.")
+                            raise JobError("OUTPUT_VALUES", "The saved raster does not match the predictions.")
                         completed += 1
-                        progress("verification", completed, total, "Kaydedilen raster penceresi doğrulandı.")
+                        progress("verification", completed, total, "Saved raster window verified.")
             # A file changed while the worker ran must not be published under its old identity.
             if sources != [fingerprint(p, check_cancel) for p in paths]:
-                raise JobError("SOURCE_CHANGED", "İş sırasında girdi dosyası değişti; sonuç yayımlanmadı.")
+                raise JobError("SOURCE_CHANGED", "An input file changed during the job; the result was not published.")
             check_cancel()
             temporary.replace(final)
             produced.append(final)
@@ -219,9 +219,9 @@ def run_job(request: dict, emit=lambda event: None) -> dict:
                      "python": sys.version, "python_executable": sys.executable, "platform": platform.platform(),
                      "proj_network_enabled": proj_network.is_network_enabled(),
                      "validation": result["validation"], "uncertainty": "not_implemented_stage_a",
-                     "sampling_support": "point_only_stage_a", "assumptions": ["Hedef birimi kullanıcı tarafından bildirildi.",
-                     "Örnek derinliği ve laboratuvar yöntemi bu aşamada harmonize edilmez.",
-                     "Bu çalışma entegrasyon kanıtıdır; bağımsız tahmin başarısı ölçülmedi."],
+                     "sampling_support": "point_only_stage_a", "assumptions": ["The target unit was declared by the user.",
+                     "Sample depth and laboratory method are not harmonized in this stage.",
+                     "This run is integration evidence; independent prediction performance was not measured."],
                      "model_roundtrip_verified": True, "output_raster_readback_verified": True}
             audit_path = output / "audit.json"
             write_json(audit_path, audit)
@@ -234,7 +234,7 @@ def run_job(request: dict, emit=lambda event: None) -> dict:
             result["status"] = "completed"
             result["stage"] = "A"
             write_json(output / "result.json", result)
-            progress("completed", 1, 1, "Aşama A tamamlandı. Bilimsel doğrulama yapılmadı.")
+            progress("completed", 1, 1, "Stage A completed. No scientific validation was performed.")
             return result
     except Exception as exc:
         result["status"] = "cancelled" if isinstance(exc, Cancelled) else "failed"

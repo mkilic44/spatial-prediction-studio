@@ -44,7 +44,7 @@ def test_cloneable_factory_does_not_load_optional_model():
     {'ignore_pretraining_limits': True}, {'fit_mode': 'low_memory'},
 ])
 def test_unsupported_or_invalid_parameters_rejected(params):
-    with pytest.raises(JobError, match='parametre'):
+    with pytest.raises(JobError, match='parameter'):
         module().make_estimator(params, 42)
 
 
@@ -96,11 +96,11 @@ def test_offline_guard_blocks_a_real_socket_connection_without_contact():
     import socket
     with module().offline_network():
         assert __import__('os').environ['TABPFN_DISABLE_TELEMETRY'] == '1'
-        with socket.socket() as connection, pytest.raises(OSError, match='kapalı'):
+        with socket.socket() as connection, pytest.raises(OSError, match='disabled'):
             connection.connect(('127.0.0.1', 9))
-        with pytest.raises(OSError, match='kapalı'):
+        with pytest.raises(OSError, match='disabled'):
             socket.getaddrinfo('example.com', 443)
-        with socket.socket(type=socket.SOCK_DGRAM) as connection, pytest.raises(OSError, match='kapalı'):
+        with socket.socket(type=socket.SOCK_DGRAM) as connection, pytest.raises(OSError, match='disabled'):
             connection.sendto(b'never sent', ('127.0.0.1', 9))
 
 

@@ -252,7 +252,7 @@ def test_selector_calendar_gap_failure_never_reverts_to_random_folds():
     with pytest.raises(JobError) as error:
         run(data)
     assert error.value.code == "SEARCH_FAILED"
-    assert "eğitim grubu" in str(error.value) or "yeterli dönem" in str(error.value)
+    assert "training groups" in str(error.value) or "enough periods" in str(error.value)
 
 
 def test_evaluation_inputs_are_unchanged_and_export_contains_no_nonfinite_values():

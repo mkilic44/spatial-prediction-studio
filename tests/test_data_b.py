@@ -70,7 +70,7 @@ def test_metadata_rejects_invalid(tmp_path,field,value,code):
 def test_mixed_depth_and_method_are_rejected(tmp_path):
     spec=sample_file(tmp_path);path=Path(spec['path']);obj=json.loads(path.read_text())
     obj['features'][1]['properties']['bottom']=30;path.write_text(json.dumps(obj))
-    with pytest.raises(JobError,match='derinlik'): read_samples_b(spec)
+    with pytest.raises(JobError,match='depth'): read_samples_b(spec)
 
 
 def test_missing_target_never_imputed(tmp_path):

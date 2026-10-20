@@ -94,14 +94,14 @@ namespace SpatialPredictionStudio
                                     response = new Dictionary<string, object> { { "id", id }, { "ok", false }, { "error", new Dictionary<string, object> { { "code", code }, { "message", ex.Message } } } };
                                 }
                                 byte[] reply = Encoding.UTF8.GetBytes(Json.Serializer().Serialize(response) + "\n");
-                                if (reply.Length > ResponseLimit) reply = Encoding.UTF8.GetBytes(Json.Serializer().Serialize(new { id, ok = false, error = new { code = "RESPONSE_TOO_LARGE", message = "Daha küçük bir sonuç sayfası isteyin." } }) + "\n");
+                                if (reply.Length > ResponseLimit) reply = Encoding.UTF8.GetBytes(Json.Serializer().Serialize(new { id, ok = false, error = new { code = "RESPONSE_TOO_LARGE", message = "Request a smaller result page." } }) + "\n");
                                 await pipe.WriteAsync(reply, 0, reply.Length, deadline.Token).ConfigureAwait(false);
                                 await pipe.FlushAsync(deadline.Token).ConfigureAwait(false);
                             }
                         }
                     }
                 }
-                catch (Exception ex) { if (!stopped.IsCancellationRequested) { log("MCP bağlantısı kapandı: " + ex.GetType().Name); await Task.Delay(100).ConfigureAwait(false); } }
+                catch (Exception ex) { if (!stopped.IsCancellationRequested) { log("MCP connection closed: " + ex.GetType().Name); await Task.Delay(100).ConfigureAwait(false); } }
                 finally { lock (gate) active = null; }
             }
         }

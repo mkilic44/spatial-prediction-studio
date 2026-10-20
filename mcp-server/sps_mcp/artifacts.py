@@ -18,7 +18,7 @@ COORDINATE_NAMES = {
     "geometry", "coordinates", "coordinate", "wkt", "geojson", "shape", "shape_x",
     "shape_y", "x_coordinate", "y_coordinate", "sample_x", "sample_y",
 }
-REDACTED = "[koordinat veya ham kaynak alanı gizlendi]"
+REDACTED = "[coordinate or raw source field hidden]"
 
 
 def is_coordinate(name):
@@ -60,7 +60,7 @@ def redact_json_cell(value):
     try:
         parsed = strict_json(value)
     except ValueError:
-        return "[ayrıştırılamayan yapılandırılmış hücre gizlendi]"
+        return "[unparsable structured cell hidden]"
     return json.dumps(redact_coordinates(parsed), ensure_ascii=False, allow_nan=False)
 
 
@@ -77,7 +77,7 @@ class PlainHtml(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag in {"script", "style"} or (tag == "pre" and not self.include_coordinates):
             if tag == "pre" and not self.hidden:
-                self.append("\n[ham önbiçimli içerik gizlendi]\n")
+                self.append("\n[raw preformatted content hidden]\n")
             self.hidden += 1
         if self.hidden:
             return
@@ -115,41 +115,41 @@ class PlainHtml(HTMLParser):
 
 def bounded_json(value):
     if len(json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")) > MAX_RESULT:
-        raise BridgeError("RESULT_LIMIT", "Sonuç büyük. Daha küçük sayfa isteyin.")
+        raise BridgeError("RESULT_LIMIT", "The result is too large. Request a smaller page.")
     return value
 
 
 def validated_artifacts(listing):
     if not isinstance(listing, dict) or not isinstance(listing.get("artifacts"), list):
-        raise BridgeError("ARTIFACT_LIST", "Doğrulanmış çıktı listesi alınamadı.")
+        raise BridgeError("ARTIFACT_LIST", "Could not get the verified output list.")
     manifest = Path(str(listing.get("manifest_path", "")))
     if not manifest.is_absolute():
-        raise BridgeError("ARTIFACT_PATH", "Çıktı bildiriminin yolu mutlak değil.")
+        raise BridgeError("ARTIFACT_PATH", "The output manifest path is not absolute.")
     reject_reparse(manifest)
     root = manifest.resolve().parent
     if len(listing["artifacts"]) > 10000:
-        raise BridgeError("ARTIFACT_LIMIT", "Çıktı listesi sınırı aşıldı.")
+        raise BridgeError("ARTIFACT_LIMIT", "The output list exceeds its limit.")
     names, results = set(), []
     for item in listing["artifacts"]:
         if not isinstance(item, dict):
-            raise BridgeError("ARTIFACT_LIST", "Çıktı kaydı geçersiz.")
+            raise BridgeError("ARTIFACT_LIST", "Invalid output record.")
         name = item.get("name")
         if not isinstance(name, str) or not name or "\\" in name or ":" in name:
-            raise BridgeError("ARTIFACT_PATH", "Çıktı adı geçersiz.")
+            raise BridgeError("ARTIFACT_PATH", "Invalid output name.")
         relative = PurePosixPath(name)
         if relative.is_absolute() or ".." in relative.parts or name in names:
-            raise BridgeError("ARTIFACT_PATH", "Çıktı adı veya kapsamı geçersiz.")
+            raise BridgeError("ARTIFACT_PATH", "Invalid output name or scope.")
         names.add(name)
         source = Path(str(item.get("path", "")))
         if not source.is_absolute():
-            raise BridgeError("ARTIFACT_PATH", "Çıktı yolu mutlak değil.")
+            raise BridgeError("ARTIFACT_PATH", "The output path is not absolute.")
         reject_reparse(source)
         resolved = source.resolve()
         if resolved != (root / Path(*relative.parts)).resolve() or not resolved.is_relative_to(root):
-            raise BridgeError("ARTIFACT_PATH", "Çıktı bildirim dizininin dışında.")
+            raise BridgeError("ARTIFACT_PATH", "The output is outside the manifest folder.")
         digest = item.get("sha256")
         if not isinstance(digest, str) or not re.fullmatch("[0-9a-fA-F]{64}", digest):
-            raise BridgeError("ARTIFACT_HASH", "Çıktı özeti geçersiz.")
+            raise BridgeError("ARTIFACT_HASH", "Invalid output digest.")
         results.append({**item, "path": str(resolved), "sha256": digest.lower()})
     return results
 
@@ -157,32 +157,32 @@ def validated_artifacts(listing):
 def read_verified(listing, name):
     matches = [item for item in validated_artifacts(listing) if item["name"] == name]
     if len(matches) != 1:
-        raise BridgeError("ARTIFACT_UNKNOWN", "İstenen dosya tamamlanmış sonucun listesinde yok.")
+        raise BridgeError("ARTIFACT_UNKNOWN", "The requested file is not in the list of the completed result.")
     item = matches[0]
     path = Path(item["path"])
     try:
         with path.open("rb") as stream:
             data = stream.read(MAX_READ + 1)
         if len(data) > MAX_READ:
-            raise BridgeError("ARTIFACT_READ_LIMIT", "Dosya metin okuma sınırını aşıyor; dışa aktarmayı kullanın.")
+            raise BridgeError("ARTIFACT_READ_LIMIT", "The file exceeds the text read limit; use export.")
     except OSError:
-        raise BridgeError("ARTIFACT_READ", "Çıktı dosyası okunamadı.") from None
+        raise BridgeError("ARTIFACT_READ", "Could not read the output file.") from None
     if hashlib.sha256(data).hexdigest() != item["sha256"]:
-        raise BridgeError("ARTIFACT_CHANGED", "Çıktı dosyasının özeti değişmiş; içerik döndürülmedi.")
+        raise BridgeError("ARTIFACT_CHANGED", "The output file digest has changed; no content was returned.")
     if type(item.get("bytes")) is int and item["bytes"] != len(data):
-        raise BridgeError("ARTIFACT_CHANGED", "Çıktı dosyasının boyutu değişmiş.")
+        raise BridgeError("ARTIFACT_CHANGED", "The output file size has changed.")
     return item, data
 
 
 def read_text(listing, name, offset=0, limit=12000, expected_sha256=None, include_coordinates=False):
     if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 16000:
-        raise BridgeError("PAGE_BOUNDS", "Metin sayfası sınırları geçersiz.")
+        raise BridgeError("PAGE_BOUNDS", "Invalid text page bounds.")
     item, data = read_verified(listing, name)
     if expected_sha256 is not None and expected_sha256 != item["sha256"]:
-        raise BridgeError("PAGE_STALE", "Sonuç değişti; ilk sayfadan başlayın.")
+        raise BridgeError("PAGE_STALE", "The result has changed; start again from the first page.")
     suffix = Path(name).suffix.lower()
     if suffix not in {".html", ".htm", ".txt", ".md", ".json"}:
-        raise BridgeError("ARTIFACT_TYPE", "Bu dosya metin aracıyla okunmaz. CSV için tablo aracını kullanın.")
+        raise BridgeError("ARTIFACT_TYPE", "This file cannot be read with the text tool. For CSV, use the table tool.")
     try:
         text = data.decode("utf-8-sig")
         if suffix in {".html", ".htm"}:
@@ -196,7 +196,7 @@ def read_text(listing, name, offset=0, limit=12000, expected_sha256=None, includ
                 obj = redact_coordinates(obj)
             text = json.dumps(obj, ensure_ascii=False, indent=2, allow_nan=False)
     except (ValueError, UnicodeError):
-        raise BridgeError("ARTIFACT_TEXT", "Metin UTF-8 veya JSON olarak okunamadı.") from None
+        raise BridgeError("ARTIFACT_TEXT", "Could not read the text as UTF-8 or JSON.") from None
     end = min(offset + limit, len(text))
     return bounded_json({"name": name, "sha256": item["sha256"], "offset": offset,
                          "next_offset": end if end < len(text) else None, "total_characters": len(text),
@@ -206,12 +206,12 @@ def read_text(listing, name, offset=0, limit=12000, expected_sha256=None, includ
 def read_table(listing, name, offset=0, limit=50, columns=None,
                expected_sha256=None, include_coordinates=False):
     if type(offset) is not int or not 0 <= offset <= 1000000 or type(limit) is not int or not 1 <= limit <= 200:
-        raise BridgeError("PAGE_BOUNDS", "Tablo sayfası sınırları geçersiz.")
+        raise BridgeError("PAGE_BOUNDS", "Invalid table page bounds.")
     if Path(name).suffix.lower() != ".csv":
-        raise BridgeError("ARTIFACT_TYPE", "Tablo aracı yalnız CSV okur.")
+        raise BridgeError("ARTIFACT_TYPE", "The table tool reads only CSV.")
     item, data = read_verified(listing, name)
     if expected_sha256 is not None and expected_sha256 != item["sha256"]:
-        raise BridgeError("PAGE_STALE", "Sonuç değişti; ilk sayfadan başlayın.")
+        raise BridgeError("PAGE_STALE", "The result has changed; start again from the first page.")
     try:
         reader = csv.DictReader(io.StringIO(data.decode("utf-8-sig"), newline=""))
         fields = reader.fieldnames
@@ -220,7 +220,7 @@ def read_table(listing, name, offset=0, limit=50, columns=None,
         available = [field for field in fields if include_coordinates or not (is_coordinate(field) or is_raw_source(field))]
         selected = available if columns is None else columns
         if not isinstance(selected, list) or len(selected) > 1000 or any(c not in available for c in selected):
-            raise BridgeError("TABLE_COLUMNS", "Sütun yok veya koordinat alanı açıkça etkinleştirilmedi.")
+            raise BridgeError("TABLE_COLUMNS", "Column not found, or coordinate fields were not explicitly enabled.")
         rows, total = [], 0
         for row in reader:
             if None in row or any(value is None for value in row.values()):
@@ -238,5 +238,5 @@ def read_table(listing, name, offset=0, limit=50, columns=None,
     except BridgeError:
         raise
     except (ValueError, UnicodeError, csv.Error):
-        raise BridgeError("ARTIFACT_CSV", "CSV yapısı veya kodlaması geçersiz.") from None
+        raise BridgeError("ARTIFACT_CSV", "Invalid CSV structure or encoding.") from None
 

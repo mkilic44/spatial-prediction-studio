@@ -26,47 +26,47 @@ from .validation import _metric_coordinates
 
 def _integer(value, minimum, name):
     if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value < minimum:
-        raise JobError("DIAGNOSTIC_CONFIG", name + " geçerli bir tam sayı olmalıdır.")
+        raise JobError("DIAGNOSTIC_CONFIG", name + " must be a valid integer.")
     return int(value)
 
 
 def _identities(values, name, unique=False):
     values = list(values)
     if any(not isinstance(v, (str, np.str_)) or not str(v).strip() for v in values):
-        raise JobError("DIAGNOSTIC_IDS", name + " boş olmayan metin kimlikleri içermelidir.")
+        raise JobError("DIAGNOSTIC_IDS", name + " must contain non-empty text IDs.")
     result = [str(v) for v in values]
     if unique and len(set(result)) != len(result):
-        raise JobError("DIAGNOSTIC_IDS", name + " yinelenen kimlik içeriyor.")
+        raise JobError("DIAGNOSTIC_IDS", name + " contains duplicate IDs.")
     return result
 
 
 def _loss(y, prediction, metric):
     prediction = np.asarray(prediction, dtype=float)
     if prediction.shape != y.shape or not np.isfinite(prediction).all():
-        raise JobError("DIAGNOSTIC_PREDICTION", "Tanı için tahminler sonlu ve hedefle aynı boyutta olmalıdır.")
+        raise JobError("DIAGNOSTIC_PREDICTION", "Predictions for diagnostics must be finite and the same size as the target.")
     with np.errstate(over="ignore", invalid="ignore"):
         error = prediction - y
         value = np.sqrt(np.mean(error ** 2)) if metric == "rmse" else np.mean(np.abs(error))
     if not np.isfinite(value):
-        raise JobError("DIAGNOSTIC_METRIC", "Tanı hata ölçütü sonlu hesaplanamadı.")
+        raise JobError("DIAGNOSTIC_METRIC", "The diagnostic error metric could not be computed as a finite value.")
     return float(value)
 
 
 def _feature_sets(covariates, feature_groups):
     names = [item["id"] if isinstance(item, dict) else item for item in covariates]
-    names = _identities(names, "Değişkenler", unique=True)
+    names = _identities(names, "Variables", unique=True)
     if feature_groups is None:
         return [(name, [name], [i]) for i, name in enumerate(names)]
     if not isinstance(feature_groups, dict) or not feature_groups:
-        raise JobError("DIAGNOSTIC_FEATURES", "Değişken grupları, ad ve değişken kimlikleri içeren boş olmayan bir sözlük olmalıdır.")
+        raise JobError("DIAGNOSTIC_FEATURES", "Variable groups must be a non-empty dictionary of names and variable IDs.")
     result = []
     for name, members in feature_groups.items():
-        _identities([name], "Değişken grubu")
+        _identities([name], "Variable group")
         if not isinstance(members, (list, tuple)):
-            raise JobError("DIAGNOSTIC_FEATURES", "Değişken grubundaki kimlikler liste olmalıdır.")
-        members = _identities(members, "Değişken grubu üyeleri", unique=True)
+            raise JobError("DIAGNOSTIC_FEATURES", "The IDs in a variable group must be a list.")
+        members = _identities(members, "Variable group members", unique=True)
         if not members or set(members) - set(names):
-            raise JobError("DIAGNOSTIC_FEATURES", "Değişken grubu boş veya bilinmeyen değişken içeriyor.")
+            raise JobError("DIAGNOSTIC_FEATURES", "A variable group is empty or contains an unknown variable.")
         result.append((name, members, [names.index(member) for member in members]))
     return result
 
@@ -107,34 +107,34 @@ def heldout_permutation_importance(model, X, y, ids, groups, covariates, *, repe
     model.record. Group checks are additional when their IDs are supplied.
     """
     check_cancel()
-    n_permutations = _integer(n_permutations, 1, "Permütasyon sayısı")
-    seed = _integer(seed, 0, "Rastgelelik tohumu")
+    n_permutations = _integer(n_permutations, 1, "Number of permutations")
+    seed = _integer(seed, 0, "Random seed")
     if metric not in ("rmse", "mae") or permutation not in ("rows", "within_group", "whole_group"):
-        raise JobError("DIAGNOSTIC_CONFIG", "Permütasyon için desteklenen hata ölçütü ve grup kuralı seçilmelidir.")
+        raise JobError("DIAGNOSTIC_CONFIG", "A supported error metric and group rule must be selected for permutation.")
     if (repeat is None) != (fold is None):
-        raise JobError("DIAGNOSTIC_CONFIG", "Tekrar ve kat birlikte tanımlanmalıdır.")
+        raise JobError("DIAGNOSTIC_CONFIG", "Repeat and fold must be defined together.")
     if repeat is not None:
-        repeat, fold = _integer(repeat, 0, "Tekrar"), _integer(fold, 0, "Kat")
-    ids, groups = _identities(ids, "Değerlendirme", unique=True), _identities(groups, "Gruplar")
+        repeat, fold = _integer(repeat, 0, "Repeat"), _integer(fold, 0, "Fold")
+    ids, groups = _identities(ids, "Evaluation data", unique=True), _identities(groups, "Groups")
     X, y = np.asarray(X, dtype=float), np.asarray(y, dtype=float)
     if X.shape != (len(ids), len(covariates)) or y.shape != (len(ids),) or len(groups) != len(ids):
-        raise JobError("DIAGNOSTIC_SHAPE", "Tanı matrisi, hedef, gruplar ve kimlikler uyuşmuyor.")
+        raise JobError("DIAGNOSTIC_SHAPE", "The diagnostic matrix, target, groups and IDs do not match.")
     if not len(ids) or not np.isfinite(y).all() or np.isinf(X).any():
-        raise JobError("DIAGNOSTIC_VALUES", "Tanı verisi boş olamaz; hedefler sonlu olmalı, değişkenlerde sonsuz değer bulunmamalıdır.")
+        raise JobError("DIAGNOSTIC_VALUES", "Diagnostic data cannot be empty; targets must be finite, and variables must not contain infinite values.")
     record = getattr(model, "record", {}) or {}
-    trained = set(_identities(training_ids, "Eğitim"))
-    calibrated = set(_identities(calibration_ids, "Kalibrasyon"))
+    trained = set(_identities(training_ids, "Training data"))
+    calibrated = set(_identities(calibration_ids, "Calibration data"))
     for key in ("training_ids", "development_ids"):
-        trained.update(_identities(record.get(key, []), "Eğitim"))
-    calibrated.update(_identities(record.get("calibration_ids", []), "Kalibrasyon"))
+        trained.update(_identities(record.get(key, []), "Training data"))
+    calibrated.update(_identities(record.get("calibration_ids", []), "Calibration data"))
     if not trained:
-        raise JobError("DIAGNOSTIC_PROVENANCE", "Eğitim kimlikleri olmadan kat dışı permütasyon tanısı hesaplanamaz.")
+        raise JobError("DIAGNOSTIC_PROVENANCE", "Out-of-fold permutation diagnostics cannot be computed without training IDs.")
     if set(ids) & (trained | calibrated):
-        raise JobError("DIAGNOSTIC_LEAKAGE", "Permütasyon verisi eğitim veya kalibrasyon kimliği içeriyor.")
-    known_train_groups = set(_identities(training_groups, "Eğitim grupları"))
-    known_cal_groups = set(_identities(calibration_groups, "Kalibrasyon grupları"))
+        raise JobError("DIAGNOSTIC_LEAKAGE", "The permutation data contain a training or calibration ID.")
+    known_train_groups = set(_identities(training_groups, "Training groups"))
+    known_cal_groups = set(_identities(calibration_groups, "Calibration groups"))
     if set(groups) & (known_train_groups | known_cal_groups):
-        raise JobError("DIAGNOSTIC_GROUP_LEAKAGE", "Permütasyon verisinin grubu eğitim veya kalibrasyon verisiyle ortak.")
+        raise JobError("DIAGNOSTIC_GROUP_LEAKAGE", "A group in the permutation data is shared with the training or calibration data.")
     features = _feature_sets(covariates, feature_groups)
     order = np.argsort(np.asarray(ids), kind="stable")
     ids = [ids[i] for i in order]
@@ -143,11 +143,11 @@ def heldout_permutation_importance(model, X, y, ids, groups, covariates, *, repe
     if coordinates is not None:
         locations = np.asarray(coordinates, dtype=float)
         if locations.shape != (len(ids), 2) or not np.isfinite(locations).all():
-            raise JobError("DIAGNOSTIC_COORDINATES", "Tanı koordinatları sonlu ve iki sütunlu olmalıdır.")
+            raise JobError("DIAGNOSTIC_COORDINATES", "Diagnostic coordinates must be finite and have two columns.")
         locations = locations[order].copy()
     sizes = [int(np.sum(groups == group)) for group in sorted(set(groups))]
     if permutation == "whole_group" and len(set(sizes)) != 1:
-        raise JobError("DIAGNOSTIC_GROUP_SIZE", "Bütün grup permütasyonu eşit büyüklükte gruplar gerektirir.")
+        raise JobError("DIAGNOSTIC_GROUP_SIZE", "Whole-group permutation requires groups of equal size.")
     result = {"scope": "independent" if repeat is None else "outer_fold", "repeat": repeat, "fold": fold,
         "status": "available", "metric": metric, "permutation": permutation, "seed": seed,
         "n_permutations": n_permutations, "n": len(ids), "distinct_sample_count": len(ids), "group_count": len(sizes),
@@ -157,21 +157,21 @@ def heldout_permutation_importance(model, X, y, ids, groups, covariates, *, repe
         "importance_definition": "permuted_loss_minus_same_fold_baseline_loss",
         "coordinates_permuted": False, "feature_groups": {name: members for name, members, _ in features},
         "warnings": [
-            "Permütasyon önemi, değişken değerleri karıştırıldığında sabit modelin dış test hatasındaki değişimdir.",
-            "İlişkili değişkenler önemi paylaşabilir. Karıştırma, eğitimde görülmeyen değişken birleşimleri oluşturabilir.",
-            "Sonuçlar nedensel etkiyi göstermez. Bu tanılara göre yeniden seçim yeni bir geliştirme döngüsü gerektirir.",
-            "Permütasyon tekrarları ve çapraz doğrulama katları bağımsız örnek değildir. Standart sapma tanımlayıcıdır; güven aralığı değildir.",
-            "Koordinatlar sabit tutulur; önem bütün tahmin yönteminin çevresel değişkenlere duyarlılığını gösterir."],
+            "Permutation variable importance is the change in the outer test error of the fixed model when variable values are shuffled.",
+            "Correlated variables can share importance. Shuffling can create variable combinations not seen in training.",
+            "The results do not show causal effects. Reselection based on these diagnostics requires a new development cycle.",
+            "Permutation repeats and cross-validation folds are not independent samples. The standard deviation is descriptive; it is not a confidence interval.",
+            "Coordinates are held fixed; importance shows the sensitivity of the whole prediction method to the environmental covariates."],
         "permutation_assumption": {
-            "rows": "Satırlar arasında karıştırma yapılır. Grup içi ve mekânsal bağımlılık korunmaz.",
-            "within_group": "Yalnız aynı grup içindeki satırlar karıştırılır. Grup içinde sabit değişkenlerin gruplar arasındaki etkisi değerlendirilmez.",
-            "whole_group": "Eşit büyüklükte gruplar bütünüyle değiştirilir. Grup içi üyeler sıralanmış kimlik konumuyla eşlenir; bu konumlar karşılaştırılabilir olmalıdır."
+            "rows": "Values are shuffled across rows. Within-group and spatial dependence are not preserved.",
+            "within_group": "Only rows within the same group are shuffled. The between-group effect of variables that are constant within groups is not assessed.",
+            "whole_group": "Whole groups of equal size are exchanged. Members within a group are matched by their position in sorted ID order; these positions must be comparable."
         }[permutation]}
     if not features:
-        result.update(status="unavailable", reason_code="NO_FEATURES", reason="Permütasyon için çevresel değişken yok.")
+        result.update(status="unavailable", reason_code="NO_FEATURES", reason="No environmental covariates are available for permutation.")
         return result
     if len(ids) < 2 or (permutation == "within_group" and max(sizes) < 2) or (permutation == "whole_group" and len(sizes) < 2):
-        result.update(status="unavailable", reason_code="NO_PERMUTABLE_UNITS", reason="Seçilen kuralla karıştırılabilecek yeterli birim yok.")
+        result.update(status="unavailable", reason_code="NO_PERMUTABLE_UNITS", reason="Not enough units can be shuffled under the selected rule.")
         return result
     baseline = _loss(y, prediction_call(model, "predict", X.copy(), None if locations is None else locations.copy()), metric)
     result["baseline_loss"] = baseline
@@ -204,7 +204,7 @@ def aggregate_permutation_importance(fold_results):
     for result in results:
         key = result["scope"], result["repeat"], result["fold"]
         if key in seen:
-            raise JobError("DIAGNOSTIC_DUPLICATE_FOLD", "Permütasyon özeti aynı değerlendirme katını birden fazla kez içeriyor.")
+            raise JobError("DIAGNOSTIC_DUPLICATE_FOLD", "The permutation summary contains the same evaluation fold more than once.")
         seen.add(key)
     rows = [row for result in results for row in result["rows"]]
     grouped = defaultdict(list)
@@ -213,7 +213,7 @@ def aggregate_permutation_importance(fold_results):
         for feature, members in result["feature_groups"].items():
             key = (result["scope"], result["repeat"], feature, result["metric"], result["permutation"])
             if key in definitions and definitions[key] != members:
-                raise JobError("DIAGNOSTIC_INCOMPARABLE", "Katlar arasında aynı değişken grubunun üyeleri farklı; önemler birleştirilemez.")
+                raise JobError("DIAGNOSTIC_INCOMPARABLE", "Members of the same variable group differ between folds; importances cannot be combined.")
             definitions[key] = members
             grouped[key]  # Keep explicit unavailable rows when every fold failed.
         for summary in result["summary"]:
@@ -227,18 +227,18 @@ def aggregate_permutation_importance(fold_results):
             "status": "available" if complete else "unavailable", "fold_count": len(expected), "available_fold_count": len(summaries),
             "fold_mean_values": [{"fold": row["fold"], "importance_mean": row["importance_mean"]} for row in summaries],
             **(_spread([row["importance_mean"] for row in summaries]) if complete else
-               {"reason_code": "INCOMPLETE_FOLDS", "reason": "Bütün ilgili dış katlarda önem hesaplanamadı."})})
+               {"reason_code": "INCOMPLETE_FOLDS", "reason": "Importance could not be computed in all relevant outer folds."})})
     return {"folds": results, "rows": rows, "per_repeat": [r for r in aggregated if r["scope"] == "outer_fold"],
         "independent": [r for r in aggregated if r["scope"] == "independent"],
         "aggregation": "equal_fold_means_within_repeat; no pooling across repeats; incomplete folds unavailable",
-        "warning": "Katlar, tekrarlar ve permütasyonlar bağımsız deney tekrarı değildir. Güven aralığı veya anlamlılık testi hesaplanmadı."}
+        "warning": "Folds, repeats and permutations are not independent experimental replicates. No confidence interval or significance test was computed."}
 
 
 def _samples(samples):
-    ids = _identities(samples["ids"], "Örnekler", unique=True)
+    ids = _identities(samples["ids"], "Samples", unique=True)
     props = samples.get("props", [{} for _ in ids])
     if len(props) != len(ids) or any(not isinstance(row, dict) for row in props):
-        raise JobError("DIAGNOSTIC_PROPERTIES", "Örnek özellikleri kimliklerle uyuşmuyor.")
+        raise JobError("DIAGNOSTIC_PROPERTIES", "Sample properties do not match the IDs.")
     return ids, {identity: index for index, identity in enumerate(ids)}, props
 
 
@@ -246,18 +246,18 @@ def _available_interval(row):
     if "lower" not in row and "upper" not in row:
         return False
     if "lower" not in row or "upper" not in row:
-        raise JobError("DIAGNOSTIC_INTERVAL", "Aralık alt ve üst sınırı birlikte verilmelidir.")
+        raise JobError("DIAGNOSTIC_INTERVAL", "Lower and upper interval bounds must be given together.")
     lower, upper = row["lower"], row["upper"]
     if lower is None and upper is None and row.get("interval_status") == "unavailable" and isinstance(row.get("reason_code"), str) and row["reason_code"].strip():
         return False
     if lower is None or upper is None or row.get("interval_status", "available") != "available":
-        raise JobError("DIAGNOSTIC_INTERVAL", "Boş aralık için açık kullanılamaz durumu ve neden kodu gerekir.")
+        raise JobError("DIAGNOSTIC_INTERVAL", "An empty interval requires an explicit unavailable status and a reason code.")
     try:
         valid = np.isfinite([lower, upper]).all() and lower <= upper
     except (ValueError, TypeError):
         valid = False
     if not valid:
-        raise JobError("DIAGNOSTIC_INTERVAL", "Aralık sınırları sonlu ve sıralı olmalıdır.")
+        raise JobError("DIAGNOSTIC_INTERVAL", "Interval bounds must be finite and ordered.")
     return True
 
 
@@ -265,31 +265,31 @@ def _evaluation_partitions(evaluation, sample_index):
     outer = list(evaluation.get("oof", []))
     independent = list(evaluation.get("independent_predictions", []))
     if {row["sample_id"] for row in outer} & {row["sample_id"] for row in independent}:
-        raise JobError("DIAGNOSTIC_LEAKAGE", "Bağımsız test ile dış kat tahminleri ortak örnek içeriyor.")
+        raise JobError("DIAGNOSTIC_LEAKAGE", "Independent test and outer-fold predictions share a sample.")
     for source, records in (("outer", outer), ("independent", independent)):
         seen = set()
         for row in records:
             identity = row.get("sample_id")
             if identity not in sample_index:
-                raise JobError("DIAGNOSTIC_IDS", "Değerlendirme kimliği örnek özelliklerinde bulunamadı.")
-            _identities([row.get("group_id")], "Değerlendirme grubu")
+                raise JobError("DIAGNOSTIC_IDS", "An evaluation ID was not found in the sample properties.")
+            _identities([row.get("group_id")], "Evaluation group")
             if source == "outer":
-                _integer(row.get("repeat"), 0, "Tekrar")
-                _integer(row.get("fold"), 0, "Kat")
+                _integer(row.get("repeat"), 0, "Repeat")
+                _integer(row.get("fold"), 0, "Fold")
             key = identity, row.get("repeat") if source == "outer" else None
             if key in seen:
-                raise JobError("DIAGNOSTIC_DUPLICATE_PREDICTION", "Aynı örnek bir değerlendirme tekrarında birden fazla tahmin içeriyor.")
+                raise JobError("DIAGNOSTIC_DUPLICATE_PREDICTION", "The same sample has more than one prediction in an evaluation repeat.")
             seen.add(key)
             try:
                 observed, predicted = float(row["observed"]), float(row["predicted"])
             except (ValueError, TypeError, KeyError) as exc:
-                raise JobError("DIAGNOSTIC_VALUES", "Gözlenen ve tahmin edilen değerler sayısal olmalıdır.") from exc
+                raise JobError("DIAGNOSTIC_VALUES", "Observed and predicted values must be numeric.") from exc
             if not np.isfinite([observed, predicted]).all():
-                raise JobError("DIAGNOSTIC_VALUES", "Gözlenen ve tahmin edilen değerler sonlu olmalıdır.")
+                raise JobError("DIAGNOSTIC_VALUES", "Observed and predicted values must be finite.")
             if not np.isfinite(predicted - observed):
-                raise JobError("DIAGNOSTIC_VALUES", "Tahmin ile gözlem farkı sonlu hesaplanamadı.")
+                raise JobError("DIAGNOSTIC_VALUES", "The difference between prediction and observation could not be computed as a finite value.")
             if "residual" in row and not np.isclose(row["residual"], predicted - observed, rtol=1e-10, atol=1e-12):
-                raise JobError("DIAGNOSTIC_RESIDUAL", "Artık, tahmin eksi gözlem işaretiyle uyuşmuyor.")
+                raise JobError("DIAGNOSTIC_RESIDUAL", "The residual does not match the sign convention of prediction minus observation.")
             _available_interval(row)
     partitions = []
     for repeat in sorted({row["repeat"] for row in outer}):
@@ -306,25 +306,25 @@ def _field_definitions(fields):
     definitions = []
     seen = set()
     if not isinstance(fields, (list, tuple)):
-        raise JobError("DIAGNOSTIC_SUBGROUP", "Altgrup alanları liste olmalıdır.")
+        raise JobError("DIAGNOSTIC_SUBGROUP", "Subgroup fields must be a list.")
     for item in fields:
         item = {"field": item} if isinstance(item, str) else deepcopy(item)
         if not isinstance(item, dict) or not isinstance(item.get("field"), str) or not item["field"].strip():
-            raise JobError("DIAGNOSTIC_SUBGROUP", "Altgrup için geçerli alan adı gereklidir.")
+            raise JobError("DIAGNOSTIC_SUBGROUP", "A valid field name is required for a subgroup.")
         item.setdefault("source", "property")
         if item["source"] not in ("property", "row") or (item["source"] == "row" and item["field"] not in ("predicted", "training_distance_m")):
-            raise JobError("DIAGNOSTIC_SUBGROUP", "Altgrup kaynağı örnek özelliği, tahmin veya eğitim verisine uzaklık olmalıdır.")
+            raise JobError("DIAGNOSTIC_SUBGROUP", "The subgroup source must be a sample property, the prediction or the distance to the training data.")
         key = item["source"], item["field"]
         if key in seen:
-            raise JobError("DIAGNOSTIC_SUBGROUP", "Altgrup alanı birden fazla kez tanımlandı.")
+            raise JobError("DIAGNOSTIC_SUBGROUP", "A subgroup field was defined more than once.")
         seen.add(key)
         if "bins" in item:
             edges = np.asarray(item["bins"], dtype=float)
             if edges.ndim != 1 or not len(edges) or not np.isfinite(edges).all() or np.any(np.diff(edges) <= 0):
-                raise JobError("DIAGNOSTIC_SUBGROUP", "Sınıf sınırları sonlu ve kesin artan sırada olmalıdır.")
+                raise JobError("DIAGNOSTIC_SUBGROUP", "Class boundaries must be finite and strictly increasing.")
             item["bins"] = edges.tolist()
         elif item["source"] == "row":
-            raise JobError("DIAGNOSTIC_SUBGROUP", "Tahmin ve uzaklık sınıfları için önceden belirlenmiş sınırlar gereklidir.")
+            raise JobError("DIAGNOSTIC_SUBGROUP", "Prediction and distance classes require predefined boundaries.")
         definitions.append(item)
     return definitions
 
@@ -334,23 +334,23 @@ def _category(value, definition):
     if isinstance(value, (float, np.floating)) and not np.isfinite(value):
         missing = True
     if missing:
-        return "missing", {"subgroup": "Eksik", "subgroup_kind": "missing"}
+        return "missing", {"subgroup": "Missing", "subgroup_kind": "missing"}
     if "bins" in definition:
         try:
             value = float(value)
         except (ValueError, TypeError):
-            return "invalid", {"subgroup": "Sayısal olmayan değer", "subgroup_kind": "invalid"}
+            return "invalid", {"subgroup": "Non-numeric value", "subgroup_kind": "invalid"}
         if not np.isfinite(value):
-            return "missing", {"subgroup": "Eksik", "subgroup_kind": "missing"}
+            return "missing", {"subgroup": "Missing", "subgroup_kind": "missing"}
         index = int(np.searchsorted(definition["bins"], value, side="right"))
         lower = definition["bins"][index - 1] if index else None
         upper = definition["bins"][index] if index < len(definition["bins"]) else None
-        label = ("%g altı" % upper if lower is None else "%g ve üzeri" % lower if upper is None else "%g <= değer < %g" % (lower, upper))
+        label = ("below %g" % upper if lower is None else "%g and above" % lower if upper is None else "%g <= value < %g" % (lower, upper))
         return "bin:%d" % index, {"subgroup": label, "subgroup_kind": "bin", "lower_bound": lower, "upper_bound": upper}
     if isinstance(value, np.generic):
         value = value.item()
     if not isinstance(value, (str, int, float, bool)):
-        raise JobError("DIAGNOSTIC_SUBGROUP", "Kategorik altgrup değeri tek bir metin veya sayı olmalıdır.")
+        raise JobError("DIAGNOSTIC_SUBGROUP", "A categorical subgroup value must be a single text value or number.")
     return "category:" + json.dumps(value, ensure_ascii=False), {"subgroup": str(value), "subgroup_kind": "category", "category_value": value}
 
 
@@ -364,11 +364,11 @@ def _subgroup_metrics(records, coverage, min_samples, min_groups):
     with_interval = [row for row in records if _available_interval(row)]
     reasons = []
     if n < min_samples or group_count < min_groups:
-        reasons.append(("INSUFFICIENT_SUBGROUP_SIZE", "Altgruptaki örnek veya bağımlılık grubu sayısı belirlenen eşiğin altında."))
+        reasons.append(("INSUFFICIENT_SUBGROUP_SIZE", "The number of samples or dependence groups in the subgroup is below the set threshold."))
     if not with_interval:
-        reasons.append(("NO_INTERVALS", "Altgrupta değerlendirilmiş tahmin aralığı yok."))
+        reasons.append(("NO_INTERVALS", "The subgroup has no evaluated prediction intervals."))
     elif len(with_interval) != n:
-        reasons.append(("INCOMPLETE_INTERVALS", "Altgruptaki bütün örneklerde tahmin aralığı bulunmuyor; kısmi kapsama hesaplanmadı."))
+        reasons.append(("INCOMPLETE_INTERVALS", "Not all samples in the subgroup have a prediction interval; partial coverage was not computed."))
     interval = {"nominal_coverage": coverage, "n": n, "interval_count": len(with_interval), "group_count": group_count,
                 "status": "unavailable" if reasons else "available"}
     if reasons:
@@ -376,7 +376,7 @@ def _subgroup_metrics(records, coverage, min_samples, min_groups):
     else:
         interval.update(interval_metrics([r["observed"] for r in records], [r["lower"] for r in records], [r["upper"] for r in records], coverage))
         if not all(np.isfinite(value) for value in interval.values() if isinstance(value, (int, float))):
-            raise JobError("DIAGNOSTIC_METRIC", "Altgrubun aralık ölçütleri sonlu hesaplanamadı.")
+            raise JobError("DIAGNOSTIC_METRIC", "The interval metrics of the subgroup could not be computed as finite values.")
         interval["empirical_undercoverage"] = interval["coverage"] < coverage
     result["interval"] = interval
     return result
@@ -394,14 +394,14 @@ def subgroup_diagnostics(evaluation_result, samples, *, fields, coverage=.9, min
     coverage guarantee, binomial confidence interval or post-hoc best-group search.
     """
     check_cancel()
-    min_samples, min_groups = _integer(min_samples, 2, "En az örnek sayısı"), _integer(min_groups, 2, "En az grup sayısı")
+    min_samples, min_groups = _integer(min_samples, 2, "Minimum number of samples"), _integer(min_groups, 2, "Minimum number of groups")
     coverage = float(coverage)
     if not np.isfinite(coverage) or not 0 < coverage < 1:
-        raise JobError("DIAGNOSTIC_COVERAGE", "Nominal kapsama sıfır ile bir arasında olmalıdır.")
+        raise JobError("DIAGNOSTIC_COVERAGE", "Nominal coverage must be between zero and one.")
     for scope in ("pooled_oof", "independent"):
         recorded = (evaluation_result.get("metrics", {}).get(scope) or {}).get("interval", {}).get("nominal_coverage")
         if recorded is not None and not np.isclose(float(recorded), coverage, rtol=0, atol=1e-12):
-            raise JobError("DIAGNOSTIC_COVERAGE", "Altgrup için nominal kapsama, değerlendirilmiş aralığın nominal kapsamıyla uyuşmuyor.")
+            raise JobError("DIAGNOSTIC_COVERAGE", "The nominal coverage for subgroups does not match the nominal coverage of the evaluated interval.")
     _, sample_index, props = _samples(samples)
     definitions = _field_definitions(fields)
     partitions = _evaluation_partitions(evaluation_result, sample_index)
@@ -409,13 +409,13 @@ def subgroup_diagnostics(evaluation_result, samples, *, fields, coverage=.9, min
         "per_repeat": [], "outer_folds": [], "independent": [], "status": "available" if definitions and partitions else "unavailable",
         "scope": "fixed evaluated predictions; separate CV repeats; configured nominal interval only; no refit",
         "warnings": [
-            "Altgrup sınırları ayarlardan alınır; değerlendirme hatasına göre aranmaz. Sınırlar sonuçlar görülmeden belirlenmelidir.",
-            "Her tekrar ayrı özetlenir. Aynı örneğin farklı tekrarlardaki tahminleri bağımsız örnek sayılmaz.",
-            "Bağımlılık grubu sayısı, mekânsal bağımsızlığın kanıtı değildir. Eşikler yeterli gücü veya koşullu kapsamayı garanti etmez.",
-            "Toplam kapsama, her altgrupta aynı kapsamayı garanti etmez. Buradaki kapsama gözlenen altgrubun tanımlayıcı sonucudur.",
-            "Nominal değerin altında kalan kapsama işaretlenir; farkın anlamlılığına ilişkin test veya güven aralığı hesaplanmaz."]}
+            "Subgroup boundaries are taken from the settings; they are not searched for using the evaluation error. Boundaries must be set before the results are seen.",
+            "Each repeat is summarized separately. Predictions for the same sample in different repeats are not counted as independent samples.",
+            "The number of dependence groups is not evidence of spatial independence. The thresholds do not guarantee adequate power or conditional coverage.",
+            "Overall coverage does not guarantee the same coverage in every subgroup. The coverage shown here is a descriptive result for the observed subgroup.",
+            "Coverage below the nominal value is flagged; no significance test or confidence interval for the difference is computed."]}
     if not definitions or not partitions:
-        result.update(reason_code="NO_SUBGROUP_DATA", reason="Altgrup alanı veya değerlendirilmiş tahmin bulunmuyor.")
+        result.update(reason_code="NO_SUBGROUP_DATA", reason="No subgroup field or evaluated prediction is available.")
         return result
     for scope, repeat, fold, records in partitions:
         for definition in definitions:
@@ -444,7 +444,7 @@ def _spatial_summary(records, locations, sample_index, distance_band_m, edges, m
         "group_count": len({r["group_id"] for r in records}), "status": "available"}
     if n < min_samples or n > max_samples:
         summary.update(status="unavailable", reason_code="INSUFFICIENT_SPATIAL_SAMPLES" if n < min_samples else "SPATIAL_SIZE_LIMIT",
-            reason="Mekânsal tanı için örnek sayısı belirlenen sınırlar dışında; alt örnekleme yapılmadı.")
+            reason="The number of samples for spatial diagnostics is outside the set limits; no subsampling was done.")
         return summary
     records = sorted(records, key=lambda row: row["sample_id"])
     xy = locations[[sample_index[r["sample_id"]] for r in records]]
@@ -457,7 +457,7 @@ def _spatial_summary(records, locations, sample_index, distance_band_m, edges, m
         centered = residual - np.mean(residual)
         semivariance = .5 * (residual[left] - residual[right]) ** 2
     if not np.isfinite(centered).all() or not np.isfinite(semivariance).all():
-        raise JobError("DIAGNOSTIC_METRIC", "Artıkların mekânsal ölçütleri sonlu hesaplanamadı.")
+        raise JobError("DIAGNOSTIC_METRIC", "The spatial metrics of the residuals could not be computed as finite values.")
     # Scale invariance avoids overflow in the Moran numerator/denominator.
     scale = np.max(np.abs(centered))
     if scale > 0:
@@ -465,10 +465,10 @@ def _spatial_summary(records, locations, sample_index, distance_band_m, edges, m
     denominator = float(centered @ centered)
     s0 = int(np.sum(degree > 0))
     moran = {"status": "available", "island_count": int(np.sum(degree == 0)), "neighbor_pair_count": int(np.sum(neighbors)),
-        "s0": s0, "p_value": None, "p_value_reason": "Bağımsız ve yer değiştirebilir artık varsayımı doğrulanmadığından anlamlılık testi hesaplanmadı."}
+        "s0": s0, "p_value": None, "p_value_reason": "No significance test was computed because the assumption of independent, exchangeable residuals was not verified."}
     if not s0 or denominator == 0:
         moran.update(status="unavailable", reason_code="NO_NEIGHBORS" if not s0 else "CONSTANT_RESIDUAL",
-                     reason="Komşuluk bağı yok." if not s0 else "Artık varyansı sıfır; Moran I tanımsız.")
+                     reason="There are no neighbor links." if not s0 else "Residual variance is zero; Moran's I is undefined.")
     else:
         a, b = left[neighbors], right[neighbors]
         numerator = np.sum(centered[a] * centered[b] * (1. / degree[a] + 1. / degree[b]))
@@ -483,7 +483,7 @@ def _spatial_summary(records, locations, sample_index, distance_band_m, edges, m
             scale = float(np.max(semivariance[mask])) or 1.
             row.update(mean_distance_m=float(np.mean(distances[mask])), semivariance=float(np.mean(semivariance[mask] / scale) * scale))
         else:
-            row.update(reason_code="INSUFFICIENT_PAIRS", reason="Uzaklık sınıfındaki çift sayısı belirlenen eşiğin altında.")
+            row.update(reason_code="INSUFFICIENT_PAIRS", reason="The number of pairs in the lag class is below the set threshold.")
         bins.append(row)
     summary.update(moran_i=moran, semivariogram=bins, total_pair_count=len(distances),
         included_pair_count=sum(row["pair_count"] for row in bins), duplicate_location_pair_count=int(np.sum(distances == 0)),
@@ -502,16 +502,16 @@ def residual_spatial_diagnostics(evaluation_result, samples, *, distance_band_m,
     No variogram model is fitted and evaluated residuals are never fed back to fit.
     """
     check_cancel()
-    min_samples = _integer(min_samples, 3, "Mekânsal tanı için en az örnek sayısı")
-    max_samples = _integer(max_samples, min_samples, "Mekânsal tanı için en çok örnek sayısı")
-    min_pairs = _integer(min_pairs, 1, "En az çift sayısı")
+    min_samples = _integer(min_samples, 3, "Minimum number of samples for spatial diagnostics")
+    max_samples = _integer(max_samples, min_samples, "Maximum number of samples for spatial diagnostics")
+    min_pairs = _integer(min_pairs, 1, "Minimum number of pairs")
     edges, distance_band_m = np.asarray(bin_edges_m, dtype=float), float(distance_band_m)
     if not np.isfinite(distance_band_m) or distance_band_m <= 0 or edges.ndim != 1 or len(edges) < 2 or not np.isfinite(edges).all() or edges[0] < 0 or np.any(np.diff(edges) <= 0):
-        raise JobError("DIAGNOSTIC_DISTANCE", "Komşuluk uzaklığı pozitif; uzaklık sınıfları sonlu, negatif olmayan ve kesin artan sırada olmalıdır.")
+        raise JobError("DIAGNOSTIC_DISTANCE", "The neighborhood distance must be positive; lag class boundaries must be finite, non-negative and strictly increasing.")
     ids, sample_index, _ = _samples(samples)
     xy = np.asarray(samples["coordinates"], dtype=float)
     if xy.shape != (len(ids), 2) or not np.isfinite(xy).all():
-        raise JobError("DIAGNOSTIC_COORDINATES", "Mekânsal tanı koordinatları sonlu ve iki sütunlu olmalıdır.")
+        raise JobError("DIAGNOSTIC_COORDINATES", "Coordinates for spatial diagnostics must be finite and have two columns.")
     locations, distance_crs = _metric_coordinates(xy, samples["crs"], {"metric_crs": metric_crs}, True)
     result = {"status": "available", "per_repeat": [], "outer_folds": [], "independent": [],
         "distance_crs": distance_crs, "distance_unit": "metre", "distance_band_m": distance_band_m,
@@ -519,15 +519,15 @@ def residual_spatial_diagnostics(evaluation_result, samples, *, distance_band_m,
         "neighborhood": "closed_distance_band; distinct rows; duplicate locations retained", "weight_standardization": "row_standardized; islands zero; all rows in n and centering",
         "residual_sign": "prediction_minus_observation", "semivariogram_estimator": "Matheron: mean(squared_pair_difference)/2; unordered pairs; isotropic",
         "warnings": [
-            "Artıklar değerlendirilmiş tahminlerden alınır; eğitim veya kalibrasyona geri verilmez.",
-            "Moran I, seçilen komşuluk kuralına bağlı tanımlayıcı bir mekânsal otokorelasyon ölçütüdür. Anlamlılık testi hesaplanmadı.",
-            "Yarı-variogram yönlerden bağımsız olarak hesaplanır. Durağanlık ve yönlere göre benzerlik doğrulanmadı; bir yarı-variogram modeli uydurulmadı.",
-            "Çiftler ve bağımlılık grupları bağımsız tekrar sayılmaz. Eşikler istatistiksel gücü garanti etmez.",
-            "Tekrar içindeki dış kat artıkları farklı eğitilmiş modellerden gelir. Birlikte verilen tanı bu karışımı tanımlar.",
-            "Komşusu olmayan noktalar sıfır ağırlıkla korunur. Çakışan koordinatlardaki farklı örnekler ayrıca sayılır."]}
+            "Residuals are taken from evaluated predictions; they are not fed back into training or calibration.",
+            "Moran's I is a descriptive measure of spatial autocorrelation that depends on the selected neighborhood rule. No significance test was computed.",
+            "The semivariogram is computed without regard to direction. Stationarity and isotropy were not verified; no semivariogram model was fitted.",
+            "Pairs and dependence groups are not counted as independent replicates. The thresholds do not guarantee statistical power.",
+            "Outer-fold residuals within a repeat come from different trained models. The pooled diagnostic describes this mixture.",
+            "Points without neighbors are kept with zero weight. Distinct samples at coincident coordinates are counted separately."]}
     partitions = _evaluation_partitions(evaluation_result, sample_index)
     if not partitions:
-        result.update(status="unavailable", reason_code="NO_EVALUATION_ROWS", reason="Mekânsal tanı için değerlendirilmiş tahmin yok.")
+        result.update(status="unavailable", reason_code="NO_EVALUATION_ROWS", reason="No evaluated predictions are available for spatial diagnostics.")
     for scope, repeat, fold, records in partitions:
         check_cancel()
         result[scope].append({"repeat": repeat, "fold": fold,

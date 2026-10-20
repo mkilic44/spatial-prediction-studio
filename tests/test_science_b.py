@@ -110,7 +110,7 @@ def test_unseen_category_has_flag_and_error_policies(scientific):
     assert np.isfinite(fitted.predict(test)).all()
     scientific[-1]["preprocessing"]["unknown_category"] = "error"
     fitted = fit(scientific)
-    with pytest.raises(Exception, match="kategori"):
+    with pytest.raises(Exception, match="category"):
         fitted.predict(test)
 
 
@@ -122,7 +122,7 @@ def test_negative_and_undefined_r2_and_signed_error():
 
 
 def test_small_calibration_cannot_invent_finite_bound():
-    with pytest.raises(Exception, match="kalibrasyon"):
+    with pytest.raises(Exception, match="calibration"):
         module("uncertainty").finite_sample_quantile(np.array([1., 2.]), .95)
     assert module("uncertainty").finite_sample_quantile(np.array([1., 4., 2., 3.]), .6) == 3
 
@@ -176,10 +176,10 @@ def test_trusted_reload_checks_schema_and_digest_before_loading(scientific, tmp_
     record = evaluator.save_trusted_model(fitted, path, "run-1", scientific[5])
     restored = evaluator.load_trusted_model(path, "run-1", scientific[5], record["sha256"])
     np.testing.assert_array_equal(fitted.predict(scientific[0]), restored.predict(scientific[0]))
-    with pytest.raises(Exception, match="şema"):
+    with pytest.raises(Exception, match="schema"):
         evaluator.load_trusted_model(path, "run-1", scientific[5][::-1], record["sha256"])
     path.write_bytes(path.read_bytes() + b"corruption")
-    with pytest.raises(Exception, match="özeti"):
+    with pytest.raises(Exception, match="digest"):
         evaluator.load_trusted_model(path, "run-1", scientific[5], record["sha256"])
 
 
@@ -232,7 +232,7 @@ def test_cqr_keeps_negative_adjustment_and_rejects_empty_intervals():
         {"method": "cqr", "coverage": .6}, role="cal", learning_audit=[])
     assert model.adjustment == -3
     assert model.record["calibration"]["score"] == "max(lower-y,y-upper)"
-    with pytest.raises(Exception, match="boş tahmin aralığı"):
+    with pytest.raises(Exception, match="empty prediction interval"):
         model.predict_interval(np.ones((1, 1)))
 
 
@@ -261,13 +261,13 @@ def test_parallel_search_and_cancellation(scientific):
 def test_nonlinear_svr_rfe_is_not_falsely_enabled(scientific):
     scientific[-1]["model"] = {"id": "svr", "parameters": {"kernel": "rbf"}}
     scientific[-1]["feature_selection"].update(method="rfe", k=1)
-    with pytest.raises(Exception, match="katsayı veya önem"):
+    with pytest.raises(Exception, match="coefficients or importance"):
         fit(scientific)
 
 
 def test_baseline_quantile_family_mismatch_is_rejected(scientific):
     scientific[-1]["uncertainty"]["method"] = "quantile_forest"
-    with pytest.raises(Exception, match="rastgele orman"):
+    with pytest.raises(Exception, match="random forest"):
         fit(scientific)
 
 
@@ -275,10 +275,10 @@ def test_onehot_expansion_enforces_budget_before_dense_allocation():
     pipeline = module("pipeline")
     covariates = [{"id": "category", "kind": "categorical"}]
     encoder = pipeline.CovariateEncoder(covariates, {"imputation": "none"})
-    with pytest.raises(Exception, match="bellek"):
+    with pytest.raises(Exception, match="memory"):
         encoder.fit(np.arange(10000.)[:, None])
     encoder.fit(np.arange(4000.)[:, None])
-    with pytest.raises(Exception, match="bellek"):
+    with pytest.raises(Exception, match="memory"):
         encoder.transform(np.tile(np.arange(4000.), 3)[:, None])
 
 
@@ -354,7 +354,7 @@ def test_selection_and_family_comparison_budget_and_conditional_spaces(scientifi
     scientific[-1]["feature_selection"].update(method="mutual_info", k=1, compare_without_selection=True)
     scientific[-1]["model_candidates"] = [{"id": "mean", "parameters": {}}, {"id": "ridge", "parameters": {}}]
     scientific[-1]["optimization"].update(method="grid", trials=3, spaces={"feature_selection.k": {"type": "categorical", "choices": [1, 2]}})
-    with pytest.raises(Exception, match="birleşimlerinin"):
+    with pytest.raises(Exception, match="combinations"):
         nested(scientific)
     scientific[-1]["optimization"]["trials"] = 4
     result = nested(scientific)
@@ -373,7 +373,7 @@ def test_unavailable_high_coverage_does_not_invent_a_bound():
     model = uncertainty.calibrate(FixedPoint(), np.zeros((4, 1)), np.arange(4.), list("abcd"),
         {"method": "split_conformal", "coverage": .8}, role="cal", learning_audit=[])
     assert model.record["calibration"]["levels"]["0.9"]["reason_code"] == "CALIBRATION_SIZE"
-    with pytest.raises(Exception, match="kalibrasyon örneği yetersiz"):
+    with pytest.raises(Exception, match="Too few calibration samples"):
         model.predict_interval_at_coverage(np.zeros((1, 1)), .9)
 
 

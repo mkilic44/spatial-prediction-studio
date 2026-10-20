@@ -14,7 +14,7 @@ namespace SpatialPredictionStudio
         internal string Id, Label, Description, Reason;
         internal bool Enabled;
         internal Dictionary<string, object> Parameters;
-        public override string ToString() { return Label + (Enabled ? "" : " (kapalı)"); }
+        public override string ToString() { return Label + (Enabled ? "" : " (disabled)"); }
     }
     internal sealed class MethodRegistry
     {
@@ -22,10 +22,10 @@ namespace SpatialPredictionStudio
         internal string Digest;
         internal static MethodRegistry Load(string path)
         {
-            if (!File.Exists(path)) throw new FileNotFoundException("Yöntem kaydı bulunamadı. Paket yapılandırmasını kontrol edin.", path);
+            if (!File.Exists(path)) throw new FileNotFoundException("Method registry not found. Check the package configuration.", path);
             var root = Json.Read(path);
             var categories = root.ContainsKey("categories") ? root["categories"] as Dictionary<string, object> : null;
-            if (categories == null) throw new InvalidDataException("Yöntem kaydında categories nesnesi yok.");
+            if (categories == null) throw new InvalidDataException("The method registry has no categories object.");
             var registry = new MethodRegistry { Digest = ConfigurationIdentity.FileDigest(path) };
             foreach (var category in categories)
             {
@@ -33,9 +33,9 @@ namespace SpatialPredictionStudio
                 foreach (object value in (IEnumerable)category.Value)
                 {
                     var item = value as Dictionary<string, object>;
-                    if (item == null) throw new InvalidDataException("Yöntem kaydı nesne olmalıdır.");
+                    if (item == null) throw new InvalidDataException("A method registry entry must be an object.");
                     string id = Json.Text(item, "id");
-                    if (String.IsNullOrWhiteSpace(id) || !ids.Add(id)) throw new InvalidDataException("Geçersiz veya yinelenen yöntem kimliği: " + category.Key);
+                    if (String.IsNullOrWhiteSpace(id) || !ids.Add(id)) throw new InvalidDataException("Invalid or duplicate method ID in category: " + category.Key);
                     methods.Add(new MethodSpec { Id = id, Label = Json.Text(item, "label", id), Description = Json.Text(item, "description"), Reason = Json.Text(item, "reason"), Enabled = item.ContainsKey("enabled") && Convert.ToBoolean(item["enabled"]), Parameters = item.ContainsKey("parameters") ? item["parameters"] as Dictionary<string, object> ?? new Dictionary<string, object>() : new Dictionary<string, object>() });
                 }
                 registry.Categories.Add(category.Key, methods);
@@ -45,7 +45,7 @@ namespace SpatialPredictionStudio
         internal List<MethodSpec> Category(string name)
         {
             List<MethodSpec> methods;
-            if (!Categories.TryGetValue(name, out methods)) throw new InvalidDataException("Yöntem kaydında kategori eksik: " + name);
+            if (!Categories.TryGetValue(name, out methods)) throw new InvalidDataException("Category missing from the method registry: " + name);
             return methods;
         }
     }

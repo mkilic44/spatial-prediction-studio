@@ -134,24 +134,24 @@ def test_coverage_measure_and_report_preserve_area_limit(tmp_path, report_case, 
     if geographic:
         assert coverage["measure"] == "grid_cell_fraction"
         assert coverage["constant_cell_area_grid_units_squared"] is None
-        assert "coğrafi alan oranı değildir" in coverage["measure_label"]
-        assert "yalnız hücre payı" in coverage["area_limit"]
+        assert "not a geographic area fraction" in coverage["measure_label"]
+        assert "only the cell fraction" in coverage["area_limit"]
     else:
         assert coverage["measure"] == "projected_grid_plane_area_fraction"
         assert coverage["constant_cell_area_grid_units_squared"] == 918
-        assert "grid düzlemindeki alan payı" in coverage["measure_label"]
-        assert "elipsoit üzerindeki alan payı olarak yorumlanmaz" in coverage["area_limit"]
+        assert "Area fraction of valid cells in the grid plane" in coverage["measure_label"]
+        assert "not to be interpreted as an area fraction on the surface of the Earth or on the ellipsoid" in coverage["area_limit"]
     evaluation, samples, settings = report_case
     evaluation["mapping_diagnostics"] = audit
     evaluation["final_record"]["applicability"] = {"enabled": True}
     output = tmp_path / "report"
     build_reports(output, evaluation, samples, settings, check_cancel=lambda: None)
     report = (output / "report.html").read_text(encoding="utf-8")
-    assert "Uygulanabilirlik alanı dışındaki hücre</td><td>3</td>" in report
+    assert "Cells outside the area of applicability</td><td>3</td>" in report
     assert coverage["measure_label"] in report
     assert coverage["scope_limit"] in report
     assert coverage["area_limit"] in report
-    assert "Tanı rasterleri maskelenmedi" in report
+    assert "Diagnostic rasters were not masked" in report
     saved = json.loads((output / "evaluation.json").read_text(encoding="utf-8"))
     assert saved["evaluation"]["mapping_diagnostics"]["applicability_coverage"] == coverage
 

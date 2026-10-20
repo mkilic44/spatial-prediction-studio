@@ -44,8 +44,8 @@ def report_case():
     samples = {"ids": ids, "y": np.arange(8, dtype=float),
                "coordinates": np.column_stack([500000 + np.arange(8) * 100, 4200000 + np.arange(8) * 150]),
                "crs": "EPSG:32637", "props": [{} for _ in ids], "support": "point",
-               "excluded": {}, "depth": [0, 20], "laboratory_method": "örnek yöntem"}
-    settings = {"run_id": "test-report", "samples": {"unit": "g/kg", "target_field": "Toprak organik karbonu"},
+               "excluded": {}, "depth": [0, 20], "laboratory_method": "example method"}
+    settings = {"run_id": "test-report", "samples": {"unit": "g/kg", "target_field": "Soil organic carbon"},
                 "validation": {"method": "group", "n_splits": 2, "repeats": 1, "seed": 42,
                                "independent_ids": [ids[6]]},
                 "uncertainty": {"method": "split_conformal", "coverage": 0.9},
@@ -76,10 +76,10 @@ def test_report_exports_actual_data_json_nonfinite_status_and_valid_figures(tmp_
                 assert picture.width == 960 and picture.height == 720
                 assert picture.info["dpi"][0] == pytest.approx(150, abs=0.1)
     html = (tmp_path / "report.html").read_text(encoding="utf-8")
-    assert "Tanımsız" in html and "-0.2" in html
-    assert "<td>belirleme katsayısının durumu</td><td>Tanımlı</td>" in html
-    assert "ortalama kare hatanın karekökü" in html
-    assert "bağımsız örnek sayısı" in html
+    assert "Undefined" in html and "-0.2" in html
+    assert "<td>status of the coefficient of determination</td><td>Defined</td>" in html
+    assert "root mean squared error (RMSE)" in html
+    assert "do not count as independent samples" in html
     assert not any(mark in html for mark in ["\u2013", "\u2014", "\u2212"])
 
 
@@ -174,13 +174,13 @@ def test_reused_test_warning_replaces_independent_success_heading(tmp_path, repo
     evaluation, samples, settings = report_case
     evaluation["independent_test_history"] = {"status": "reused_after_settings_change",
         "previous_evaluations": 2, "settings_changed_since_previous": True,
-        "warning": "Bu test kümesi daha önce kullanıldı <kontrol>."}
+        "warning": "This test set was used before <check>."}
     build_reports(tmp_path, evaluation, samples, settings, check_cancel=lambda: None)
     report = (tmp_path / "report.html").read_text(encoding="utf-8")
-    assert "<h3>Yeniden kullanılmış test</h3>" in report
-    assert "<h3>Kilitli bağımsız test</h3>" not in report
-    assert "Bu test kümesi daha önce kullanıldı &lt;kontrol&gt;." in report
-    assert "yeni ve bağımsız bir nihai başarı ölçümü" in report
+    assert "<h3>Reused test set</h3>" in report
+    assert "<h3>Locked independent test set</h3>" not in report
+    assert "This test set was used before &lt;check&gt;." in report
+    assert "a new, independent final performance measurement" in report
 
 
 def test_single_test_observation_cannot_be_reported_with_perfect_r2(tmp_path, report_case):
@@ -205,7 +205,7 @@ def coverage_case(evaluation):
                  "below_lower_fraction": .33, "above_upper_fraction": .34,
                  "pinball_lower": .2, "pinball_upper": .25, "interval_score": 2.1, "crossing_count": 0}
     unavailable = {"nominal_coverage": .9, "status": "unavailable", "n": 6, "group_count": 6,
-                   "reason_code": "CONFORMAL_RANK", "reason": "Kalibrasyon örneği sonlu sınır için yetersiz."}
+                   "reason_code": "CONFORMAL_RANK", "reason": "The calibration sample is too small for a finite bound."}
     evaluation["coverage_diagnostics"] = {"levels": [.5, .9], "pooled_oof": [available, unavailable],
         "outer_folds": [{**available, "repeat": 0, "fold": 0}],
         "per_repeat": [{**available, "repeat": 0}],
@@ -228,10 +228,10 @@ def test_multilevel_coverage_preserves_unavailable_levels_and_flags_undercoverag
     assert curve["plotted_rows"] == 2 and curve["unavailable_rows"] == 1
     assert curve["connected_observations"] is False
     report = (tmp_path / "report.html").read_text(encoding="utf-8")
-    assert "Yetersiz ampirik kapsama" in report
-    assert "Kalibrasyon örneği sonlu sınır için yetersiz." in report
-    assert "Koşullu kapsama" in report
-    assert "hücrede doğruluğu kanıtlanmış" in report
+    assert "Insufficient empirical coverage" in report
+    assert "The calibration sample is too small for a finite bound." in report
+    assert "Conditional coverage" in report
+    assert "proven accuracy in every cell" in report
 
 
 def test_invalid_coverage_is_rejected_without_clipping(tmp_path, report_case):
@@ -255,17 +255,17 @@ def test_training_inner_outer_tables_and_preflight_keep_evaluation_roles_separat
         "diagnostics": {"train_groups": 3, "test_groups": 3, "minimum_train_test_distance_m": 151.2},
         "environmental_conditions": [{"id": "elevation", "train_min": 1, "train_max": 20, "test_min": 3, "test_max": 25},
                                      {"id": "land_use", "train_categories": [1, 2], "test_categories": [2, 3], "unknown_test_categories": [3]}]}],
-        "missing_fraction": [.1], "workload": {"estimated_pipeline_fits_upper_bound": 80}, "warnings": ["Uzaklık uyarısı örneği."]}
+        "missing_fraction": [.1], "workload": {"estimated_pipeline_fits_upper_bound": 80}, "warnings": ["Example distance warning."]}
     (tmp_path / "preflight.json").write_text(json.dumps(preflight), encoding="utf-8")
     build_reports(tmp_path, evaluation, samples, settings, check_cancel=lambda: None)
     report = (tmp_path / "report.html").read_text(encoding="utf-8")
-    for title in ["Eğitim sonuçları", "İç doğrulama denemeleri", "Dış kat sonuçları", "Katların veri ve uzaklık özeti", "Çevresel koşullar"]:
+    for title in ["Training results", "Inner validation trials", "Outer-fold results", "Fold data and distance summary", "Environmental conditions"]:
         assert title in report
     assert "151.2" in report and "elevation" in report and 'href="audit.json"' in report
-    assert "Eğitim verisine yeniden uygulanan model" in report
-    assert "Denemeler arasında süre sınırı" in report and "3.1" in report
-    assert "Kategorik çevresel koşullar" in report and "Uzaklık uyarısı örneği." in report
-    assert "Yalnız tanı" in report and "varyans şişirme faktörüne dayalı eleme kapalıdır" in report
+    assert "model reapplied to its training data" in report
+    assert "Time limit reached between trials" in report and "3.1" in report
+    assert "Categorical environmental conditions" in report and "Example distance warning." in report
+    assert "Diagnostic only" in report and "elimination based on the variance inflation factor (VIF) are turned off" in report
 
 
 def test_900_dpi_is_real_export_resolution_not_grid_resolution(tmp_path, report_case):
@@ -281,4 +281,4 @@ def test_900_dpi_is_real_export_resolution_not_grid_resolution(tmp_path, report_
         assert picture.size == (5760, 4320)
         assert picture.info["dpi"][0] == pytest.approx(900, abs=0.1)
     html = (tmp_path / "report.html").read_text(encoding="utf-8")
-    assert "hücre boyutunu değiştirmez" in html
+    assert "does not change the cell size" in html

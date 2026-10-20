@@ -32,6 +32,7 @@ def atomic_record(path, value):
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-record", type=Path, default=ROOT / "installer/dist/installer-build-record.json")
+    # Staging folder of the recorded 0.5.0 installer acceptance; keep the path as recorded.
     parser.add_argument("--staged-acceptance", type=Path, default=ROOT.parent / "sps-ç2/setup-acceptance.json")
     parser.add_argument("--output-dir", type=Path, default=OUT)
     return parser.parse_args(argv)

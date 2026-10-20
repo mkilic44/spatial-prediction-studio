@@ -37,7 +37,7 @@ class StrictMCPServer(MCPServer):
     async def call_tool(self, name, arguments, context=None):
         tools = {tool.name: tool for tool in await self.list_tools()}
         if name not in tools:
-            raise ToolError("TOOL_UNKNOWN: Araç tanınmıyor.")
+            raise ToolError("TOOL_UNKNOWN: Unknown tool.")
         try:
             encoded = json.dumps(arguments, ensure_ascii=False, allow_nan=False).encode("utf-8")
             if len(encoded) > 1024 * 1024:
@@ -45,7 +45,7 @@ class StrictMCPServer(MCPServer):
             if list(Draft202012Validator(tools[name].input_schema).iter_errors(arguments)):
                 raise ValueError("Schema mismatch")
         except (ValueError, TypeError):
-            raise ToolError("TOOL_ARGUMENTS: Araç parametreleri geçersiz veya büyük.") from None
+            raise ToolError("TOOL_ARGUMENTS: Tool parameters are invalid or too large.") from None
         return await super().call_tool(name, arguments, context)
 
 
@@ -53,9 +53,9 @@ def local_path(value: str, suffixes: tuple[str, ...]):
     path = Path(value)
     if (not value or "\0" in value or len(value) > 30000 or
             not re.match(r"^[A-Za-z]:[\\/]", value) or ":" in value[2:]):
-        raise BridgeError("LOCAL_PATH", "Yerel ve mutlak bir dosya yolu gerekir.")
+        raise BridgeError("LOCAL_PATH", "A local, absolute file path is required.")
     if not str(path).lower().endswith(suffixes):
-        raise BridgeError("FILE_EXTENSION", "Dosya uzantısı bu işlem için uygun değil.")
+        raise BridgeError("FILE_EXTENSION", "The file extension is not valid for this operation.")
     reject_reparse(path)
     return str(path)
 
@@ -65,11 +65,11 @@ def create_server(bridge=None):
     server = StrictMCPServer(
         "Spatial Prediction Studio", version="0.5.0",
         instructions=(
-            "Önce discover_sessions ile hedef ArcMap oturumunu seç. Projeyi oku, "
-            "önizlemeyi çalıştır ve status ile tamamlanmasını bekle. preview_ready olmadan "
-            "run_analysis çağırma. Uzun işler iş kimliği döndürür; status ile izle, cancel ile durdur. "
-            "Yalnız doğrulanmış sonucun dosyaları okunur. Koordinat alanları varsayılan olarak gizlidir. "
-            "Genel kod veya kabuk çalıştırma yoktur."),
+            "First select the target ArcMap session with discover_sessions. Read the project, "
+            "run preview and use status to wait until it completes. Do not call run_analysis "
+            "without preview_ready. Long jobs return a job ID; monitor them with status and stop them with cancel. "
+            "Only the files of a verified result can be read. Coordinate fields are hidden by default. "
+            "General code or shell execution is not available."),
         log_level="WARNING")
 
     async def invoke(session_id, method, params=None):
@@ -88,7 +88,7 @@ def create_server(bridge=None):
 
     @server.tool(annotations=READ)
     async def discover_sessions() -> dict[str, Any]:
-        """Bu Windows kullanıcısının etkin ArcMap oturumlarını bul. Gizli bağlantı anahtarı döndürmez."""
+        """Find the active ArcMap sessions of this Windows user. Does not return the secret connection token."""
         try:
             return await anyio.to_thread.run_sync(bridge.registry.discover)
         except BridgeError as error:
@@ -96,17 +96,17 @@ def create_server(bridge=None):
 
     @server.tool(annotations=READ)
     async def status(session_id: ID) -> dict[str, Any]:
-        """ArcMap durumunu, önizlemenin geçerliliğini ve son işin durumunu oku."""
+        """Read the ArcMap state, whether the preview is valid, and the status of the last job."""
         return bounded_json(await invoke(session_id, "status"))
 
     @server.tool(annotations=READ)
     async def layers(session_id: ID, offset: OFFSET = 0, limit: LIMIT = 50) -> dict[str, Any]:
-        """Haritadaki katman üst verilerinin bir sayfasını oku; gözlem koordinatları döndürmez."""
+        """Read one page of metadata for the layers in the map. Does not return observation coordinates."""
         result = await invoke(session_id, "layers")
         if (not isinstance(result, dict) or not isinstance(result.get("points"), list)
                 or not isinstance(result.get("raster_bands"), list)
                 or any(not isinstance(row, dict) for group in ("points", "raster_bands") for row in result[group])):
-            raise ToolError("LAYERS_RESPONSE: Katman listesi geçersiz.")
+            raise ToolError("LAYERS_RESPONSE: The layer list is invalid.")
         rows = ([{**row, "layer_type": "point"} for row in result["points"]] +
                 [{**row, "layer_type": "raster_band"} for row in result["raster_bands"]])
         end = min(offset + limit, len(rows))
@@ -116,12 +116,12 @@ def create_server(bridge=None):
 
     @server.tool(annotations=READ)
     async def get_project(session_id: ID) -> dict[str, Any]:
-        """Etkin projenin bilimsel ayarlarını ve kaynak tanımlarını oku; ham örnek verisi istemez."""
+        """Read the scientific settings and source definitions of the active project. Does not request raw sample data."""
         return bounded_json(await invoke(session_id, "project.get"))
 
     @server.tool(annotations=WRITE)
     async def open_project(session_id: ID, path: str) -> dict[str, Any]:
-        """Var olan yerel .sps.json projesini ArcMap panelinde aç."""
+        """Open an existing local .sps.json project in the ArcMap panel."""
         try:
             path = local_path(path, (".sps.json",))
         except BridgeError as error:
@@ -130,7 +130,7 @@ def create_server(bridge=None):
 
     @server.tool(annotations=WRITE)
     async def save_project(session_id: ID, path: str) -> dict[str, Any]:
-        """Etkin projeyi yeni bir yerel .sps.json dosyasına kaydet. Mevcut dosyanın üzerine yazmaz."""
+        """Save the active project to a new local .sps.json file. Does not overwrite an existing file."""
         try:
             path = local_path(path, (".sps.json",))
         except BridgeError as error:
@@ -139,22 +139,22 @@ def create_server(bridge=None):
 
     @server.tool(annotations=WRITE)
     async def preview(session_id: ID) -> dict[str, Any]:
-        """Model eğitmeden doğrulama katlarını önizle. İş kimliği döner; status ile tamamlanmasını izle."""
+        """Preview the validation folds without training a model. Returns a job ID; use status to monitor completion."""
         return await invoke(session_id, "job.start", {"action": "preview"})
 
     @server.tool(annotations=WRITE)
     async def run_analysis(session_id: ID) -> dict[str, Any]:
-        """Geçerli önizlemesi bulunan etkin projeyi çalıştır. İş kimliği döner; status ile izle."""
+        """Run the active project that has a valid preview. Returns a job ID; monitor it with status."""
         return await invoke(session_id, "job.start", {"action": "run"})
 
     @server.tool(annotations=WRITE)
     async def cancel(session_id: ID) -> dict[str, Any]:
-        """Yalnız seçili ArcMap oturumunun etkin analizini iptal et."""
+        """Cancel only the active analysis of the selected ArcMap session."""
         return await invoke(session_id, "job.cancel")
 
     @server.tool(annotations=READ)
     async def list_artifacts(session_id: ID, offset: OFFSET = 0, limit: LIMIT = 50) -> dict[str, Any]:
-        """Tamamlanmış sonucun doğrulanmış dosya envanterini sayfalı oku."""
+        """Read the verified file inventory of the completed result, page by page."""
         listing = await invoke(session_id, "result.list")
         try:
             rows = validated_artifacts(listing)
@@ -170,20 +170,20 @@ def create_server(bridge=None):
     async def read_artifact(session_id: ID, name: str, offset: OFFSET = 0,
                             limit: TEXT_LIMIT = 12000, expected_sha256: str | None = None,
                             include_coordinates: bool = False) -> dict[str, Any]:
-        """Envanterdeki HTML/metin/JSON dosyasını özetini yeniden denetleyerek sayfalı oku. Ham GeoJSON okunmaz."""
+        """Read an HTML, text or JSON file from the inventory page by page, re-verifying its file digest. Raw GeoJSON is not readable."""
         return await artifact_operation(session_id, read_text, name, offset, limit,
                                         expected_sha256, include_coordinates)
 
     @server.tool(annotations=READ)
     async def read_report(session_id: ID, offset: OFFSET = 0,
                           limit: TEXT_LIMIT = 12000, expected_sha256: str | None = None) -> dict[str, Any]:
-        """Tamamlanmış çalışmanın rapor dizinini veya raporunu güvenli metin olarak oku."""
+        """Read the report index or the report of the completed run as safe text."""
         listing = await invoke(session_id, "result.list")
         try:
             available = {row["name"] for row in validated_artifacts(listing)}
             name = next((n for n in ("study_report_index.html", "study_report.html", "report.html") if n in available), None)
             if name is None:
-                raise BridgeError("REPORT_MISSING", "Tamamlanmış sonuçta HTML raporu yok.")
+                raise BridgeError("REPORT_MISSING", "The completed result has no HTML report.")
             return await anyio.to_thread.run_sync(read_text, listing, name, offset, limit, expected_sha256, False)
         except BridgeError as error:
             raise ToolError(f"{error.code}: {error.message}") from None
@@ -193,13 +193,13 @@ def create_server(bridge=None):
                               limit: LIMIT = 50, columns: list[str] | None = None,
                               expected_sha256: str | None = None,
                               include_coordinates: bool = False) -> dict[str, Any]:
-        """CSV tablosunu sayfalı oku. Koordinatlar, ham property.* ve raw_record alanları varsayılan olarak gizlidir."""
+        """Read a CSV table page by page. Coordinates and the raw property.* and raw_record fields are hidden by default."""
         return await artifact_operation(session_id, read_table, name, offset, limit, columns,
                                         expected_sha256, include_coordinates)
 
     @server.tool(annotations=WRITE)
     async def export_model(session_id: ID, path: str) -> dict[str, Any]:
-        """Doğrulanmış son model paketini yeni .spsmodel.zip dosyasına dışa aktar."""
+        """Export the latest verified model package to a new .spsmodel.zip file."""
         try:
             path = local_path(path, (".spsmodel.zip",))
         except BridgeError as error:
@@ -208,7 +208,7 @@ def create_server(bridge=None):
 
     @server.tool(annotations=WRITE)
     async def export_report(session_id: ID, path: str) -> dict[str, Any]:
-        """Doğrulanmış çalışma arşivini yeni .spsstudy.zip dosyasına dışa aktar. Mevcut dosyanın üzerine yazmaz."""
+        """Export the verified study archive to a new .spsstudy.zip file. Does not overwrite an existing file."""
         try:
             path = local_path(path, (".spsstudy.zip",))
         except BridgeError as error:

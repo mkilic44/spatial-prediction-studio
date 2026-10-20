@@ -9,6 +9,7 @@ import markdown
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "release"
+# Recorded report file names and the section anchors of the 0.5.0 delivery; keep as recorded.
 SECTIONS = [("teslim", OUT / "TESLIM_RAPORU.md"), ("son-analiz", ROOT / "ASAMA_05_KABUL.md"), ("d-modelleri", ROOT / "ASAMA_D_KABUL.md"), ("kurulum", ROOT / "installer/FINAL_ACCEPTANCE.md")]
 CSS = """
 body{font:16px/1.65 Segoe UI,Arial,sans-serif;background:#eef2f4;color:#182f3a;margin:0}
@@ -38,7 +39,7 @@ def main():
     def preserve(path):
         path = path.resolve(strict=True)
         relative = path.relative_to(ROOT)
-        target = OUT / "kanitlar" / relative
+        target = OUT / "kanitlar" / relative  # Evidence folder name in the recorded release layout; keep.
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, target)
         expected = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -62,13 +63,15 @@ def main():
         manifest[str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()
         rendered = markdown.markdown(raw, extensions=["tables", "fenced_code", "sane_lists"])
         if anchor == "son-analiz":
-            rendered = re.sub(r"<h1>.*?</h1>", "<h1>Önceki adayın sayısal kabulü</h1>", rendered, count=1)
+            rendered = re.sub(r"<h1>.*?</h1>", "<h1>Numerical acceptance of the previous candidate</h1>", rendered, count=1)
         rendered = re.sub(r'href="([A-Za-z]:[/\\][^"]*)"', portable_link, rendered)
+        # Link targets as written in the recorded Turkish reports; keep as recorded.
         rendered = rendered.replace('href="ASAMA_05_KABUL.md"', 'href="#son-analiz"').replace('href="ASAMA_D_KABUL.md"', 'href="#d-modelleri"')
         rendered = rendered.replace('href="KURUCU_KABULU.md"', 'href="#kurulum"')
         parts.append('<section id="' + anchor + '">' + rendered + '</section>')
-    document = '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Spatial Prediction Studio 0.5.0 ayrıntılı rapor</title><style>' + CSS + '</style></head><body><nav><a href="#teslim">Teslim</a><a href="#son-analiz">Önceki adayın sayısal kabulü</a><a href="#d-modelleri">TabM, RealMLP ve TabPFN</a></nav><main>' + ''.join(parts) + '</main></body></html>'
-    document = document.replace('</nav>', '<a href="#kurulum">Kurucu kabulü</a></nav>')
+    # The page wraps the recorded Turkish delivery documents, so the document language stays Turkish.
+    document = '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Spatial Prediction Studio 0.5.0 detailed report</title><style>' + CSS + '</style></head><body><nav><a href="#teslim">Delivery</a><a href="#son-analiz">Numerical acceptance of the previous candidate</a><a href="#d-modelleri">TabM, RealMLP and TabPFN</a></nav><main>' + ''.join(parts) + '</main></body></html>'
+    document = document.replace('</nav>', '<a href="#kurulum">Installer acceptance</a></nav>')
     target = OUT / "AYRINTILI_RAPOR.html"
     target.write_text(document, encoding="utf-8")
     assert all(token in target.read_text(encoding="utf-8") for token in ("712", "3140", "27", "18", "140", "0.18159793", "0.5.0"))

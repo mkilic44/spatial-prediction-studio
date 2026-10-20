@@ -123,7 +123,7 @@ def test_failed_trial_keeps_completed_rows_without_aggregate_success(scientific,
     real_fit = evaluation.fit_workflow
     def fail_second_fold(*args, **kwargs):
         if kwargs["role"].endswith("trial0/inner0/1"):
-            raise JobError("EXPECTED_TEST_FAILURE", "Denetimli ikinci kat hatası.")
+            raise JobError("EXPECTED_TEST_FAILURE", "Controlled second-fold failure.")
         return real_fit(*args, **kwargs)
     monkeypatch.setattr(evaluation, "fit_workflow", fail_second_fold)
     X, y, ids, xy, groups, covariates, settings = scientific

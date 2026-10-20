@@ -27,31 +27,31 @@ def inspect_model_package(path, *, expected_sha256=None, check_cancel=lambda: No
     path = Path(path)
     with path.open('rb') as stream: digest = _hash_stream(stream, check_cancel)
     if expected_sha256 is not None and digest != expected_sha256:
-        raise JobError('MODEL_PACKAGE_HASH', 'Model paketinin dosya özeti uyuşmuyor.')
+        raise JobError('MODEL_PACKAGE_HASH', 'The model package file digest does not match.')
     with zipfile.ZipFile(path) as archive:
         names = archive.namelist()
         if len(set(names)) != len(names):
-            raise JobError('MODEL_PACKAGE_MEMBERS', 'Model paketinde yinelenen dosya adı var.')
+            raise JobError('MODEL_PACKAGE_MEMBERS', 'The model package contains a duplicate file name.')
         for name in names:
             parsed = PurePosixPath(name)
             if parsed.is_absolute() or '..' in parsed.parts or '\\' in name or ':' in name or name.endswith('/'):
-                raise JobError('MODEL_PACKAGE_PATH', 'Model paketinde geçersiz dosya yolu var.')
+                raise JobError('MODEL_PACKAGE_PATH', 'The model package contains an invalid file path.')
         try: manifest = json.loads(archive.read('manifest.json'))
         except (KeyError, ValueError) as exc:
-            raise JobError('MODEL_PACKAGE_MANIFEST', 'Model paketinin içeriği doğrulanamadı.') from exc
+            raise JobError('MODEL_PACKAGE_MANIFEST', 'The model package contents could not be verified.') from exc
         if manifest.get('schema_version') != 1 or set(manifest.get('members', {})) != set(names)-{'manifest.json'}:
-            raise JobError('MODEL_PACKAGE_MANIFEST', 'Model paketi dosya listesi uyuşmuyor.')
+            raise JobError('MODEL_PACKAGE_MANIFEST', 'The model package file list does not match.')
         for name, expected in manifest['members'].items():
             with archive.open(name) as stream: actual = _hash_stream(stream, check_cancel)
             if actual != expected:
-                raise JobError('MODEL_PACKAGE_MEMBER_HASH', 'Model paketi dosya özeti uyuşmuyor: '+name)
+                raise JobError('MODEL_PACKAGE_MEMBER_HASH', 'Model package member digest does not match: '+name)
         if manifest.get('model_path') not in manifest['members'] or manifest.get('metadata_path') not in manifest['members']:
-            raise JobError('MODEL_PACKAGE_MANIFEST', 'Model veya üst veri dosyası yok.')
+            raise JobError('MODEL_PACKAGE_MANIFEST', 'The model or metadata file is missing.')
         metadata = json.loads(archive.read(manifest['metadata_path']))
         model_hash = manifest['members'][manifest['model_path']]
         if (manifest.get('model_sha256') != model_hash or metadata.get('sha256') != model_hash
                 or metadata.get('run_id') != manifest.get('run_id') or metadata.get('schema_version') != 1):
-            raise JobError('MODEL_PACKAGE_PROVENANCE', 'Model paketi ile modelin üst veri kaydı uyuşmuyor.')
+            raise JobError('MODEL_PACKAGE_PROVENANCE', 'The model package and the model metadata record do not match.')
     return {'status': 'verified', 'sha256': digest, 'members': len(names), 'manifest': manifest,
             'trust_scope': 'integrity only; no model deserialization performed'}
 
@@ -61,12 +61,12 @@ def create_model_package(output, model_files, settings, record, study_context, *
     destination = output / study_context['model_artifact']['package_path']
     partial = destination.with_name(destination.name+'.partial')
     if destination.exists() or partial.exists():
-        raise JobError('MODEL_PACKAGE_EXISTS', 'Mevcut model paketinin üzerine yazılmaz.')
+        raise JobError('MODEL_PACKAGE_EXISTS', 'An existing model package is not overwritten.')
     model_path, metadata_path = Path(model_files['path']), Path(model_files['metadata_path'])
     metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
     with model_path.open('rb') as stream: model_digest = _hash_stream(stream, check_cancel)
     if model_digest != model_files['sha256'] or metadata.get('sha256') != model_digest or metadata.get('run_id') != settings['run_id']:
-        raise JobError('MODEL_PACKAGE_SOURCE', 'Kaydedilecek modelin kaynağı doğrulanamadı.')
+        raise JobError('MODEL_PACKAGE_SOURCE', 'The source of the model to be saved could not be verified.')
     sources = {model_path.name: model_path, metadata_path.name: metadata_path}
     for name in ('study_summary.json', 'final_record.json', 'selected_features.csv', 'hyperparameters.csv'):
         if (output/name).is_file(): sources['study/'+name] = output/name
@@ -84,22 +84,22 @@ def create_model_package(output, model_files, settings, record, study_context, *
         weight = Path(verify_weights()['path'])
         for name in (weight.name, 'LICENSE.txt', 'weights-manifest.json'):
             source = weight.parent/name
-            if not source.is_file(): raise JobError('MODEL_PACKAGE_WEIGHT', 'TabPFN ağırlığı veya lisans kaydı eksik.')
+            if not source.is_file(): raise JobError('MODEL_PACKAGE_WEIGHT', 'The TabPFN weights or license record is missing.')
             sources['models/tabpfn-v2/'+name] = source
-    readme = '''# Kaydedilmiş model paketi
+    readme = '''# Saved model package
 
-Paket, bu çalışmanın eğitilmiş modelini içerir. Model nesnesi ön işlemeyi, hedef dönüşümünü, değişken seçimini ve varsa belirsizlik kalibrasyonunu birlikte saklar.
-`settings.json` kullanıcı ayarlarını, `final_record.json` gerçekleşen eğitimi, `provenance.json` kaynak ve sürüm kayıtlarını içerir.
-`environment/` dosyaları yazılım sürümlerini sabitler. `backend/sps/` bu paketi oluşturan çekirdektir. Python yorumlayıcısı ve Esri kitaplıkları gömülmez.
-Raster girdileri pakete kopyalanmaz. Kaydedilen değişken sırası, bantlar ve birimler korunmalıdır. Yeni alandaki tahmin başarısı bu paketle kanıtlanmış değildir.
+The package contains the trained model of this run. The model object stores preprocessing, target transformation, variable selection and, if used, uncertainty calibration together.
+`settings.json` contains the user settings, `final_record.json` the training as performed, and `provenance.json` the source and version records.
+The `environment/` files pin the software versions. `backend/sps/` is the core that created this package. The Python interpreter and Esri libraries are not embedded.
+Raster inputs are not copied into the package. The recorded variable order, bands and units must be preserved. This package does not prove prediction performance in a new area.
 
-## Yeniden kullanım
+## Reuse
 
-Model yalnız kaynağı bilinen bu yerel çalışmadan yüklenmelidir. Bir dosya özetinin eşleşmesi, bilinmeyen dosyanın güvenilir olduğunu kanıtlamaz.
-`sps.model_bundle.inspect_model_package` paket dosyalarının özetlerini modeli çalıştırmadan denetler.
-Güvenilir paketin model dosyası ve yanındaki `.meta.json` birlikte tutulur. `sps.evaluation.load_trusted_model`, çalışma kimliğini, beklenen model özetini, değişken şemasını ve ortam sürümlerini denetler.
-Şema ve sürüm bilgileri `manifest.json` ile modelin üst veri dosyasındadır. Model yüklemek yeniden eğitim yapmaz. Rastgele bir `joblib` dosyası açılmamalıdır.
-TabPFN kullanılmışsa yerel ağırlık, sürüm kaydı ve lisansı `models/tabpfn-v2/` içindedir. `SPS_MODELS_DIR`, açılmış paketin `models/` klasörünü göstermelidir.
+Load the model only from this local run, whose source is known. A matching file digest does not prove that an unknown file is trustworthy.
+`sps.model_bundle.inspect_model_package` checks the digests of the package files without running the model.
+Keep the model file of a trusted package together with the `.meta.json` file next to it. `sps.evaluation.load_trusted_model` checks the run ID, the expected model digest, the variable schema and the environment versions.
+Schema and version information is in `manifest.json` and in the model metadata file. Loading a model does not retrain it. Do not open an arbitrary `joblib` file.
+If TabPFN was used, the local weights, version record and license are in `models/tabpfn-v2/`. `SPS_MODELS_DIR` must point to the `models/` folder of the extracted package.
 Built with PriorLabs-TabPFN if the model is TabPFN.
 '''
     generated = {'README.md': readme.encode('utf-8'), 'settings.json': _json(settings),
@@ -117,7 +117,7 @@ Built with PriorLabs-TabPFN if the model is TabPFN.
                         if not chunk: break
                         dst.write(chunk)
                 with source.open('rb') as stream: after = _hash_stream(stream, check_cancel)
-                if before != after: raise JobError('MODEL_PACKAGE_SOURCE_CHANGED', 'Model paketlenirken kaynak değişti.')
+                if before != after: raise JobError('MODEL_PACKAGE_SOURCE_CHANGED', 'A source changed while the model was being packaged.')
                 hashes[name] = before
             manifest = {'schema_version': 1, 'run_id': settings['run_id'],
                         'model_id': record.get('model', {}).get('id'),

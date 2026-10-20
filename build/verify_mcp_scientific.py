@@ -250,6 +250,7 @@ def verify(process_file=None):
     ui_log_path=EVIDENCE/'mcp-ui-session.log';ui_log=ui_log_path.read_text(encoding='utf-8-sig')
     gui_zip=EVIDENCE/'mcp-gui-study.spsstudy.zip'
     assert digest(gui_zip)==digest(archive_path)
+    # The log literals below match the Turkish 0.5.0 acceptance log (mcp-ui-session.log); keep as recorded.
     assert 'Geçmiş başarılı sonuçtan 8 raster eklendi' in ui_log
     assert 'Doğrulanmış yerel rapor ArcMap içinde açıldı: '+str(output/'study_report_index.html') in ui_log
     assert 'Tam çalışma paketi kaydedildi ve dosya özeti doğrulandı: '+str(gui_zip) in ui_log
@@ -259,16 +260,17 @@ def verify(process_file=None):
         'screenshots':[file_record(EVIDENCE/n) for n in ['mcp-report-index.png','mcp-report-parameters.png','mcp-gui-study-saved.png']],
         'report_opened_from_completed_history':True,'parameter_page':7,'page_count':pagination['pages'],
         'screenshot_readback':'Index, parameter page 7/62 and completed export were visually inspected. Closing with X is the parent operator observation.',
-        'empty_selection_error_observed': 'Önce tamamlanmış bir işin çıktısını seçin.' in ui_log}
+        'empty_selection_error_observed': 'Önce tamamlanmış bir işin çıktısını seçin.' in ui_log}  # Turkish 0.5.0 log line; keep as recorded.
     process={'status':'pending','scope':'No live process query performed by this verifier; root provides targeted observation separately.'}
     if process_file:
         observation=read(process_file)
+        # Matches the Turkish 0.5.0 acceptance log; keep as recorded.
         logged=[int(x) for x in re.findall(r'İşçi başladı\. Süreç kimliği: (\d+)',ui_log)]
         assert observation['worker_pids_from_ui_log']==logged and len(logged)==4
         assert observation['worker_alive']=={str(pid):False for pid in logged}
         assert observation['currently_matching_child_processes']==[] and observation['historical_child_pid_inventory']=='not_captured'
         process={'status':'passed_logged_workers_only','evidence':file_record(process_file),'observation':observation,
-            'cancel_worker_pid':int(re.search(r'İşçi başladı\. Süreç kimliği: (\d+)',cancel_log).group(1)),
+            'cancel_worker_pid':int(re.search(r'İşçi başladı\. Süreç kimliği: (\d+)',cancel_log).group(1)),  # Turkish 0.5.0 log line; keep as recorded.
             'exit_code':130,'exit_code_source':file_record(ui_log_path),
             'scope':'Externally captured logged-worker observation; historical child process inventory was not captured. No new process query.'}
     tests=read(ROOT/'build/backend-050-accepted-summary.json');assert tests['tests']==522 and tests['failures']==tests['errors']==tests['skipped']==0
@@ -298,81 +300,81 @@ def verify(process_file=None):
 
 def make_report(d):
     p=Path(d['output_directory']);c=d['counts'];f=d['final_record']
-    metric_rows=[('Nihai eğitim',f['train_metrics']),('Nihai kalibrasyon',f['calibration_metrics']),('Birleşik dış doğrulama',d['metrics']['pooled_oof']),('Bağımsız test',d['metrics']['independent'])]
-    lines=['# Sürüm 0.5 kabul raporu','','18 Ekim 2026. Bu kabul gerçek ArcMap oturumuna gönderilmiş Model Context Protocol (MCP) çağrıları ve oluşan dosyalarla sınırlıdır.',
-        'MCP, istemcinin yerel ArcMap işlevlerini çağırmasını sağlar. İşletim sistemi süreçlerini sorgulayan yeni bir işlem veya yeni model eğitimi bu dosya denetiminde başlatılmadı.', '',
-        'Güvenli özet algoritması 256 bit (SHA-256), dosyaların aynı baytları taşıdığını denetlemek için kullanılmıştır.',
-        'Sınanan aday `0.5.0`, ArcMap oturumunda bildirilen sürüm `0.5.0.0` değerindedir. Paket dosyasının SHA-256 özeti: `'+PACKAGE_SHA+'`.', '',
-        '- '+link(d['candidate']['path'],'Sınanan eklenti paketi'),'- '+link(ROOT/'build/mcp-scientific-readback.json','Makine okunur bütün bulgular'),'- '+link(ROOT/'build/verify_mcp_scientific.py','Salt okunur denetim betiği'),'',
-        '## Gerçek işlem ve kayıt kapsamı','',
-        'Gerçek ArcMap oturumu keşfedildi; durum ve katman sorguları yanıt verdi. Hatalı proje açma girişimi hata döndürdü. Önceki projenin kalıcı alanları geri yüklenmiş olarak yeniden okundu.',
-        'MCP ile ön gösterim ve model çalışması başlatıldı. Sonuç listesi sayfalar halinde okundu; rapor ve tablo içeriği döndürüldü. Model, çalışma arşivi ve proje dosyası MCP üzerinden kaydedildi.',
-        'Çağrı kaydında 15 aracın listelendiği görülür. Bir aracın listelenmesi, her istemci uygulamasında ayrıca sınandığı anlamına gelmez.', '',
-        table(['Kanıt','Çağrı sayısı','Durum'],[[x,d['mcp_call_counts'][x],'passed'] for x in ['inventory','rollback','run','cancel']]),'',
-        'Tamamlanan iş `'+RUN_ID+'` kimliğini taşır. Son durumda iş sürmüyor, ilerleme yüzde 100 ve model işi tamamlandı olarak kaydedilmiştir. Haritaya sekiz raster eklendiği bildirilmiştir.',
-        'Tamamlanmış proje yeniden açıldıktan sonra geçmiş sonuç haritaya eklendi. Rapor dizini ve 62 sayfanın yedincisindeki parametreler ArcMap içinde görüntülendi.',
-        'Günlük raporun açılmasını ve çalışma arşivinin arayüzden kaydedilmesini doğrular. İncelenen ekran görüntüleri dizini, parametre sayfasını ve kaydetme sonucunu gösterir.',
-        'Rapor penceresinin X ile kapatılması arayüzü kullanan ajanın gözlemidir. Önceki boş sonuç seçimi hata vermiştir; ardından doğru geçmiş projeyle rapor açılmıştır.', '',
-        '## Veri ve öğrenmeye katılım','',
-        'Veri sentetiktir. `soil_value` hedefi g/kg birimindedir; gerçek bir toprak özelliğinin laboratuvar doğruluğu veya alan başarısı ileri sürülmez.', '',
-        table(['Rol','Gözlem sayısı'],[['Kaynak',48],['Modelleme öncesinde dışlanan D000',1],['Tutulan ham model verisi',47],['Dış katta sınanan',45],['Kilitli bağımsız test D046 ve D047',2],['Nihai eğitim',c['final_training']],['Nihai aralık kalibrasyonu',c['final_calibration']]]),'',
-        'D000, eğitim/kalibrasyon/kat/öğrenme kayıtlarında bulunmaz. Özgün hedefi ve özellikleri, dışlama gerekçesiyle ayrı dosyada korunur.',
-        'D046 ve D047 bağımsız test rolündedir. Bu kimlikler dış veya iç katlara, ön işleme öğrenimine, model eğitimine ve aralık kalibrasyonuna girmemiştir.',
-        'Bağımsız test geçmişi `first_evaluation`, önceki değerlendirme sayısı sıfırdır. İki gözlem yalnız yazılım yolunu sınar; güvenilir alan doğruluğu kestirimi sağlamaz.',
-        'Gruplar `profile` alanıyla tanımlanmıştır. İki dış kat, iki iç kat, tek tekrar ve başlangıç değeri 42 kullanılmıştır. Bu yeni iş zamansal doğrulama değildir.', '',
-        table(['Dosya','Satır','Denetim'],[['sampled_data.json / CSV',47,'Kaynak hedef/özellik/koordinat/tarih eşitliği'],['İki raster bandının örneklenmiş değerleri',94,'Kaynak pikselinden yeniden okuma'],['data_roles.csv / role_data.csv',500,'Rol listesi ve ham veri birleşimi'],['learning_membership.csv',1097,'Gerçek öğrenme kimlikleriyle birebir eşitlik'],['excluded_samples.json / CSV',1,'D000 özgün kaynak kaydı ve gerekçesi']]),'',
-        'Rol satırları aynı gözlemi birden çok model/kat için tekrar gösterebilir. 500 rol veya 1097 öğrenme kaydı bağımsız gözlem sayısı değildir.',
-        'Örneklenmiş açıklayıcı değerler tamamlama, standartlaştırma ve değişken seçiminden önceki ölçektedir. En yakın piksel örneklemesi 94 değerde kaynak rasterle birebir eşleşti.', '',
-        '## Bütün arama denemeleri ve model ayarları','',
-        'Ridge regresyonunda alpha için 0.1, 1 ve 10 değerleri ızgara aramasıyla sınandı. Üç ayrı seçim işlemi, nihai model ve iki dış kat için yürütüldü.',
-        'Toplam dokuz gerçek deneme ve 18 iç kat değerlendirmesi vardır. Hepsi tamamlandı; başarısız veya başlanmamış deneme bu koşuda üretilmedi.', '',
-        'Ortalama kare hatanın karekökü (RMSE), ortalama mutlak hata (MAE) ve ortalama hata (ME) g/kg birimindedir. ME için işaret tahmin eksi gözlemdir.', '',
-        table(['Arama rolü','Deneme','alpha','İç doğrulama n','Seçim değeri, RMSE','Seçildi'],[[t['role'],t['trial'],t['model']['parameters']['alpha'],t['validation_metrics']['n'],fmt(t['value']),str(t['selected'])] for t in d['trials']]),'',
-        'Seçim değeri ilgili aramanın ölçütüdür; dış veya bağımsız hata yerine kullanılmaz. Tam iç kat sonuçları ve parametreler bağlantılı tablolardadır.',
-        'Nihai modelin fiilen kurulmuş parametreleri: `'+json.dumps(f['effective_parameters'],ensure_ascii=False)+'`.',
-        'Hedef dönüşümü, değişken seçimi ve çoklu doğrusal bağlantıya göre eleme kapalıdır. Medyan ile tamamlama ve standartlaştırma yalnız ilgili eğitim bölümlerinde kaydedilmiştir.',
-        'Kaydedilmiş katsayılar `[0.3239936634998567, -0.5679389113326779]`, sabit terim `8.901995362970752` değerindedir. Değişken sırası `d_cov_1`, `d_cov_2` olarak korunmuştur.',
-        'Bu katsayılar standartlaştırılmış açıklayıcılara aittir; ham çevresel değişken birimindeki katsayılar diye sunulamaz. Kaydedilmiş merkez ve ölçeklerle 47 nihai tahmin yeniden üretildi.', '',
-        '## Hata ölçütleri ve belirsizlik','',
-        'Belirleme katsayısı R², 1 - kare hata toplamı / gözlemlerin ortalamadan kare sapma toplamı ile hesaplandı. Pearson korelasyonunun karesi ayrı tutuldu.',
-        'Eğitim hatası yeniden uygulama tanısıdır. Kalibrasyon hatası aralık ayarında kullanılan ayrılmış gözlemlere aittir. Bu iki hata bağımsız başarı sayılmaz.', '',
-        table(['Kapsam','n','RMSE','MAE','ME','R²'],[[scope,m['n'],fmt(m['rmse']),fmt(m['mae']),fmt(m['mean_error']),fmt(m['r2'])] for scope,m in metric_rows]),'',
-        'Bağımsız testte Pearson korelasyonu 1 olsa da yalnız iki gözlem vardır. Bu değer modelin genel geçerliliğine kanıt olarak yorumlanamaz.', '',
-        table(['Dış kat','Eğitim','Kalibrasyon','Test','alpha','RMSE','R²'],[[r['fold'],len(r['model_record']['development_ids']),len(r['model_record']['calibration_ids']),r['metrics']['n'],r['model_record']['model']['parameters']['alpha'],fmt(r['metrics']['rmse']),fmt(r['metrics']['r2'])] for r in d['outer_folds']]),'',
-        'Ayrı kalibrasyona dayalı split conformal yöntemiyle nominal yüzde 80 tahmin aralığı üretildi. Nihai kalibrasyon 18 gözlem içerir; seçilen artık sırası 16’dır.',
-        'Kalibrasyon artıklarının sırası ve aralık düzeltmesi yeniden hesaplandı. Dış kat aralıkları kendi kalibrasyonlarından, bağımsız test aralıkları nihai kalibrasyondan elde edilir.', '',
-        table(['Kapsam','Nominal oran','Aralık var/toplam','Kapsanan/aralık var','Kapsama','Ortalama genişlik, g/kg'],[[x['scope'],fmt(x['nominal_coverage']),str(x['available_n'])+'/'+str(x['n']),str(x['covered_n'])+'/'+str(x['available_n']),fmt(x['coverage']),fmt(x['mean_width'])] for x in d['coverage_recomputed']]),'',
-        'Yüzde 80 dış kapsama 35/45, bağımsız kapsama 2/2’dir. Küçük sentetik testteki 2/2 sonucu alanın yüzde 100 kapsandığını göstermez.',
-        f"Yayıma yönelik ölçüt tablosunun {c['publication_metric_rows']} satırı, her satırın rol/kat/deneme kapsamıyla yeniden hesaplandı. Eksik veya başarısız değer başarıya dönüştürülmedi.",
-        'Artık standart sapması n-1 paydasıyla, Lin uyum katsayısı n paydalı momentlerle hesaplandı. Ortanca mutlak hata, Pearson r/r² ve iki dağılım oranı tam sayısal ekte korunur.',
-        'İç kat eğitim hataları ve iç kat aralık ölçütleri bu iş akışında hesaplanmadı. `not_computed` durumu veri sözlüğünde ve iç kat tablosunda açıkça saklandı.', '',
-        '## Tam çalışma arşivi ve model kaydı','',
-        f"Sonuç bildirimindeki {len(d['outputs'])} ürünün tamamının dosya özeti eşleşti. Çalışma arşivinde {d['study_archive']['members_verified']} üye bulundu; iç bildirimin her üye özeti yeniden doğrulandı.",
-        'Arşiv, üretilen tabloları, tam ve sayfalanmış raporları, şekilleri, rasterleri, istek kaydını, denetim kaydını ve model paketini içerir.',
-        'Özgün kaynak rasterler arşive kopyalanmaz; gerçek örneklenmiş açıklayıcı değerler dahildir. Sonuç anlık kaydı, kendi arşiv girdisini dışarıda tutarak dosya özeti döngüsünü önler.',
-        'MCP ile kaydedilen çalışma arşivi ve model paketi kaynak ürünleriyle bayt düzeyinde aynıdır. Kaydedilen proje de bu tamamlanan sonuca bağlıdır.', '',
-        table(['Ürün','SHA-256'],[['Çalışma paketi',d['study_archive']['file']['sha256']],['Model paketi',d['model_package']['file']['sha256']],['Model',d['model_roundtrip_record']['sha256']]]),'',
-        'Çalışma kaydı, model yeniden yüklenince tutulan gözlemlerde nokta tahminleri ve kullanılabilir aralıkların aynı olduğunu bildirir. Çalışan paket kodu bu eşitliği tamamlanma öncesinde zorunlu denetler.',
-        'Bu dosya incelemesinde serileştirilmiş model yeniden yüklenmedi. Buna ek olarak kaydedilen doğrusal model denklemiyle nihai tahminler bağımsız olarak yeniden üretildi.',
-        f"Model denklemiyle en büyük fark {d['model_equation_reproduction_max_error']:.3g} g/kg’dır. Raster aralık genişliği denetimindeki en büyük fark {d['raster_width_max_error']:.3g} g/kg’dır.",
-        'Sekiz rasterin her birinde 64 geçerli hücre vardır. Rapor sayfaları ve arşiv üyeleri dosya özetiyle bağlıdır; hücre sayısı doğrulama gözlemi sayısı değildir.', '',
-        '## İptal ve önceki ürünlerin korunması','',
-        'İptal edilen iş `'+d['cancel']['run_id']+'` olarak kaydedildi. İptal çağrısı kabul edildi; son durum `cancelled`, tamamlanmış ürün listesi boş ve hata kodu `CANCELLED` değerindedir.',
-        'İlerleme kaydının son satırı iptaldir; tamamlanma satırı yoktur. Yarım raster, model, rapor arşivi veya `.partial` dosyası bulunmadı.',
-        'İstek, ön kontrol, iptal isteği, ilerleme, sonuç ve tamamlanmamışlık kaydı korunmuştur. Bunlar başarılı analiz ürünü değildir.',
-        'İptal kaydındaki süre yaklaşık 1.094 saniyedir. Önceki başarılı işin 140 ürün özeti bu yeniden denetimde hâlâ eşleşmiştir.',
-        'Canlı hedef süreç sorgusu kök ajan tarafından ayrıca sağlanacaktır. Bu rapor yalnız iptal durumu ve dosya temizliğini doğrular; süreçlerin kapanmasını şu anda doğrulanmış saymaz.' if d['cancel']['process_observation'].get('status')=='pending' else 'Ayrı süreç sorgusu, günlükteki dört işçinin artık çalışmadığını gösterir. İptal işçisi 31628 için günlük çıkış kodu 130’dur.',
-        'O anda ilişkilendirilebilen alt süreç bulunmadı. Tarihsel alt süreç kimlikleri toplanmadığından bütün alt süreçlerin geçmişini izleme kabulü yapılmadı.', '',
-        '## Otomatik sınamalar ve açık kalan kapsam','',
-        'Kaydedilmiş son arka uç sınama özetinde 522 sınama, sıfır hata, sıfır başarısızlık ve sıfır atlama vardır. Önceki kaynak yetersizliği yeniden koşulan başarılı sınamadan ayrı tutulmuştur.',
-        'Yeniden okunan yerel sınama kayıtlarında 147 sözleşme ve 491 panel denetimi geçti. Bu sayılar gerçek bilimsel gözlem veya bağımsız tekrar değildir.',
-        'Yedi istemcinin her birinden gerçek bağlantı, tarihsel alt süreç envanteri ve gerçek saha verisiyle bilimsel doğrulama bu belgenin açık kapsamıdır.',
-        'Eski TabM, RealMLP ve TabPFN arayüz kanıtları farklı 0.4.1 adaylarına aittir. Bunların kapsamı '+link(ROOT/'ASAMA_D_KABUL.md','D raporunda')+' korunur.', '',
-        '## Tam dosyalar','']
+    metric_rows=[('Final training',f['train_metrics']),('Final calibration',f['calibration_metrics']),('Pooled out-of-fold validation',d['metrics']['pooled_oof']),('Independent test',d['metrics']['independent'])]
+    lines=['# Version 0.5 acceptance report','','18 October 2026. This acceptance is limited to Model Context Protocol (MCP) calls sent to a real ArcMap session and the files they produced.',
+        'MCP lets a client call local ArcMap functions. This file check started no new operation that queries operating system processes and no new model training.', '',
+        'The Secure Hash Algorithm 256-bit (SHA-256) was used to check that files carry the same bytes.',
+        'The tested candidate is `0.5.0`; the version reported in the ArcMap session is `0.5.0.0`. SHA-256 digest of the package file: `'+PACKAGE_SHA+'`.', '',
+        '- '+link(d['candidate']['path'],'Tested add-in package'),'- '+link(ROOT/'build/mcp-scientific-readback.json','All findings in machine-readable form'),'- '+link(ROOT/'build/verify_mcp_scientific.py','Read-only verification script'),'',
+        '## Scope of real operations and records','',
+        'The real ArcMap session was discovered; status and layer queries responded. An invalid attempt to open a project returned an error. The persistent fields of the previous project were read back as restored.',
+        'A preview and a model run were started through MCP. The result list was read in pages; report and table content was returned. The model, the study archive and the project file were saved through MCP.',
+        'The call record shows 15 listed tools. Listing a tool does not mean that it was separately tested in every client application.', '',
+        table(['Evidence','Calls','Status'],[[x,d['mcp_call_counts'][x],'passed'] for x in ['inventory','rollback','run','cancel']]),'',
+        'The completed job has the ID `'+RUN_ID+'`. In the final status, the job is not running, progress is 100 percent and the model job is recorded as completed. Eight rasters were reported as added to the map.',
+        'After the completed project was reopened, the previous result was added to the map. The report index and the parameters on page 7 of 62 were viewed in ArcMap.',
+        'The log confirms that the report was opened and that the study archive was saved from the user interface (UI). The reviewed screenshots show the index, the parameter page and the save result.',
+        'Closing the report window with X is an observation by the agent that operated the UI. An earlier empty result selection gave an error; the report was then opened with the correct previous project.', '',
+        '## Data and participation in learning','',
+        'The data are synthetic. The `soil_value` target is in g/kg; no laboratory accuracy or field performance of a real soil property is claimed.', '',
+        table(['Role','Observations'],[['Source',48],['D000 excluded before modeling',1],['Retained raw modeling data',47],['Tested in outer folds',45],['Locked independent test set, D046 and D047',2],['Final training',c['final_training']],['Final interval calibration',c['final_calibration']]]),'',
+        'D000 is absent from the training, calibration, fold and learning records. Its original target and properties are kept in a separate file with the exclusion reason.',
+        'D046 and D047 have the independent test role. These IDs did not enter the outer or inner folds, the fitting of preprocessing, model training or interval calibration.',
+        'The independent test history is `first_evaluation`, with zero earlier evaluations. Two observations only test the software path; they do not give a reliable estimate of map accuracy.',
+        'Groups are defined by the `profile` field. Two outer folds, two inner folds, one repeat and seed 42 were used. This new job is not a temporal validation.', '',
+        table(['File','Rows','Check'],[['sampled_data.json / CSV',47,'Equality with source target, properties, coordinates and dates'],['Sampled values of the two raster bands',94,'Reread from the source pixel'],['data_roles.csv / role_data.csv',500,'Role list joined with raw data'],['learning_membership.csv',1097,'Exact match with the actual learning IDs'],['excluded_samples.json / CSV',1,'Original source record of D000 and its reason']]),'',
+        'Role rows can repeat the same observation for several models or folds. The 500 role records and 1097 learning records are not counts of independent observations.',
+        'The sampled covariate values are on the scale before imputation, standardization and variable selection. Nearest-pixel sampling matched the source raster exactly in 94 values.', '',
+        '## All search trials and model settings','',
+        'For Ridge regression, alpha values 0.1, 1 and 10 were tested by grid search. Three separate selection procedures were run, for the final model and the two outer folds.',
+        'There are nine actual trials and 18 inner-fold evaluations in total. All completed; this run produced no failed or unstarted trial.', '',
+        'Root mean squared error (RMSE), mean absolute error (MAE) and mean error (ME) are in g/kg. For ME, the sign is prediction minus observation.', '',
+        table(['Search role','Trial','alpha','Inner validation n','Selection value, RMSE','Selected'],[[t['role'],t['trial'],t['model']['parameters']['alpha'],t['validation_metrics']['n'],fmt(t['value']),str(t['selected'])] for t in d['trials']]),'',
+        'The selection value is the metric of the relevant search; it is not used in place of outer or independent error. Complete inner-fold results and parameters are in the linked tables.',
+        'Parameters actually used to build the final model: `'+json.dumps(f['effective_parameters'],ensure_ascii=False)+'`.',
+        'Target transformation, variable selection and multicollinearity-based elimination are off. Median imputation and standardization were recorded only for the relevant training partitions.',
+        'The saved coefficients are `[0.3239936634998567, -0.5679389113326779]`, and the intercept is `8.901995362970752`. The variable order is kept as `d_cov_1`, `d_cov_2`.',
+        'These coefficients apply to the standardized covariates; they cannot be presented as coefficients in raw environmental covariate units. The 47 final predictions were reproduced with the saved centers and scales.', '',
+        '## Error metrics and uncertainty','',
+        'The coefficient of determination R² was computed as 1 - sum of squared errors / sum of squared deviations of the observations from their mean. The squared Pearson correlation was kept separate.',
+        'The training error is a resubstitution diagnostic. The calibration error belongs to the held-out observations used to tune the intervals. Neither error counts as independent performance.', '',
+        table(['Scope','n','RMSE','MAE','ME','R²'],[[scope,m['n'],fmt(m['rmse']),fmt(m['mae']),fmt(m['mean_error']),fmt(m['r2'])] for scope,m in metric_rows]),'',
+        'The Pearson correlation in the independent test is 1, but there are only two observations. This value cannot be interpreted as evidence of the general validity of the model.', '',
+        table(['Outer fold','Training','Calibration','Test','alpha','RMSE','R²'],[[r['fold'],len(r['model_record']['development_ids']),len(r['model_record']['calibration_ids']),r['metrics']['n'],r['model_record']['model']['parameters']['alpha'],fmt(r['metrics']['rmse']),fmt(r['metrics']['r2'])] for r in d['outer_folds']]),'',
+        'Prediction intervals with 80 percent nominal coverage were produced by split conformal prediction with separate calibration. The final calibration contains 18 observations; the selected residual rank is 16.',
+        'The rank of the calibration residuals and the interval adjustment were recomputed. Outer-fold intervals come from their own calibrations, and independent test intervals come from the final calibration.', '',
+        table(['Scope','Nominal coverage','With interval/total','Covered/with interval','Coverage','Mean width, g/kg'],[[x['scope'],fmt(x['nominal_coverage']),str(x['available_n'])+'/'+str(x['n']),str(x['covered_n'])+'/'+str(x['available_n']),fmt(x['coverage']),fmt(x['mean_width'])] for x in d['coverage_recomputed']]),'',
+        'At 80 percent, out-of-fold coverage is 35/45 and independent coverage is 2/2. The 2/2 result in a small synthetic test does not show that the area is 100 percent covered.',
+        f"The {c['publication_metric_rows']} rows of the publication metric table were recomputed, each within its role, fold and trial scope. No missing or failed value was turned into a success.",
+        "Residual standard deviation was computed with denominator n-1, and Lin's concordance coefficient with moments using denominator n. Median absolute error, Pearson r/r² and the two dispersion ratios are kept in the full numerical appendix.",
+        'Inner-fold training errors and inner-fold interval metrics were not computed in this workflow. The `not_computed` status is stored explicitly in the data dictionary and the inner-fold table.', '',
+        '## Full study archive and model record','',
+        f"The file digests of all {len(d['outputs'])} outputs in the result manifest matched. The study archive contains {d['study_archive']['members_verified']} members; every member digest in its internal manifest was verified again.",
+        'The archive contains the generated tables, the full and paginated reports, figures, rasters, the request record, the audit record and the model package.',
+        'The original source rasters are not copied into the archive; the actual sampled covariate values are included. The result snapshot leaves out its own archive entry, which avoids a file digest loop.',
+        'The study archive and model package saved through MCP are byte-identical to their source outputs. The saved project is also bound to this completed result.', '',
+        table(['Output','SHA-256'],[['Study package',d['study_archive']['file']['sha256']],['Model package',d['model_package']['file']['sha256']],['Model',d['model_roundtrip_record']['sha256']]]),'',
+        'The run record reports that, after the model is reloaded, point predictions and available intervals for the retained observations are the same. The package code that ran checks this equality as a requirement before completion.',
+        'This file review did not reload the serialized model. In addition, the final predictions were reproduced independently from the saved linear model equation.',
+        f"The largest difference from the model equation is {d['model_equation_reproduction_max_error']:.3g} g/kg. The largest difference in the raster interval width check is {d['raster_width_max_error']:.3g} g/kg.",
+        'Each of the eight rasters has 64 valid cells. Report pages and archive members are bound by file digests; the number of cells is not a number of validation observations.', '',
+        '## Cancellation and preservation of earlier outputs','',
+        'The cancelled job was recorded as `'+d['cancel']['run_id']+'`. The cancel call was accepted; the final status is `cancelled`, the list of completed outputs is empty and the error code is `CANCELLED`.',
+        'The last line of the progress record is the cancellation; there is no completion line. No partial raster, model, report archive or `.partial` file was found.',
+        'The request, preflight check, cancel request, progress, result and incompleteness records are kept. They are not outputs of a successful analysis.',
+        'The time in the cancellation record is about 1.094 seconds. The 140 output digests of the earlier successful job still matched in this re-check.',
+        'The root agent will provide the live targeted process query separately. This report verifies only the cancellation status and file cleanup; it does not count process termination as verified at this time.' if d['cancel']['process_observation'].get('status')=='pending' else 'A separate process query shows that the four workers in the log are no longer running. For the cancellation worker 31628, the exit code in the log is 130.',
+        'No child process that could be associated was found at that time. Historical child process IDs were not collected, so no acceptance of tracking the history of all child processes was made.', '',
+        '## Automated tests and open scope','',
+        'The last recorded backend test summary has 522 tests, zero errors, zero failures and zero skips. An earlier resource shortage is kept separate from the successful test that was rerun.',
+        'In the native test records that were read back, 147 contract checks and 491 panel checks passed. These numbers are not real scientific observations or independent repeats.',
+        'Real connections from each of the seven clients, a historical child process inventory and scientific validation with real field data remain open in this document.',
+        'The earlier TabM, RealMLP and TabPFN UI evidence belongs to different 0.4.1 candidates. Its scope is kept in the '+link(ROOT/'ASAMA_D_KABUL.md','Stage D report')+'.', '',
+        '## Complete files','']
     files=['study_report_index.html','study_report.html','sampled_data.csv','sampled_data.json','data_dictionary.json','data_roles.csv','role_data.csv','learning_membership.csv','excluded_samples.json','trial_results.csv','inner_fold_results.csv','publication_metrics.csv','hyperparameters.csv','training_predictions.csv','calibration_predictions.csv','inner_validation_predictions.csv','oof_predictions.csv','independent_predictions.csv','coverage_diagnostics.csv','final_record.json','evaluation.json','model_package.spsmodel.zip','study_package.spsstudy.zip','audit.json','result.json']
     evidence_links=d['actual_mcp_evidence']+[d['test_summary_file']]+[r['file'] for r in d['native_tests']]+[d['gui_readback']['log'],d['gui_readback']['study_export']]+d['gui_readback']['screenshots']
     if 'evidence' in d['cancel']['process_observation']:evidence_links.append(d['cancel']['process_observation']['evidence'])
-    lines += [table(['Dosya','Bağlantı'],[[name,link(p/name)] for name in files]),'', 'Gerçek çağrı ve sınama kanıtları:', '',*['- '+link(x['path']) for x in evidence_links],'']
+    lines += [table(['File','Link'],[[name,link(p/name)] for name in files]),'', 'Evidence of actual calls and tests:', '',*['- '+link(x['path']) for x in evidence_links],'']
     return '\n'.join(lines)
 
 if __name__=='__main__':

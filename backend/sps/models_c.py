@@ -12,7 +12,7 @@ PARAMETERS = {
 def make_estimator(name, parameters, seed):
     unknown = set(parameters) - PARAMETERS[name]
     if unknown:
-        raise JobError('MODEL_PARAMETER', name + ': desteklenmeyen parametre: ' + sorted(unknown)[0])
+        raise JobError('MODEL_PARAMETER', name + ': unsupported parameter: ' + sorted(unknown)[0])
     try:
         if name == 'lightgbm':
             from lightgbm import LGBMRegressor
@@ -26,4 +26,4 @@ def make_estimator(name, parameters, seed):
         from cubist import Cubist
         return Cubist(**parameters, random_state=seed, cv=None, auto=False, verbose=0)
     except ImportError as exc:
-        raise JobError('DEPENDENCY', name + ' bağımlılığı bu Python ortamında bulunamadı.') from exc
+        raise JobError('DEPENDENCY', name + ' dependency was not found in this Python environment.') from exc

@@ -123,7 +123,7 @@ def test_partial_failed_trial_exports_only_actual_scores_and_planned_membership(
     assert failed['status'] == 'failed' and failed['value'] == '' and failed['selected'] == 'False'
 
 
-@pytest.mark.parametrize('failure', [Cancelled(), JobError('STUDY_TEST', 'Paketleme sınaması')])
+@pytest.mark.parametrize('failure', [Cancelled(), JobError('STUDY_TEST', 'Packaging test')])
 def test_late_study_package_failure_rolls_back_data_reports_models_and_archive(tmp_path, monkeypatch, failure):
     import sps.study_export
     real_create = sps.study_export.create_study_package
@@ -209,6 +209,6 @@ def test_reopening_archive_detects_changed_member_even_with_valid_zip_crc(tmp_pa
             value = source.read(name)
             if name == 'sampled_data.csv': value += b'changed'
             target.writestr(name, value)
-    with pytest.raises(JobError, match='üyesinin özeti farklı'):
+    with pytest.raises(JobError, match='digest of a study package member differs'):
         inspect_study_package(changed)
 

@@ -245,7 +245,7 @@ def test_explicit_spatial_null_intervals_preserve_subgroup_denominator(evaluated
 def test_malformed_or_unexplained_null_intervals_rejected(evaluated_case, changes):
     evaluation, samples = evaluated_case
     evaluation["oof"][0].update(changes)
-    with pytest.raises(JobError, match="Aralık|aralık"):
+    with pytest.raises(JobError, match="Interval|interval"):
         subgroup_diagnostics(evaluation, samples, fields=["land_use"])
 
 

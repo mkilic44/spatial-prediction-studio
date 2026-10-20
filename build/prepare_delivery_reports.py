@@ -8,6 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "release"
+# Delivered file names of the Turkish 0.5.0 release ("example study, all results", "example saved model");
+# the recorded delivery report links to them. Keep as recorded.
 SCIENTIFIC_BUNDLES = (
     ("study_package", "study_package.spsstudy.zip", "Ornek_Calisma_Tum_Sonuclar.spsstudy.zip"),
     ("model_bundle", "model_package.spsmodel.zip", "Ornek_Kaydedilmis_Model.spsmodel.zip"),

@@ -9,13 +9,13 @@ from .contract import JobError
 
 def normalize_dates(ids, props, date_field, timezone_name):
     if not isinstance(date_field,str) or not date_field.strip():
-        raise JobError('TEMPORAL_DATE','Zaman sıralı doğrulama için tarih alanı seçilmelidir.')
+        raise JobError('TEMPORAL_DATE','A date field must be selected for time-ordered validation.')
     try:
         tz=ZoneInfo(timezone_name)
     except (ZoneInfoNotFoundError,TypeError,ValueError) as exc:
-        raise JobError('TEMPORAL_DATE','Saat dilimi bulunamadı: '+str(timezone_name)) from exc
+        raise JobError('TEMPORAL_DATE','Time zone not found: '+str(timezone_name)) from exc
     if len(ids)!=len(props) or len(set(ids))!=len(ids):
-        raise JobError('TEMPORAL_DATE','Tarih özellikleri gözlem kimlikleriyle eşleşmiyor.')
+        raise JobError('TEMPORAL_DATE','Date properties do not match the observation IDs.')
     result={}
     for identity,row in zip(ids,props):
         value=row.get(date_field)
@@ -36,14 +36,14 @@ def normalize_dates(ids, props, date_field, timezone_name):
                 day=timestamp.astimezone(tz).date()
             result[identity]=day.isoformat()
         except (ValueError,TypeError,OverflowError) as exc:
-            raise JobError('TEMPORAL_DATE','Tarih eksik, belirsiz veya geçersiz: '+str(identity)+' / '+date_field) from exc
+            raise JobError('TEMPORAL_DATE','Date is missing, ambiguous or invalid: '+str(identity)+' / '+date_field) from exc
     return result
 
 
 def temporal_periods(ids,groups,dates_by_id):
     """Merge overlapping group date ranges transitively, including same days."""
     if not isinstance(dates_by_id,dict) or len(ids)!=len(groups):
-        raise JobError('TEMPORAL_DATE','Kimliklerle eşleşen tarih kaydı gereklidir.')
+        raise JobError('TEMPORAL_DATE','A date record matching the IDs is required.')
     by_group=defaultdict(list); dates={}
     for identity,group in zip(ids,groups):
         try:
@@ -51,7 +51,7 @@ def temporal_periods(ids,groups,dates_by_id):
             if not isinstance(value,str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):raise ValueError()
             dates[identity]=date.fromisoformat(value)
         except (KeyError,ValueError,TypeError) as exc:
-            raise JobError('TEMPORAL_DATE','Geçerli tarih bulunamadı: '+str(identity)) from exc
+            raise JobError('TEMPORAL_DATE','No valid date found: '+str(identity)) from exc
         by_group[str(group)].append(identity)
     spans=sorted((min(dates[i] for i in members),max(dates[i] for i in members),group,sorted(members))
                  for group,members in by_group.items())
@@ -69,11 +69,11 @@ def temporal_periods(ids,groups,dates_by_id):
 
 def _settings(config,inner=False):
     if config.get('temporal_mode','temporal_new_groups')!='temporal_new_groups' or config.get('repeats',1)!=1:
-        raise JobError('TEMPORAL_MODE','İlk sürüm yalnız yeni gruplarda tek tekrarlı zaman sıralı doğrulama içerir.')
+        raise JobError('TEMPORAL_MODE','The first version includes only single-repeat time-ordered validation on new groups.')
     gap=config.get('gap_days',0)
     initial=config.get('inner_initial_train_periods' if inner else 'initial_train_periods',2 if inner else 8)
     if type(gap)!=int or gap<0 or type(initial)!=int or initial<1:
-        raise JobError('TEMPORAL_PERIODS','Takvim boşluğu ve ilk eğitim dönemi sayısı geçersiz.')
+        raise JobError('TEMPORAL_PERIODS','Invalid calendar gap or number of initial training periods.')
     return gap,initial
 
 
@@ -82,12 +82,12 @@ def temporal_folds(ids,groups,dev,metric,metric_crs,config,*,inner,n_splits,seed
     gap,initial=_settings(config,inner)
     periods=temporal_periods([ids[i] for i in dev],groups[dev],config.get('dates_by_id'))
     if len(periods)<initial+n_splits:
-        raise JobError('TEMPORAL_PERIODS','Gruplar ve aynı günler birleştirildikten sonra ilk eğitim ve test pencereleri için yeterli dönem kalmadı.')
+        raise JobError('TEMPORAL_PERIODS','After merging groups and same-day dates, not enough periods remain for the initial training and test windows.')
     held=[i for i in range(len(ids)) if i not in set(dev)]
     if held:
         independent=temporal_periods([ids[i] for i in held],groups[held],config.get('dates_by_id'))
         if (independent[0]['start_date']-periods[-1]['end_date']).days<=gap:
-            raise JobError('TEMPORAL_ORDER','Bağımsız test, bütün geliştirme tarihlerinden ve takvim boşluğundan sonra başlamalıdır.')
+            raise JobError('TEMPORAL_ORDER','The independent test must start after all development dates and the calendar gap.')
     lookup={identity:i for i,identity in enumerate(ids)};folds=[]
     for fold,window in enumerate(np.array_split(np.arange(initial,len(periods)),n_splits)):
         check_cancel();first=periods[int(window[0])]['start_date'];last=periods[int(window[-1])]['end_date']
@@ -120,11 +120,11 @@ def temporal_calibration(ids,groups,dev,metric,config,fraction,minimum,buffer):
         chosen.append(p);count+=len(p['group_ids'])
         if count>=needed:break
     if not chosen or len(chosen)>=len(periods):
-        raise JobError('TEMPORAL_CALIBRATION','Son dönemler ayrıldıktan sonra geliştirme geçmişi kalmadı.')
+        raise JobError('TEMPORAL_CALIBRATION','No development history remains after the latest periods are reserved.')
     start=chosen[-1]['start_date'];lookup={identity:i for i,identity in enumerate(ids)}
     calibration=np.asarray(sorted(lookup[i] for p in chosen for i in p['ids']),dtype=int)
     training=np.asarray(sorted(lookup[i] for p in periods if (start-p['end_date']).days>gap for i in p['ids']),dtype=int)
     training=_buffer_training(training,calibration,groups,metric,buffer)
     if len(set(groups[training]))<minimum:
-        raise JobError('TEMPORAL_CALIBRATION','Takvim ve mekânsal boşluk sonrasında yeterli geliştirme grubu kalmadı.')
+        raise JobError('TEMPORAL_CALIBRATION','Not enough development groups remain after the calendar and spatial gaps.')
     return sorted(ids[i] for i in training),sorted(ids[i] for i in calibration)

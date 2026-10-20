@@ -24,7 +24,7 @@ namespace SpatialPredictionStudio
         {
             Dock = DockStyle.Top; AutoSize = true;
             var layout = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 1 };
-            layout.Controls.Add(new Label { Text = "İsteğe bağlı aday aileler. Seçilirse aile seçimi iç katlarda yapılır. Bir satıra tıklayarak parametrelerini düzenleyin.", AutoSize = true, MaximumSize = new Size(850, 0) });
+            layout.Controls.Add(new Label { Text = "Optional candidate model families. If any are selected, the family is chosen in the inner folds. Click a row to edit its parameters.", AutoSize = true, MaximumSize = new Size(850, 0) });
             layout.Controls.Add(list); layout.Controls.Add(reason); layout.Controls.Add(parameters); Controls.Add(layout);
             foreach (var method in methods) list.Items.Add(method);
             list.ItemCheck += (s, e) => { var spec = (MethodSpec)list.Items[e.Index]; if (!spec.Enabled) { e.NewValue = CheckState.Unchecked; reason.Text = spec.Reason; } else if (!restoring) BeginInvoke(new Action(() => ValueChanged?.Invoke(this, EventArgs.Empty))); };
@@ -56,7 +56,7 @@ namespace SpatialPredictionStudio
                 foreach (Dictionary<string, object> value in values)
                 {
                     string id = Json.Text(value, "id"); var method = list.Items.Cast<MethodSpec>().SingleOrDefault(m => m.Id == id);
-                    if (method == null || !method.Enabled) throw new InvalidDataException("Kayıtlı aday model kullanılamıyor: " + id);
+                    if (method == null || !method.Enabled) throw new InvalidDataException("Saved candidate model is not available: " + id);
                     using (var check = new ParameterEditor()) { check.Build(method.Parameters); check.SetValues((Dictionary<string, object>)value["parameters"]); stored[id] = check.Values(); }
                     list.SetItemChecked(list.Items.IndexOf(method), true);
                 }
@@ -73,12 +73,12 @@ namespace SpatialPredictionStudio
         internal SearchSpaceEditor()
         {
             Dock = DockStyle.Top; Height = 250;
-            var note = new Label { Dock = DockStyle.Top, Height = 35, Text = "Arama alanları: kullan seçeneğini işaretleyin. Kategorik değerleri noktalı virgülle ayırın. Sayılarda ondalık nokta kullanın." };
-            grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "use", HeaderText = "Kullan", Width = 45 });
-            grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "parameter", HeaderText = "Parametre", Width = 190, ReadOnly = true });
-            grid.Columns.Add(new DataGridViewComboBoxColumn { Name = "type", HeaderText = "Aralık türü", Width = 95, DataSource = new[] { "categorical", "int", "float" } });
-            grid.Columns.Add("low", "Alt sınır"); grid.Columns.Add("high", "Üst sınır"); grid.Columns.Add("choices", "Değerler (;)");
-            grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "log", HeaderText = "Logaritmik", Width = 75 });
+            var note = new Label { Dock = DockStyle.Top, Height = 35, Text = "Search space: check Use to include a parameter. Separate categorical values with semicolons. Use a decimal point in numbers." };
+            grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "use", HeaderText = "Use", Width = 45 });
+            grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "parameter", HeaderText = "Parameter", Width = 190, ReadOnly = true });
+            grid.Columns.Add(new DataGridViewComboBoxColumn { Name = "type", HeaderText = "Range type", Width = 95, DataSource = new[] { "categorical", "int", "float" } });
+            grid.Columns.Add("low", "Lower bound"); grid.Columns.Add("high", "Upper bound"); grid.Columns.Add("choices", "Values (;)");
+            grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "log", HeaderText = "Log scale", Width = 75 });
             grid.CurrentCellDirtyStateChanged += (s, e) => { if (grid.IsCurrentCellDirty) grid.CommitEdit(DataGridViewDataErrorContexts.Commit); };
             grid.CellValueChanged += (s, e) => ValueChanged?.Invoke(this, EventArgs.Empty);
             Controls.Add(grid); Controls.Add(note);
@@ -110,14 +110,14 @@ namespace SpatialPredictionStudio
                     if (type == "categorical")
                     {
                         string[] choices = Convert.ToString(row.Cells["choices"].Value).Split(';').Select(s => s.Trim()).Where(s => s.Length > 0).ToArray();
-                        if (choices.Length == 0) throw new InvalidDataException("En az bir aday değer gerekir: " + name);
+                        if (choices.Length == 0) throw new InvalidDataException("At least one candidate value is required: " + name);
                         spec["choices"] = choices.Select(v => Parse(v, valueTypes[name])).ToArray();
                     }
                     else
                     {
                         double low = Double.Parse(Convert.ToString(row.Cells["low"].Value, CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture), high = Double.Parse(Convert.ToString(row.Cells["high"].Value, CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture);
                         bool logarithmic = Convert.ToBoolean(row.Cells["log"].Value ?? false);
-                        if (low > high || (logarithmic && low <= 0) || (type == "int" && (low != Math.Truncate(low) || high != Math.Truncate(high)))) throw new InvalidDataException("Geçersiz arama sınırları: " + name);
+                        if (low > high || (logarithmic && low <= 0) || (type == "int" && (low != Math.Truncate(low) || high != Math.Truncate(high)))) throw new InvalidDataException("Invalid search bounds: " + name);
                         spec["low"] = type == "int" ? (object)Convert.ToInt32(low) : low; spec["high"] = type == "int" ? (object)Convert.ToInt32(high) : high; spec["log"] = logarithmic;
                     }
                     result[name] = spec;
@@ -137,7 +137,7 @@ namespace SpatialPredictionStudio
             foreach (var pair in values)
             {
                 var row = grid.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => Convert.ToString(r.Cells["parameter"].Value) == pair.Key);
-                if (row == null) { if (strict) throw new InvalidDataException("Arama parametresi seçilen modelde yok: " + pair.Key); continue; }
+                if (row == null) { if (strict) throw new InvalidDataException("Search parameter is not in the selected model: " + pair.Key); continue; }
                 var spec = (Dictionary<string, object>)pair.Value; row.Cells["use"].Value = true; row.Cells["type"].Value = Json.Text(spec, "type");
                 foreach (string key in new[] { "low", "high", "log" }) if (spec.ContainsKey(key)) row.Cells[key].Value = spec[key];
                 if (spec.ContainsKey("choices")) row.Cells["choices"].Value = String.Join(";", ((IEnumerable)spec["choices"]).Cast<object>().Select(v => Convert.ToString(v, CultureInfo.InvariantCulture)));
@@ -152,15 +152,15 @@ namespace SpatialPredictionStudio
         internal CustomFoldsEditor()
         {
             Dock = DockStyle.Top; Height = 250;
-            grid.Columns.Add("repeat", "Tekrar (0 tabanlı)"); grid.Columns.Add("fold", "Kat (0 tabanlı)"); grid.Columns.Add("sample_id", "Gözlem kimliği");
-            grid.Columns.Add(new DataGridViewComboBoxColumn { Name = "role", HeaderText = "Rol", DataSource = new[] { "train", "test" } });
+            grid.Columns.Add("repeat", "Repeat (0-based)"); grid.Columns.Add("fold", "Fold (0-based)"); grid.Columns.Add("sample_id", "Observation ID");
+            grid.Columns.Add(new DataGridViewComboBoxColumn { Name = "role", HeaderText = "Role", DataSource = new[] { "train", "test" } });
             var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 38 };
-            var load = new Button { Text = "Kat tablosunu içe aktar", AutoSize = true };
+            var load = new Button { Text = "Import fold table", AutoSize = true };
             load.Click += (s, e) => {
-                try { using (var dialog = new OpenFileDialog { Filter = "Virgülle ayrılmış tablo (*.csv)|*.csv" }) if (dialog.ShowDialog(this) == DialogResult.OK) { var table = TabularFiles.Read(dialog.FileName); foreach (string name in new[] { "repeat", "fold", "sample_id", "role" }) if (!table.Columns.Contains(name)) throw new InvalidDataException("Tablo sütunu eksik: " + name); grid.Rows.Clear(); foreach (DataRow row in table.Rows) grid.Rows.Add(row["repeat"], row["fold"], row["sample_id"], row["role"]); } }
-                catch (Exception ex) { MessageBox.Show(this, ex.Message, "Kat tablosu", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                try { using (var dialog = new OpenFileDialog { Filter = "Comma-separated values (*.csv)|*.csv" }) if (dialog.ShowDialog(this) == DialogResult.OK) { var table = TabularFiles.Read(dialog.FileName); foreach (string name in new[] { "repeat", "fold", "sample_id", "role" }) if (!table.Columns.Contains(name)) throw new InvalidDataException("Missing table column: " + name); grid.Rows.Clear(); foreach (DataRow row in table.Rows) grid.Rows.Add(row["repeat"], row["fold"], row["sample_id"], row["role"]); } }
+                catch (Exception ex) { MessageBox.Show(this, ex.Message, "Fold table", MessageBoxButtons.OK, MessageBoxIcon.Error); }
             };
-            top.Controls.Add(load); top.Controls.Add(new Label { Text = "Her gözlem ve rol için ayrı satır", AutoSize = true, Padding = new Padding(0, 7, 0, 0) });
+            top.Controls.Add(load); top.Controls.Add(new Label { Text = "One row per observation and role", AutoSize = true, Padding = new Padding(0, 7, 0, 0) });
             grid.CellValueChanged += (s, e) => ValueChanged?.Invoke(this, EventArgs.Empty); grid.RowsRemoved += (s, e) => ValueChanged?.Invoke(this, EventArgs.Empty);
             Controls.Add(grid); Controls.Add(top);
         }
@@ -172,12 +172,12 @@ namespace SpatialPredictionStudio
                 if (row.IsNewRow) continue;
                 int repeat = Int32.Parse(Convert.ToString(row.Cells["repeat"].Value), CultureInfo.InvariantCulture), fold = Int32.Parse(Convert.ToString(row.Cells["fold"].Value), CultureInfo.InvariantCulture);
                 string id = Convert.ToString(row.Cells["sample_id"].Value).Trim(), role = Convert.ToString(row.Cells["role"].Value);
-                if (repeat < 0 || fold < 0 || id.Length == 0 || (role != "train" && role != "test")) throw new InvalidDataException("Özel kat satırında tekrar, kat, gözlem kimliği veya rol geçersiz.");
+                if (repeat < 0 || fold < 0 || id.Length == 0 || (role != "train" && role != "test")) throw new InvalidDataException("Invalid repeat, fold, observation ID or role in a user-defined fold row.");
                 string key = repeat + ":" + fold; Dictionary<string, object> entry;
                 if (!groups.TryGetValue(key, out entry)) groups[key] = entry = new Dictionary<string, object> { { "repeat", repeat }, { "fold", fold }, { "train_ids", new List<string>() }, { "test_ids", new List<string>() } };
-                var ids = (List<string>)entry[role + "_ids"]; if (ids.Contains(id)) throw new InvalidDataException("Özel kat içinde yinelenen gözlem: " + id); ids.Add(id);
+                var ids = (List<string>)entry[role + "_ids"]; if (ids.Contains(id)) throw new InvalidDataException("Duplicate observation in a user-defined fold: " + id); ids.Add(id);
             }
-            foreach (var group in groups.Values) if (((List<string>)group["train_ids"]).Count == 0 || ((List<string>)group["test_ids"]).Count == 0 || ((List<string>)group["train_ids"]).Intersect((List<string>)group["test_ids"]).Any()) throw new InvalidDataException("Her özel katta eğitim ve sınama kimlikleri dolu ve ayrık olmalıdır.");
+            foreach (var group in groups.Values) if (((List<string>)group["train_ids"]).Count == 0 || ((List<string>)group["test_ids"]).Count == 0 || ((List<string>)group["train_ids"]).Intersect((List<string>)group["test_ids"]).Any()) throw new InvalidDataException("Each user-defined fold must have nonempty, disjoint training and test IDs.");
             return groups.Values.OrderBy(v => (int)v["repeat"]).ThenBy(v => (int)v["fold"]).ToList();
         }
         internal void Restore(IEnumerable values)
@@ -193,9 +193,9 @@ namespace SpatialPredictionStudio
             using (var parser = new TextFieldParser(path, System.Text.Encoding.UTF8))
             {
                 parser.TextFieldType = FieldType.Delimited; parser.SetDelimiters(","); parser.HasFieldsEnclosedInQuotes = true;
-                if (parser.EndOfData) throw new InvalidDataException("Tablo boş.");
+                if (parser.EndOfData) throw new InvalidDataException("The table is empty.");
                 foreach (string name in parser.ReadFields()) table.Columns.Add(name);
-                int count = 0; while (!parser.EndOfData) { if (++count > 1000000) throw new InvalidDataException("Tablo görünümü bir milyon satırla sınırlıdır."); table.Rows.Add(parser.ReadFields()); }
+                int count = 0; while (!parser.EndOfData) { if (++count > 1000000) throw new InvalidDataException("The table view is limited to one million rows."); table.Rows.Add(parser.ReadFields()); }
             }
             return table;
         }

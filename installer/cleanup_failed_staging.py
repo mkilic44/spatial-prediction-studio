@@ -12,6 +12,7 @@ GUID = '{DC2D1F95-349B-4F9A-A681-202610170101}'
 def main():
     records = []
     files = json.loads((ROOT / 'installer/payload-050/payload-manifest.json').read_text())['files']
+    # Staging folders recorded during the Turkish 0.5.0 acceptance; keep as recorded.
     for stage in (ROOT / 'installer/staging-çalışma-final', ROOT.parent / 'sps-ç'):
         acceptance = json.loads((stage / 'setup-acceptance.json').read_text())
         if acceptance['status'] != 'failed' or acceptance['build_id'] != BUILD or acceptance['install']['exit_code'] != 20:
@@ -22,6 +23,7 @@ def main():
         error = installed / 'deployment-error.json'
         shutil.copy2(error, stage / 'failed-deployment-error.json')
         target = stage / 'Documents/ArcGIS/AddIns/Desktop10.8' / GUID / 'SpatialPredictionStudio.esriAddIn'
+        # Sentinel file name recorded during the Turkish 0.5.0 acceptance; keep as recorded.
         sentinel = stage / 'UserStudies/korunan-çalışma.txt'
         before = {str(p): sha(p) for p in (target, sentinel)}
         result = run([str(installed / 'unins000.exe'), '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART',

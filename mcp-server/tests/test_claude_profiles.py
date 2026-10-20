@@ -71,7 +71,7 @@ def test_both_profiles_merge_preserve_and_remove_from_record(profile):
 
 def test_store_only_does_not_create_inactive_classic_profile(profile):
     root, _, _, _, classic, store = profile
-    seed(store, "ders-planlayici")
+    seed(store, "course-planner")
     assert invoke(root, "--apply")[0] == 0
     assert not classic.exists()
     assert registration.KEY in json.loads(store.read_text(encoding="utf-8-sig"))["mcpServers"]

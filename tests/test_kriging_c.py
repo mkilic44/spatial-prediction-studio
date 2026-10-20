@@ -47,7 +47,7 @@ def test_spatial_predictions_are_invariant_to_window_partition(scientific):
     parts = np.concatenate([prediction_call(model, 'predict', X[i:i+7], xy[i:i+7]) for i in range(0,len(X),7)])
     # BLAS reductions can differ at 1.8e-15 between matrix block lengths.
     np.testing.assert_allclose(full, parts, rtol=0, atol=1e-12)
-    with pytest.raises(JobError, match='koordinat'):
+    with pytest.raises(JobError, match='coordinate'):
         prediction_call(model, 'predict', X)
 
 

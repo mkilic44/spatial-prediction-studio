@@ -12,14 +12,14 @@ project = json.loads((root / 'examples-d' / 'tabpfn.sps.json').read_text(encodin
 project['science']['model'] = {'id': 'ridge', 'parameters': {'alpha': 1.0}}
 with open(project['csv_path'], encoding='utf-8-sig', newline='') as stream:
     first = next(csv.DictReader(stream))
-project['samples']['excluded'] = [{'id': first['sample_id'], 'reason': 'Sentetik kayıt koruma sınaması; gerçek ölçüm hatası değildir.'}]
+project['samples']['excluded'] = [{'id': first['sample_id'], 'reason': 'Synthetic record-preservation test; not a real measurement error.'}]
 for cov in project['covariates']:
     path = Path(cov['path'])
     with rasterio.open(path) as ds:
         description = ds.descriptions[cov['band'] - 1]
         resolution = list(ds.res)
     cov.update({'resampling': 'bilinear', 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
-                'band_description': description, 'time_representation': '2020 sentetik dönem',
+                'band_description': description, 'time_representation': '2020 synthetic period',
                 'original_resolution': resolution,
                 'provenance': {'source': 'local synthetic fixture', 'band': cov['band'], 'observations_uploaded': False},
                 'target_derived': False})

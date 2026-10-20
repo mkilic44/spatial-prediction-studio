@@ -163,13 +163,13 @@ def verify(args) -> dict:
             "transient_differences": differences(
                 {k: original[k] for k in TRANSIENT_FIELDS if k in original},
                 {k: roundtrip[k] for k in TRANSIENT_FIELDS if k in roundtrip}),
-            "exclusion_reason": "Yeniden açma ve yeni önizleme, oturuma bağlı önizleme kayıtlarını yenileyebilir. "
-                                "Bu dört alan bilimsel ayar eşitliğinden ayrı kaydedilir. "
-                                "last_manifest ve tüm kalıcı ayarlar karşılaştırmaya dahildir.",
-            "source_stamp_definition": "preview_sources dosya yolu, boyut, son yazma zamanı ve mevcut yan dosyaları izler. "
-                                       "Bu nedenle yalnız içerik özeti değildir. Önceki zaman damgaları saklanmadığından "
-                                       "değişimin tekil dosya nedeni bu araçla belirlenmez. "
-                                       "Gözlem ve raster içerikleri iki önizlemenin audit.json kayıtlarıyla ayrıca karşılaştırılır.",
+            "exclusion_reason": "Reopening the project and running a new preview can renew session-bound preview records. "
+                                "These four fields are recorded separately from the equality of scientific settings. "
+                                "last_manifest and all persistent settings are included in the comparison.",
+            "source_stamp_definition": "preview_sources tracks the file path, size, last write time and existing sidecar files. "
+                                       "It is therefore not only a content digest. Earlier timestamps are not stored, so "
+                                       "this tool does not determine which single file caused the change. "
+                                       "Observation and raster contents are compared separately using the audit.json records of the two previews.",
             "source_stamp_implementation": {"path": str(ROOT / "native/SpatialPredictionStudio/MethodRegistry.cs"),
                                             "method": "ConfigurationIdentity.SourceStamp", "line": 76},
             "preview_source_audits": preview_source_records,
@@ -189,12 +189,12 @@ def verify(args) -> dict:
                           "unexpected_files": unexpected, "forbidden_artifacts": forbidden,
                           "progress_stages": [r.get("stage") for r in progress]},
         "previous_success": {"run_id": success_result.get("run_id"),
-                             "baseline": "Başarılı çalışma tamamlanınca yazılan result.json içindeki dosya özetleri.",
+                             "baseline": "File digests in the result.json written when the successful run completed.",
                              "manifest": snapshot(success_result_path), "output_count": len(outputs),
                              "unchanged_count": sum(r["matches"] for r in hash_rows), "output_hashes": hash_rows},
         "project_roundtrip": project,
         "screenshots_present": images,
-        "scope": "Dosya ve içerik denetimi. Arayüz görüntüsü, süreç çıkış kodu ve artık R süreçleri bu araç tarafından doğrulanmaz.",
+        "scope": "File and content check. This tool does not verify the interface screenshot, the process exit code or leftover R processes.",
     }
 
 

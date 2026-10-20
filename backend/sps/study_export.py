@@ -68,7 +68,7 @@ def _role_rows(evaluation, ids, check_cancel):
     known = set(ids)
     rows = []
     def add(values, scope, role, partition, **context):
-        _require(len(values) == len(set(values)) and set(values) <= known, 'Veri rolündeki kimlikler tutarsız.')
+        _require(len(values) == len(set(values)) and set(values) <= known, 'IDs in a data role are inconsistent.')
         for identity in values:
             rows.append({'scope': scope, 'role': role, 'partition': partition, 'sample_id': identity, **context})
     records = [('final', evaluation['final_record'], {})]
@@ -153,7 +153,7 @@ def _excluded_records(settings, check_cancel):
         obj = json.loads(path.read_text(encoding='utf-8-sig'))
         for feature in obj['features']:
             check_cancel(); append(str(feature.get('properties', {}).get(spec['id_field'], '')).strip(), feature)
-    _require({row['sample_id'] for row in records} == set(excluded), 'Dışlanan ham gözlem kaydı kaynaktan okunamadı.')
+    _require({row['sample_id'] for row in records} == set(excluded), 'The raw record of an excluded observation could not be read from the source.')
     return records
 
 
@@ -161,9 +161,9 @@ def write_analysis_exports(output, X, samples, groups, evaluation, settings, *, 
     """Publish complete sampled inputs and roles as one reversible transaction."""
     output = Path(output).resolve(); output.mkdir(parents=True, exist_ok=True)
     ids = list(samples['ids']); X = np.asarray(X, dtype=float)
-    _require(X.shape == (len(ids), len(settings['covariates'])) and len(groups) == len(ids) and not np.isinf(X).any(), 'Dışa aktarılacak veri matrisi tutarsız.')
-    _require(len(set(ids)) == len(ids), 'Dışa aktarılacak gözlem kimlikleri tekil olmalıdır.')
-    _require(not any((output / name).exists() for name in DATA_FILES), 'Mevcut analiz verilerinin üzerine yazılmaz.')
+    _require(X.shape == (len(ids), len(settings['covariates'])) and len(groups) == len(ids) and not np.isinf(X).any(), 'The data matrix to export is inconsistent.')
+    _require(len(set(ids)) == len(ids), 'Observation IDs to export must be unique.')
+    _require(not any((output / name).exists() for name in DATA_FILES), 'Existing analysis data are not overwritten.')
     stage = Path(tempfile.mkdtemp(prefix='.study-data-', dir=output)); published = []
     try:
         covariates = settings['covariates']; date_field = settings['samples'].get('date_field')
@@ -204,10 +204,10 @@ def write_analysis_exports(output, X, samples, groups, evaluation, settings, *, 
         lookup = dict(zip(ids, flat))
         _csv(stage / 'role_data.csv', ({**lookup[row['sample_id']], **row} for row in roles), list(dict.fromkeys(role_fields + data_fields)), check_cancel)
         learning = [{'role': row['role'], 'stage': row['stage'], 'sample_id': identity} for row in evaluation.get('learning_audit', []) for identity in row['ids']]
-        _require(all(row['sample_id'] in lookup for row in learning), 'Öğrenme kaydı bilinmeyen gözlem içeriyor.')
+        _require(all(row['sample_id'] in lookup for row in learning), 'The learning record contains an unknown observation.')
         _csv(stage / 'learning_membership.csv', learning, ['role', 'stage', 'sample_id'], check_cancel)
         excluded = _excluded_records(settings, check_cancel)
-        _require(set(ids).isdisjoint(row['sample_id'] for row in excluded), 'Dışlanan gözlem model verisinde bulunamaz.')
+        _require(set(ids).isdisjoint(row['sample_id'] for row in excluded), 'An excluded observation cannot be present in the model data.')
         (stage / 'excluded_samples.json').write_bytes(_json({'schema_version': 1, 'scope': 'Excluded before extraction/modeling; no fitted values are assigned.', 'records': excluded}))
         _csv(stage / 'excluded_samples.csv', excluded, ['sample_id', 'reason', 'status', 'source_path', 'raw_record_status', 'raw_record'], check_cancel)
         trials, folds = _trial_rows(evaluation, check_cancel)
@@ -215,7 +215,7 @@ def write_analysis_exports(output, X, samples, groups, evaluation, settings, *, 
         _csv(stage / 'inner_fold_results.csv', folds, _fields(folds, ('role', 'trial', 'repeat', 'fold', 'status', 'metric.rmse')), check_cancel)
         for name in DATA_FILES:
             check_cancel(); destination = output / name
-            _require(not destination.exists(), 'Analiz verisi yayımlanırken hedef oluştu.')
+            _require(not destination.exists(), 'A destination file appeared while the analysis data were being published.')
             (stage / name).rename(destination); published.append(destination)
         return published, {'schema_version': 1, 'files': list(DATA_FILES), 'samples': len(ids), 'memberships': len(roles),
             'learning_memberships': len(learning), 'excluded_samples': len(excluded), 'actual_trials': len(trials),
@@ -230,10 +230,10 @@ def write_analysis_exports(output, X, samples, groups, evaluation, settings, *, 
 
 
 def _member(name):
-    _require(isinstance(name, str) and bool(name), 'Çalışma paketindeki dosya yolu geçersiz.')
+    _require(isinstance(name, str) and bool(name), 'A file path in the study package is invalid.')
     path = PurePosixPath(name)
     _require(str(path) == name and not path.is_absolute() and '..' not in path.parts and '\\' not in name
-             and ':' not in name and not name.endswith('/'), 'Çalışma paketindeki dosya yolu geçersiz.')
+             and ':' not in name and not name.endswith('/'), 'A file path in the study package is invalid.')
 
 
 def _hash(stream, check_cancel):
@@ -247,21 +247,21 @@ def _hash(stream, check_cancel):
 def inspect_study_package(path, *, expected_sha256=None, check_cancel=lambda: None):
     path = Path(path)
     with path.open('rb') as stream: digest = _hash(stream, check_cancel)
-    _require(expected_sha256 is None or digest == expected_sha256, 'Çalışma paketinin dosya özeti uyuşmuyor.')
+    _require(expected_sha256 is None or digest == expected_sha256, 'The file digest of the study package does not match.')
     with zipfile.ZipFile(path) as archive:
         names = archive.namelist()
-        _require(len(names) == len({name.casefold() for name in names}), 'Çalışma paketinde yinelenen dosya var.')
+        _require(len(names) == len({name.casefold() for name in names}), 'The study package contains a duplicate file.')
         for name in names: _member(name)
         manifest = json.loads(archive.read('study_manifest.json'))
-        _require(manifest.get('schema_version') == 1 and set(manifest.get('members', {})) == set(names) - {'study_manifest.json'}, 'Çalışma paketinin dosya listesi uyuşmuyor.')
+        _require(manifest.get('schema_version') == 1 and set(manifest.get('members', {})) == set(names) - {'study_manifest.json'}, 'The file list of the study package does not match.')
         for name, expected in manifest['members'].items():
             with archive.open(name) as stream: actual = _hash(stream, check_cancel)
-            _require(actual == expected, 'Çalışma paketi üyesinin özeti farklı: ' + name)
+            _require(actual == expected, 'The digest of a study package member differs: ' + name)
         snapshot = json.loads(archive.read('result.snapshot.json'))
-        _require(snapshot.get('status') == 'completed' and snapshot.get('run_id') == manifest.get('run_id'), 'Çalışma paketi sonuç kimliği tutarsız.')
-        _require(len({entry['path'] for entry in snapshot['outputs']}) == len(snapshot['outputs']), 'Çalışma paketi sonuç kaydında yinelenen dosya var.')
+        _require(snapshot.get('status') == 'completed' and snapshot.get('run_id') == manifest.get('run_id'), 'The run ID in the study package result is inconsistent.')
+        _require(len({entry['path'] for entry in snapshot['outputs']}) == len(snapshot['outputs']), 'The result record of the study package contains a duplicate file.')
         for entry in snapshot['outputs']:
-            _require(entry['kind'] != 'study_package' and manifest['members'].get(entry['path']) == entry['sha256'], 'Çalışma paketi sonuç kaydı içerikle uyuşmuyor.')
+            _require(entry['kind'] != 'study_package' and manifest['members'].get(entry['path']) == entry['sha256'], 'The result record of the study package does not match its content.')
     return {'status': 'verified', 'sha256': digest, 'manifest': manifest, 'members': len(names), 'scope': 'file integrity only; no model loaded'}
 
 
@@ -269,17 +269,17 @@ def create_study_package(output, result, *, check_cancel):
     """Archive all verified products and the request; no recursive archive hashes."""
     output = Path(output).resolve(); destination = output / PACKAGE_NAME
     partial = output / (PACKAGE_NAME + '.partial')
-    _require(not destination.exists() and not partial.exists(), 'Mevcut çalışma paketinin üzerine yazılmaz.')
-    _require(result.get('status') == 'completed' and result.get('outputs'), 'Çalışma paketi tamamlanmış analiz ürünleri gerektirir.')
+    _require(not destination.exists() and not partial.exists(), 'An existing study package is not overwritten.')
+    _require(result.get('status') == 'completed' and result.get('outputs'), 'A study package requires completed analysis outputs.')
     sources = {}
     for entry in result['outputs']:
         name = entry['path']; _member(name)
         path = (output / name).resolve()
         _require(path.is_relative_to(output) and path.is_file() and name not in sources
-                 and name not in ('result.json', 'result.snapshot.json', 'study_manifest.json') and not name.endswith('.spsstudy.zip'), 'Çalışma paketinin kaynak listesi geçersiz.')
+                 and name not in ('result.json', 'result.snapshot.json', 'study_manifest.json') and not name.endswith('.spsstudy.zip'), 'The source list of the study package is invalid.')
         sources[name] = (path, entry['sha256'])
     request = output / 'request.snapshot.json'
-    _require(request.is_file(), 'Çalışma paketi için istek kaydı bulunamadı.')
+    _require(request.is_file(), 'The request record for the study package was not found.')
     if request.name not in sources:
         with request.open('rb') as stream: sources[request.name] = (request, _hash(stream, check_cancel))
     snapshot = deepcopy(result)
@@ -291,7 +291,7 @@ def create_study_package(output, result, *, check_cancel):
             for name, (path, expected) in sorted(sources.items()):
                 check_cancel()
                 with path.open('rb') as stream: before = _hash(stream, check_cancel)
-                _require(before == expected, 'Paketlenmeden önce analiz ürünü değişti: ' + name)
+                _require(before == expected, 'An analysis output changed before packaging: ' + name)
                 actual = hashlib.sha256()
                 with path.open('rb') as src, archive.open(name, 'w', force_zip64=True) as dst:
                     while True:
@@ -299,7 +299,7 @@ def create_study_package(output, result, *, check_cancel):
                         if not block: break
                         actual.update(block); dst.write(block)
                 with path.open('rb') as stream: after = _hash(stream, check_cancel)
-                _require(actual.hexdigest() == after == expected, 'Paketlenirken analiz ürünü değişti: ' + name)
+                _require(actual.hexdigest() == after == expected, 'An analysis output changed during packaging: ' + name)
                 hashes[name] = expected
             for name, content in generated.items():
                 check_cancel(); archive.writestr(name, content); hashes[name] = hashlib.sha256(content).hexdigest()

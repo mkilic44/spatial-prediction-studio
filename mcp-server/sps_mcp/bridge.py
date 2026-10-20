@@ -51,7 +51,7 @@ def reject_reparse(path: Path):
             continue
         meta = part.lstat()
         if stat.S_ISLNK(meta.st_mode) or getattr(meta, "st_file_attributes", 0) & 0x400:
-            raise BridgeError("UNSAFE_PATH", "Bağlantı veya yönlendirme içeren yol reddedildi.")
+            raise BridgeError("UNSAFE_PATH", "Rejected a path that contains a symbolic link or junction.")
 
 
 def process_alive(pid: int) -> bool:
@@ -72,7 +72,7 @@ def process_alive(pid: int) -> bool:
 def default_sessions_dir() -> Path:
     # SHGetFolderPath consults the current user's Windows profile, not an MCP argument.
     if os.name != "nt":
-        raise BridgeError("WINDOWS_REQUIRED", "ArcMap bağlantısı Windows gerektirir.")
+        raise BridgeError("WINDOWS_REQUIRED", "The ArcMap connection requires Windows.")
     from win32com.shell import shell, shellcon
     return Path(shell.SHGetFolderPath(0, shellcon.CSIDL_LOCAL_APPDATA, None, 0)) / "SpatialPredictionStudio" / "mcp" / "sessions"
 
@@ -99,7 +99,7 @@ class SessionRegistry:
 
     def get(self, session_id: str) -> Session:
         if not isinstance(session_id, str) or not SESSION_ID.fullmatch(session_id):
-            raise BridgeError("SESSION_ID", "Oturum kimliği geçersiz.")
+            raise BridgeError("SESSION_ID", "Invalid session ID.")
         path = self.directory / (session_id + ".json")
         reject_reparse(path)
         try:
@@ -118,14 +118,14 @@ class SessionRegistry:
             if not isinstance(token, str) or not 16 <= len(token) <= 512 or any(ord(c) < 33 for c in token):
                 raise ValueError("Invalid token")
             if not self.alive(pid):
-                raise BridgeError("SESSION_STALE", "ArcMap oturumu artık çalışmıyor.")
+                raise BridgeError("SESSION_STALE", "The ArcMap session is no longer running.")
             return Session(session_id, pid, pipe, token,
                            str(obj.get("created_utc", ""))[:100],
                            str(obj.get("addin_version", ""))[:100])
         except BridgeError:
             raise
         except (OSError, ValueError, UnicodeError, TypeError):
-            raise BridgeError("SESSION_INVALID", "Oturum kaydı okunamadı veya geçersiz.") from None
+            raise BridgeError("SESSION_INVALID", "The session record could not be read or is invalid.") from None
 
     def discover(self):
         reject_reparse(self.directory)
@@ -134,7 +134,7 @@ class SessionRegistry:
             return {"sessions": [], "ignored_records": 0}
         paths = sorted(self.directory.glob("*.json"))
         if len(paths) > 256:
-            raise BridgeError("SESSION_LIMIT", "Oturum kaydı sınırı aşıldı.")
+            raise BridgeError("SESSION_LIMIT", "Session record limit exceeded.")
         for path in paths:
             try:
                 sessions.append(self.get(path.stem).public())
@@ -151,7 +151,7 @@ class NamedPipeTransport:
 
     def exchange(self, session: Session, payload: bytes) -> bytes:
         if os.name != "nt":
-            raise BridgeError("WINDOWS_REQUIRED", "ArcMap bağlantısı Windows gerektirir.")
+            raise BridgeError("WINDOWS_REQUIRED", "The ArcMap connection requires Windows.")
         import pywintypes
         import win32con
         import win32event
@@ -170,7 +170,7 @@ class NamedPipeTransport:
                 # This handle belongs only to this call. Never cancel another caller's I/O.
                 cancel_io(int(handle), None)
                 win32event.WaitForSingleObject(overlap.hEvent, 1000)
-                raise BridgeError("BRIDGE_TIMEOUT", "ArcMap yanıt süresi aşıldı. Yazma işlemini otomatik yinelemeyin.")
+                raise BridgeError("BRIDGE_TIMEOUT", "ArcMap response timed out. Do not retry a write operation automatically.")
             return win32file.GetOverlappedResult(handle, overlap, False)
 
         try:
@@ -183,24 +183,24 @@ class NamedPipeTransport:
                         win32con.FILE_FLAG_OVERLAPPED | 0x100000 | 0x10000, None)
                 except pywintypes.error as error:
                     if error.winerror != 231:
-                        raise BridgeError("BRIDGE_UNAVAILABLE", "ArcMap yerel bağlantısı açılamadı.") from None
+                        raise BridgeError("BRIDGE_UNAVAILABLE", "Could not open the local ArcMap connection.") from None
                     if time.monotonic() >= deadline:
-                        raise BridgeError("BRIDGE_TIMEOUT", "ArcMap yerel bağlantısı meşgul.") from None
+                        raise BridgeError("BRIDGE_TIMEOUT", "The local ArcMap connection is busy.") from None
                     try:
                         win32pipe.WaitNamedPipe("\\\\.\\pipe\\" + session.pipe_name, 100)
                     except pywintypes.error:
                         pass
             if win32pipe.GetNamedPipeServerProcessId(handle) != session.pid:
-                raise BridgeError("SESSION_MISMATCH", "Kanalın ArcMap süreç kimliği uyuşmuyor.")
+                raise BridgeError("SESSION_MISMATCH", "The ArcMap process ID of the pipe does not match.")
             pending = pywintypes.OVERLAPPED()
             pending.hEvent = win32event.CreateEvent(None, True, False, None)
             try:
                 code, _ = win32file.WriteFile(handle, payload, pending)
                 if code not in (0, 997):
-                    raise BridgeError("BRIDGE_WRITE", "Yerel istek yazılamadı.")
+                    raise BridgeError("BRIDGE_WRITE", "Could not write the local request.")
                 count = io_wait(pending)
                 if count != len(payload):
-                    raise BridgeError("BRIDGE_WRITE", "Yerel istek eksik yazıldı.")
+                    raise BridgeError("BRIDGE_WRITE", "The local request was only partly written.")
             finally:
                 if pending is not None:
                     pending.hEvent.Close()
@@ -212,25 +212,25 @@ class NamedPipeTransport:
                 try:
                     code, buffer = win32file.ReadFile(handle, 64 * 1024, pending)
                     if code not in (0, 997, 234):
-                        raise BridgeError("BRIDGE_READ", "Yerel yanıt okunamadı.")
+                        raise BridgeError("BRIDGE_READ", "Could not read the local response.")
                     count = io_wait(pending)
                     data.extend(bytes(buffer[:count]))
                 finally:
                     pending.hEvent.Close()
                     pending = None
                 if len(data) > MAX_RESPONSE:
-                    raise BridgeError("RESPONSE_LIMIT", "ArcMap yanıt boyutu sınırı aşıldı.")
+                    raise BridgeError("RESPONSE_LIMIT", "The ArcMap response exceeds the size limit.")
                 if b"\n" in data:
                     line, trailing = bytes(data).split(b"\n", 1)
                     if trailing.strip():
-                        raise BridgeError("BRIDGE_PROTOCOL", "Tek yanıt sınırı aşıldı.")
+                        raise BridgeError("BRIDGE_PROTOCOL", "Received more than one response.")
                     return line
                 if count == 0:
-                    raise BridgeError("BRIDGE_PROTOCOL", "ArcMap yanıtı tamamlanmadı.")
+                    raise BridgeError("BRIDGE_PROTOCOL", "The ArcMap response was incomplete.")
         except BridgeError:
             raise
         except Exception:
-            raise BridgeError("BRIDGE_IO", "ArcMap bağlantısı kesildi veya yanıt okunamadı.") from None
+            raise BridgeError("BRIDGE_IO", "The ArcMap connection was lost or the response could not be read.") from None
         finally:
             if handle is not None:
                 cancel_io(int(handle), None)
@@ -248,17 +248,17 @@ class Bridge:
     def call(self, session_id: str, method: str, params: dict | None = None):
         params = {} if params is None else params
         if method not in METHODS or not isinstance(params, dict) or set(params) != METHODS[method]:
-            raise BridgeError("METHOD_PARAMS", "Yerel işlem veya parametreleri geçersiz.")
+            raise BridgeError("METHOD_PARAMS", "Invalid local operation or parameters.")
         session = self.registry.get(session_id)
         request_id = uuid.uuid4().hex
         payload = json.dumps({"id": request_id, "token": session.token,
                               "method": method, "params": params},
                              ensure_ascii=False, allow_nan=False).encode("utf-8") + b"\n"
         if len(payload) > MAX_REQUEST:
-            raise BridgeError("REQUEST_LIMIT", "İstek boyutu sınırı aşıldı.")
+            raise BridgeError("REQUEST_LIMIT", "The request exceeds the size limit.")
         raw = self.transport.exchange(session, payload)
         if len(raw) > MAX_RESPONSE:
-            raise BridgeError("RESPONSE_LIMIT", "Yanıt boyutu sınırı aşıldı.")
+            raise BridgeError("RESPONSE_LIMIT", "The response exceeds the size limit.")
         try:
             obj = strict_json(raw.decode("utf-8"))
             if not isinstance(obj, dict) or obj.get("id") != request_id or type(obj.get("ok")) is not bool:
@@ -269,14 +269,14 @@ class Bridge:
                 return obj["result"]
             error = obj.get("error", {})
             code = error.get("code", "BRIDGE_ERROR")
-            message = error.get("message", "ArcMap işlemi tamamlanamadı.")
+            message = error.get("message", "The ArcMap operation could not be completed.")
             if not isinstance(code, str) or not re.fullmatch(r"[A-Za-z0-9_]{1,80}", code):
                 code = "BRIDGE_ERROR"
             if not isinstance(message, str):
-                message = "ArcMap işlemi tamamlanamadı."
-            raise BridgeError(code, message.replace(session.token, "[gizlendi]")[:2000])
+                message = "The ArcMap operation could not be completed."
+            raise BridgeError(code, message.replace(session.token, "[hidden]")[:2000])
         except BridgeError:
             raise
         except (ValueError, UnicodeError, TypeError, AttributeError):
-            raise BridgeError("BRIDGE_PROTOCOL", "ArcMap yanıtı geçersiz.") from None
+            raise BridgeError("BRIDGE_PROTOCOL", "Invalid ArcMap response.") from None
 

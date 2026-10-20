@@ -14,74 +14,74 @@ from .contract import JobError
 
 
 METRICS = {
-    "rmse": ("Ortalama kare hatanın karekökü (RMSE)", "sqrt(sum(e_i^2)/n)", "target"),
-    "mse": ("Ortalama kare hata (MSE)", "sum(e_i^2)/n", "squared"),
-    "mae": ("Ortalama mutlak hata (MAE)", "sum(abs(e_i))/n", "target"),
-    "median_absolute_error": ("Medyan mutlak hata", "median(abs(e_i))", "target"),
-    "mean_error": ("Ortalama hata", "sum(e_i)/n", "target"),
-    "residual_std": ("Artıkların örnek standart sapması", "sqrt(sum((e_i-mean(e))^2)/(n-1))", "target"),
-    "r2": ("Belirleme katsayısı (R²)", "1-sum((p_i-y_i)^2)/sum((y_i-mean(y))^2)", "dimensionless"),
-    "pearson_r": ("Pearson korelasyon katsayısı (r)", "sum((y_i-mean(y))*(p_i-mean(p)))/sqrt(sum((y_i-mean(y))^2)*sum((p_i-mean(p))^2))", "dimensionless"),
-    "pearson_r2": ("Pearson korelasyon katsayısının karesi (r²)", "pearson_r^2", "dimensionless"),
-    "lin_ccc": ("Lin uyum korelasyon katsayısı (CCC)", "2*cov_n(y,p)/(var_n(y)+var_n(p)+(mean(y)-mean(p))^2)", "dimensionless"),
-    "rpd": ("Gözlenen örnek standart sapmasının RMSE değerine oranı (RPD)", "s_y/RMSE; s_y=sqrt(sum((y_i-mean(y))^2)/(n-1))", "dimensionless"),
-    "rpiq": ("Çeyrekler arası aralığın RMSE değerine oranı (RPIQ)", "(Q_0.75(y)-Q_0.25(y))/RMSE", "dimensionless"),
-    "observed_std": ("Gözlenen örnek standart sapması", "sqrt(sum((y_i-mean(y))^2)/(n-1))", "target"),
-    "observed_iqr": ("Gözlenen çeyrekler arası aralık", "Q_0.75(y)-Q_0.25(y)", "target"),
+    "rmse": ("Root mean squared error (RMSE)", "sqrt(sum(e_i^2)/n)", "target"),
+    "mse": ("Mean squared error (MSE)", "sum(e_i^2)/n", "squared"),
+    "mae": ("Mean absolute error (MAE)", "sum(abs(e_i))/n", "target"),
+    "median_absolute_error": ("Median absolute error", "median(abs(e_i))", "target"),
+    "mean_error": ("Mean error (ME)", "sum(e_i)/n", "target"),
+    "residual_std": ("Sample standard deviation of residuals", "sqrt(sum((e_i-mean(e))^2)/(n-1))", "target"),
+    "r2": ("Coefficient of determination (R²)", "1-sum((p_i-y_i)^2)/sum((y_i-mean(y))^2)", "dimensionless"),
+    "pearson_r": ("Pearson correlation coefficient (r)", "sum((y_i-mean(y))*(p_i-mean(p)))/sqrt(sum((y_i-mean(y))^2)*sum((p_i-mean(p))^2))", "dimensionless"),
+    "pearson_r2": ("Squared Pearson correlation coefficient (r²)", "pearson_r^2", "dimensionless"),
+    "lin_ccc": ("Lin's concordance correlation coefficient (CCC)", "2*cov_n(y,p)/(var_n(y)+var_n(p)+(mean(y)-mean(p))^2)", "dimensionless"),
+    "rpd": ("Ratio of the observed sample standard deviation to RMSE (RPD)", "s_y/RMSE; s_y=sqrt(sum((y_i-mean(y))^2)/(n-1))", "dimensionless"),
+    "rpiq": ("Ratio of the interquartile range (IQR) to RMSE (RPIQ)", "(Q_0.75(y)-Q_0.25(y))/RMSE", "dimensionless"),
+    "observed_std": ("Observed sample standard deviation", "sqrt(sum((y_i-mean(y))^2)/(n-1))", "target"),
+    "observed_iqr": ("Observed interquartile range (IQR)", "Q_0.75(y)-Q_0.25(y)", "target"),
 }
 INTERVAL_METRICS = {
-    "coverage": ("Ampirik kapsama oranı", "sum(I(lower_i<=y_i<=upper_i))/n", "dimensionless"),
-    "mean_width": ("Ortalama tahmin aralığı genişliği", "sum(upper_i-lower_i)/n", "target"),
-    "median_width": ("Medyan tahmin aralığı genişliği", "median(upper_i-lower_i)", "target"),
-    "below_lower_fraction": ("Alt sınırın altında kalma oranı", "sum(I(y_i<lower_i))/n", "dimensionless"),
-    "above_upper_fraction": ("Üst sınırın üstünde kalma oranı", "sum(I(y_i>upper_i))/n", "dimensionless"),
-    "interval_score": ("Aralık skoru", "mean((upper-lower)+(2/alpha)*(lower-y)*I(y<lower)+(2/alpha)*(y-upper)*I(y>upper)); alpha=1-coverage_requested", "target"),
-    "pinball_lower": ("Alt kantil kaybı", "mean(max(tau*(y-q),(tau-1)*(y-q))); tau=alpha/2", "target"),
-    "pinball_upper": ("Üst kantil kaybı", "mean(max(tau*(y-q),(tau-1)*(y-q))); tau=1-alpha/2", "target"),
+    "coverage": ("Empirical coverage", "sum(I(lower_i<=y_i<=upper_i))/n", "dimensionless"),
+    "mean_width": ("Mean prediction interval width", "sum(upper_i-lower_i)/n", "target"),
+    "median_width": ("Median prediction interval width", "median(upper_i-lower_i)", "target"),
+    "below_lower_fraction": ("Fraction below the lower bound", "sum(I(y_i<lower_i))/n", "dimensionless"),
+    "above_upper_fraction": ("Fraction above the upper bound", "sum(I(y_i>upper_i))/n", "dimensionless"),
+    "interval_score": ("Interval score", "mean((upper-lower)+(2/alpha)*(lower-y)*I(y<lower)+(2/alpha)*(y-upper)*I(y>upper)); alpha=1-coverage_requested", "target"),
+    "pinball_lower": ("Lower pinball loss", "mean(max(tau*(y-q),(tau-1)*(y-q))); tau=alpha/2", "target"),
+    "pinball_upper": ("Upper pinball loss", "mean(max(tau*(y-q),(tau-1)*(y-q))); tau=1-alpha/2", "target"),
 }
 SCOPE = {
-    "outer_training": "Dış kat modelinin eğitim verisi", "final_training": "Nihai modelin eğitim verisi",
-    "outer_calibration": "Dış kat modelinin kalibrasyon tanısı", "final_calibration": "Nihai modelin kalibrasyon tanısı",
-    "inner_validation": "İç doğrulama: denemenin birleşik sonucu", "inner_repeat": "İç doğrulama: tekrar",
-    "inner_fold": "İç doğrulama: kat", "outer_fold": "Dış değerlendirme: kat",
-    "per_repeat": "Dış değerlendirme: tekrar", "pooled_oof": "Dış değerlendirme: birleştirilmiş kayıtlar",
-    "fold_mean": "Dış kat ölçütlerinin aritmetik ortalaması", "independent": "Kilitli bağımsız test",
+    "outer_training": "Training data of the outer-fold model", "final_training": "Training data of the final model",
+    "outer_calibration": "Calibration diagnostics of the outer-fold model", "final_calibration": "Calibration diagnostics of the final model",
+    "inner_validation": "Inner validation: pooled result of the trial", "inner_repeat": "Inner validation: repeat",
+    "inner_fold": "Inner validation: fold", "outer_fold": "Outer evaluation: fold",
+    "per_repeat": "Outer evaluation: repeat", "pooled_oof": "Outer evaluation: pooled records",
+    "fold_mean": "Arithmetic mean of outer-fold metrics", "independent": "Locked independent test set",
 }
 SCOPE_NOTES = {
-    "training": "Eğitim verisine yeniden uygulama; doğrulama başarısı değildir.",
-    "calibration": "Aralık ayarına katılan hedeflerde tanı; bağımsız doğrulama değildir.",
-    "inner": "Model ve ayar seçimine katılmıştır; seçim yanlılığı nedeniyle nihai başarı değildir.",
-    "pooled_oof": "Tekrarlanan kimliklerin tahminleri ayrı kayıttır; bağımsız gözlem sayısını artırmaz.",
-    "fold_mean": "Kat ölçütlerinin ortalamasıdır; birleşik tahminlerden hesaplanan ölçüt değildir.",
-    "independent": "Kilitli test; yeniden kullanım ve ayar değişikliği geçmişi ayrıca incelenmelidir.",
+    "training": "Model reapplied to its training data; this is not validation performance.",
+    "calibration": "Diagnostics on targets used for interval calibration; this is not independent validation.",
+    "inner": "Used for model and setting selection; because of selection bias, this is not final performance.",
+    "pooled_oof": "Predictions for repeated IDs are separate records; they do not increase the number of independent observations.",
+    "fold_mean": "Mean of fold metrics; this is not a metric computed from pooled predictions.",
+    "independent": "Locked test set; its reuse and settings-change history must be reviewed separately.",
 }
 LABELS = {
-    "method": "Yöntem", "id": "Kimlik", "unit": "Birim", "target_field": "Hedef alanı", "id_field": "Kimlik alanı",
-    "group_fields": "Gruplama alanları", "date_field": "Tarih alanı", "depth_top_field": "Üst derinlik alanı",
-    "depth_bottom_field": "Alt derinlik alanı", "method_field": "Laboratuvar yöntemi alanı", "support": "Örnek desteği",
-    "support_note": "Örnek desteğinin açıklaması", "n_splits": "Dış kat sayısı", "inner_splits": "İç kat sayısı",
-    "repeats": "Tekrar sayısı", "seed": "Rastgelelik tohumu", "block_size": "Blok büyüklüğü",
-    "buffer_distance": "Tampon uzaklığı", "gap_days": "Takvim boşluğu (gün)", "timezone": "Saat dilimi",
-    "crs": "Koordinat sistemi", "metric_crs": "Uzaklık hesabının koordinat sistemi", "purpose": "Doğrulama amacı",
-    "initial_train_periods": "Başlangıç eğitim dönemi sayısı", "inner_initial_train_periods": "İç başlangıç dönem sayısı",
-    "selector_initial_train_periods": "Seçici başlangıç dönem sayısı", "temporal_mode": "Zamansal değerlendirme türü",
-    "coverage": "İstenen kapsama oranı", "calibration_fraction": "İstenen kalibrasyon payı",
-    "imputation": "Eksik değer tamamlama", "scaling": "Ölçekleme", "unknown_category": "Bilinmeyen kategori davranışı",
-    "mode": "Çalışma biçimi", "threshold": "Eşik", "min_train_groups": "En az eğitim grubu",
-    "started_utc": "Başlangıç zamanı (UTC)", "finished_analysis_utc": "Analiz bitiş zamanı (UTC)",
-    "elapsed_analysis_seconds": "Analiz süresi (s)", "cpu_count": "Mantıksal işlemci sayısı",
-    "python": "Python sürümü", "executable": "Python yorumlayıcısı", "platform": "İşletim sistemi",
-    "path": "Dosya yolu", "sha256": "SHA-256 dosya özeti", "version": "Sürüm", "status": "Durum",
-    "n": "Kayıt sayısı", "mean": "Ortalama", "std": "Standart sapma", "min": "En küçük", "max": "En büyük",
-    "median": "Medyan", "q25": "Birinci çeyrek", "q75": "Üçüncü çeyrek", "missing": "Eksik kayıt",
+    "method": "Method", "id": "ID", "unit": "Unit", "target_field": "Target field", "id_field": "ID field",
+    "group_fields": "Grouping fields", "date_field": "Date field", "depth_top_field": "Upper depth field",
+    "depth_bottom_field": "Lower depth field", "method_field": "Laboratory method field", "support": "Sample support",
+    "support_note": "Sample support description", "n_splits": "Number of outer folds", "inner_splits": "Number of inner folds",
+    "repeats": "Number of repeats", "seed": "Random seed", "block_size": "Block size",
+    "buffer_distance": "Buffer distance", "gap_days": "Calendar gap (days)", "timezone": "Time zone",
+    "crs": "Coordinate reference system (CRS)", "metric_crs": "CRS for distance calculation", "purpose": "Validation purpose",
+    "initial_train_periods": "Number of initial training periods", "inner_initial_train_periods": "Number of inner initial periods",
+    "selector_initial_train_periods": "Number of selector initial periods", "temporal_mode": "Temporal evaluation type",
+    "coverage": "Nominal coverage", "calibration_fraction": "Requested calibration fraction",
+    "imputation": "Imputation", "scaling": "Scaling", "unknown_category": "Unknown category handling",
+    "mode": "Operating mode", "threshold": "Threshold", "min_train_groups": "Minimum training groups",
+    "started_utc": "Start time (UTC)", "finished_analysis_utc": "Analysis end time (UTC)",
+    "elapsed_analysis_seconds": "Analysis duration (s)", "cpu_count": "Number of logical processors",
+    "python": "Python version", "executable": "Python interpreter", "platform": "Operating system",
+    "path": "File path", "sha256": "SHA-256 file digest", "version": "Version", "status": "Status",
+    "n": "Number of records", "mean": "Mean", "std": "Standard deviation", "min": "Minimum", "max": "Maximum",
+    "median": "Median", "q25": "First quartile", "q75": "Third quartile", "missing": "Missing records",
 }
 REASONS = {
-    "not_recorded": "Kaydedilmedi", "not_applicable": "Uygulanmadı", "no_observations": "Gözlem yok",
-    "constant_observed_target": "Gözlenen hedef sabit", "constant_prediction": "Tahminler sabit",
-    "constant_predictions": "Tahminler sabit", "numerical_overflow": "Sayısal taşma",
-    "zero_ccc_denominator": "Lin katsayısının paydası sıfır",
-    "fewer_than_two_observations": "İkiden az gözlem", "zero_rmse": "Ortalama kare hatanın karekökü sıfır",
-    "incomplete": "Deneme tamamlanmadı", "nonfinite": "Sonlu olmayan değer",
+    "not_recorded": "Not recorded", "not_applicable": "Not applied", "no_observations": "No observations",
+    "constant_observed_target": "Observed target is constant", "constant_prediction": "Predictions are constant",
+    "constant_predictions": "Predictions are constant", "numerical_overflow": "Numerical overflow",
+    "zero_ccc_denominator": "Denominator of Lin's coefficient is zero",
+    "fewer_than_two_observations": "Fewer than two observations", "zero_rmse": "Root mean squared error is zero",
+    "incomplete": "Trial not completed", "nonfinite": "Nonfinite value",
 }
 FILES = ["study_report.html", "study_summary.json", "publication_metrics.csv", "hyperparameters.csv",
          "inner_validation_predictions.csv", "training_predictions.csv", "calibration_predictions.csv"]
@@ -92,9 +92,9 @@ PAGE_SOFT_BYTES = 64 * 1024
 
 def _text(value):
     if value is None:
-        return "Kaydedilmedi veya tanımsız"
+        return "Not recorded or undefined"
     if isinstance(value, bool):
-        return "Evet" if value else "Hayır"
+        return "Yes" if value else "No"
     if isinstance(value, float):
         return format(value, ".10g")
     if isinstance(value, (dict, list)):
@@ -122,13 +122,13 @@ def _flatten(value, prefix=""):
 
 def _kv(value):
     if value is None:
-        return '<p>Kaydedilmedi (not_recorded).</p>'
+        return '<p>Not recorded (not_recorded).</p>'
     rows = []
     for key, item in _flatten(value):
         if isinstance(item, list) and len(item) > 24:
-            item = ", ".join(_text(v) for v in item[:24]) + " ... (%d kayıt; tam liste study_summary.json ve evaluation.json içinde)" % len(item)
+            item = ", ".join(_text(v) for v in item[:24]) + " ... (%d records; full list in study_summary.json and evaluation.json)" % len(item)
         rows.append((" / ".join(LABELS.get(part, part) for part in key.split('.')), item))
-    return _table(["Alan", "Kaydedilen değer"], rows)
+    return _table(["Field", "Recorded value"], rows)
 
 
 def _write_csv(path, rows, fields):
@@ -159,7 +159,7 @@ def _model_records(evaluation):
 
 
 def _note(scope):
-    return next((value for key, value in SCOPE_NOTES.items() if key in scope), "Yalnız belirtilen bölümde hesaplanan sonuç.")
+    return next((value for key, value in SCOPE_NOTES.items() if key in scope), "Result computed only for the stated partition.")
 
 
 def _metric_rows(metrics, context, unit, predictions=(), missing_reason='not_recorded'):
@@ -201,7 +201,7 @@ def _metric_rows(metrics, context, unit, predictions=(), missing_reason='not_rec
                'interval_status': interval.get('status', 'available'), 'coverage_denominator': denominator,
                'availability_denominator': interval.get('availability_denominator', interval.get('n', metrics.get('n'))),
                'available_n': interval.get('available_n'), 'unavailable_n': interval.get('unavailable_n'),
-               'scope_note': _note(context['scope']) + (' Aralık ölçütleri yalnız aralığı hesaplanan gözlemlere aittir.' if partial or unavailable else '')}
+               'scope_note': _note(context['scope']) + (' Interval metrics apply only to observations with a computed interval.' if partial or unavailable else '')}
 
 
 def _prediction_rows(rows, context, known, expected=None):
@@ -214,16 +214,16 @@ def _prediction_rows(rows, context, known, expected=None):
         identity = row.get('sample_id')
         key = (row.get('repeat'), row.get('fold'), identity)
         if identity not in known or key in seen or (expected is not None and identity not in expected):
-            raise JobError('REPORT_PUBLICATION_ROW', 'Ayrıntılı raporda tahmin kimliği veya bölüm üyeliği tutarsız.')
+            raise JobError('REPORT_PUBLICATION_ROW', 'Prediction ID or partition membership is inconsistent in the detailed report.')
         seen.add(key)
         values = [row.get(k) for k in ('observed', 'predicted', 'residual')]
         if not all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) for v in values):
-            raise JobError('REPORT_PUBLICATION_ROW', 'Kaydedilmiş nokta tahmininde gözlem, tahmin ve artık sonlu sayılar olmalıdır.')
+            raise JobError('REPORT_PUBLICATION_ROW', 'In a recorded point prediction, the observation, prediction and residual must be finite numbers.')
         if not math.isclose(values[2], values[1] - values[0], rel_tol=1e-9, abs_tol=1e-10):
-            raise JobError('REPORT_PUBLICATION_ROW', 'Ayrıntılı raporda artık, tahmin eksi gözleme eşit değil.')
+            raise JobError('REPORT_PUBLICATION_ROW', 'In the detailed report, a residual does not equal prediction minus observation.')
         yield row
     if expected is not None and {key[2] for key in seen} != expected:
-        raise JobError('REPORT_PUBLICATION_ROW', 'Kaydedilmiş nokta tahminleri ilgili bölümün bütün kimliklerini içermelidir.')
+        raise JobError('REPORT_PUBLICATION_ROW', 'Recorded point predictions must include every ID of the relevant partition.')
 
 
 def _parameter_rows(value, context, kind, component):
@@ -238,7 +238,7 @@ def _parameter_rows(value, context, kind, component):
 
 def collect_study(evaluation, samples, settings, counts, *, check_cancel):
     """Build tables from records. Missing old-schema evidence stays not_recorded."""
-    unit = str(settings.get('samples', {}).get('unit', 'birim kaydedilmedi'))
+    unit = str(settings.get('samples', {}).get('unit', 'unit not recorded'))
     known = set(samples.get('ids', []))
     metrics, parameters, candidates = [], [], []
     predictions = {'training': [], 'calibration': [], 'inner_validation': []}
@@ -352,15 +352,15 @@ def _descriptive_html(context):
                     (value.get('unique_groups', value.get('groups')), ) + tuple(value.get(key) for key in ('mean', 'std', 'q25', 'median', 'q75', 'min', 'max', 'iqr')))
         for category in value.get('categories', []):
             categories.append((value.get('scope'), value.get('variable'), category.get('value'), category.get('count')))
-    result = _table(['Bölüm', 'Değişken', 'Rol', 'Birim', 'Tür', 'Kayıt', 'Sonlu', 'Eksik', 'Tekil gözlem', 'Grup', 'Ortalama', 'Standart sapma', 'Birinci çeyrek', 'Medyan', 'Üçüncü çeyrek', 'En küçük', 'En büyük', 'Çeyrekler arası aralık'], rows)
+    result = _table(['Partition', 'Variable', 'Role', 'Unit', 'Type', 'Records', 'Finite', 'Missing', 'Unique observations', 'Groups', 'Mean', 'Standard deviation', 'First quartile', 'Median', 'Third quartile', 'Minimum', 'Maximum', 'Interquartile range'], rows)
     if categories:
-        result += _table(['Bölüm', 'Değişken', 'Kategori', 'Sayı'], categories)
+        result += _table(['Partition', 'Variable', 'Category', 'Count'], categories)
     return result
 
 
 def _fold_html(preflight):
     if not preflight:
-        return '<p>Kat uzaklıkları ve ön kontrol tanıları kaydedilmedi (not_recorded).</p>'
+        return '<p>Fold distances and preflight check diagnostics were not recorded (not_recorded).</p>'
     rows = []
     for fold in preflight.get('folds', []):
         diag = fold.get('diagnostics') or {}
@@ -368,94 +368,94 @@ def _fold_html(preflight):
         rows.append((fold.get('repeat'), fold.get('fold'), len(fold.get('train_ids', [])), len(fold.get('test_ids', [])),
                      len(fold.get('excluded_ids', [])), diag.get('train_groups'), diag.get('test_groups'),
                      distance.get('min', diag.get('minimum_train_test_distance_m')), distance.get('median'), distance.get('max')))
-    return _table(['Tekrar', 'Kat', 'Eğitim', 'Test', 'Dışlanan', 'Eğitim grubu', 'Test grubu', 'En kısa uzaklık (m)', 'Medyan uzaklık (m)', 'En uzun uzaklık (m)'], rows) + \
-        '<p>Uzaklıklar her test gözleminin en yakın eğitim gözlemine uzaklığıdır. Kaydedilmeyen uzaklık sıfır sayılmaz. Tam kat üyelikleri validation_folds.csv içinde korunur.</p>' + _kv({'warnings': preflight.get('warnings'), 'workload': preflight.get('workload')})
+    return _table(['Repeat', 'Fold', 'Training', 'Test', 'Excluded', 'Training groups', 'Test groups', 'Minimum distance (m)', 'Median distance (m)', 'Maximum distance (m)'], rows) + \
+        '<p>Each distance is from a test observation to its nearest training observation. A distance that was not recorded is not treated as zero. Full fold memberships are kept in validation_folds.csv.</p>' + _kv({'warnings': preflight.get('warnings'), 'workload': preflight.get('workload')})
 
 
 def _study_html(summary):
     settings = summary['requested_settings']
     context = summary['study_context']
     reused = (summary.get('independent_test_history') or {}).get('settings_changed_since_previous', False)
-    parts = ['<section id="study-report"><h2>Ayrıntılı çalışma ve model kaydı</h2>',
-        '<p>Bu rapor, tamamlanan hesabın kayıtlarından üretilir. Eksik kayıtlar tamamlanmış işlem olarak gösterilmez. Makale metni veya pedolojik yorum yerine geçmez.</p>',
-        '<h3>Veri, derinlik, birim, laboratuvar yöntemi ve örnek desteği</h3>', _kv(summary['sample_settings']), _kv(summary['sample_description']), _kv(summary['counts']),
-        '<h3>Betimsel istatistikler ve yardımcı değişkenler</h3>', _descriptive_html(context), _kv(context['covariates']),
-        '<h3>Doğrulama, gruplar, uzaklıklar ve tarihler</h3>', _kv(settings.get('validation')),
+    parts = ['<section id="study-report"><h2>Detailed study and model record</h2>',
+        '<p>This report is generated from the records of the completed computation. Missing records are not shown as completed steps. It does not replace the text of a paper or a pedological interpretation.</p>',
+        '<h3>Data, depth, unit, laboratory method and sample support</h3>', _kv(summary['sample_settings']), _kv(summary['sample_description']), _kv(summary['counts']),
+        '<h3>Descriptive statistics and covariates</h3>', _descriptive_html(context), _kv(context['covariates']),
+        '<h3>Validation, groups, distances and dates</h3>', _kv(settings.get('validation')),
         _fold_html(summary['preflight']),
-        '<p>Tekrarlı değerlendirmede aynı gözlem birden çok tahmin kaydı taşıyabilir. Tekil kimlik sayısı ile tahmin kaydı sayısı ayrıdır. Kat veya model sayısı bağımsız örnek sayısı değildir.</p>',
-        '<p>Kilitli bağımsız test: ' + ('Kaydedildi; kullanım geçmişi aşağıdadır.' if summary['independent_status'] == 'recorded' else 'Uygulanmadı; bağımsız test sonucu yoktur.') + '</p>', _kv(summary['independent_test_history']),
-        '<p>Test verisi ayarlar değiştikten sonra yeniden kullanıldı. Bu sonuç yeni ve bağımsız bir nihai başarı ölçümü değildir.</p>' if reused else '',
-        '<h3>Ön işleme, hedef dönüşümü ve değişken seçimi</h3>']
-    for component, title in [('preprocessing', 'Ön işleme'), ('target_transform', 'Hedef dönüşümü'), ('vif', 'Varyans şişirme faktörü ile bağlantı denetimi'), ('feature_selection', 'Değişken seçimi')]:
+        '<p>In repeated evaluation, the same observation can have more than one prediction record. The number of unique IDs and the number of prediction records are reported separately. The number of folds or models is not an independent sample size.</p>',
+        '<p>Locked independent test set: ' + ('Recorded; its usage history is below.' if summary['independent_status'] == 'recorded' else 'Not applied; there is no independent test result.') + '</p>', _kv(summary['independent_test_history']),
+        '<p>The test data were reused after the settings changed. This result is not a new, independent measure of final performance.</p>' if reused else '',
+        '<h3>Preprocessing, target transformation and variable selection</h3>']
+    for component, title in [('preprocessing', 'Preprocessing'), ('target_transform', 'Target transformation'), ('vif', 'Collinearity check with the variance inflation factor (VIF)'), ('feature_selection', 'Variable selection')]:
         parts.extend(['<h4>' + title + '</h4>', _kv(settings.get(component))])
-    parts.extend(['<h4>Dış kat modellerinde seçilme sıklığı</h4>',
-        '<p>Payda, seçim kaydı bulunan dış kat modelleridir. Nihai model bu sıklığa katılmaz. Bu sıklık değişkenin nedensel etkisi değildir.</p>',
-        _table(['Özellik', 'Seçen model', 'Kayıtlı dış model', 'Pay'], [(r['feature'], r['selected_models'], r['recorded_outer_models'], r['fraction']) for r in summary['selection_frequency']]),
-        '<p>Seçim kaydı bulunmayan dış model sayısı: ' + str(summary['missing_outer_selection_records']) + '.</p>',
-        '<h3>Model adayları ve gerçekleşen arama</h3>', _kv(settings.get('optimization')),
-        _table(['Arama', 'Deneme', 'Model', 'Karşılaştırma', 'Seçici', 'Durum', 'Ölçüt', 'Kayıp', 'Süre (s)', 'Seçildi', 'Hata'],
+    parts.extend(['<h4>Selection frequency in outer-fold models</h4>',
+        '<p>The denominator is the number of outer-fold models with a selection record. The final model is not included in this frequency. This frequency is not the causal effect of the variable.</p>',
+        _table(['Feature', 'Selecting models', 'Recorded outer models', 'Fraction'], [(r['feature'], r['selected_models'], r['recorded_outer_models'], r['fraction']) for r in summary['selection_frequency']]),
+        '<p>Number of outer models without a selection record: ' + str(summary['missing_outer_selection_records']) + '.</p>',
+        '<h3>Model candidates and the search performed</h3>', _kv(settings.get('optimization')),
+        _table(['Search', 'Trial', 'Model', 'Comparison', 'Selector', 'Status', 'Metric', 'Loss', 'Duration (s)', 'Selected', 'Error'],
             [(r['role'], r['trial'], r['model_id'], r['comparison_arm'], r['feature_selection_method'], r['status'], r['metric'], r['value'], r['elapsed_seconds'], r['selected'], r['error']) for r in summary['candidates']]),
-        '<p>Başarısız denemeler tabloda korunur. Tamamlanmayan denemenin kısmi tahminleri dosyada bulunabilir; bunlardan birleşik başarı sonucu üretilmez. Seçilen deneme kendi iç aramasına aittir.</p>',
-        '<h3>İstenen, taranan, seçilen ve etkin parametreler</h3>',
-        '<p>Etkin parametreler eğitilmiş tahmincinin kaydından gelir. Eski kayıtta bulunmayan varsayılan değerler tahmin edilmez. Tam alan adları indirilebilir tabloda korunur.</p>',
-        _table(['Kapsam', 'Arama', 'Tekrar', 'Kat', 'Deneme', 'Kayıt türü', 'Bileşen', 'Parametre', 'Değer', 'Durum'],
+        '<p>Failed trials are kept in the table. Partial predictions of an incomplete trial can be present in the file; no pooled performance result is produced from them. The selected trial belongs to its own inner search.</p>',
+        '<h3>Requested, searched, selected and effective parameters</h3>',
+        '<p>Effective parameters come from the record of the fitted estimator. Default values missing from an old record are not inferred. Full field names are kept in the downloadable table.</p>',
+        _table(['Scope', 'Search', 'Repeat', 'Fold', 'Trial', 'Record type', 'Component', 'Parameter', 'Value', 'Status'],
             [(r.get('scope'), r.get('role'), r.get('repeat'), r.get('fold'), r.get('trial'), r['kind'], r['component'], r['parameter'], r['value'], r['status']) for r in summary['hyperparameters']]),
-        '<h3>Eğitim, kalibrasyon ve doğrulama sonuçları</h3>',
-        '<p>Eğitim hatası, modelin eğitim verisine yeniden uygulanmasıyla hesaplanır. Kalibrasyon tanısı, aralık ayarında kullanılan hedefleri içerir. İkisi de bağımsız doğrulama başarısı değildir.</p>',
-        '<p>İç doğrulama model ve parametre seçimine katılır. Seçim yanlılığı nedeniyle nihai başarı olarak yorumlanmaz. Dış kat, tekrar, birleşik sonuç ve bağımsız test ayrı gösterilir.</p>'])
+        '<h3>Training, calibration and validation results</h3>',
+        '<p>Training error is computed by reapplying the model to its training data. Calibration diagnostics include the targets used for interval calibration. Neither is independent validation performance.</p>',
+        '<p>Inner validation takes part in model and parameter selection. Because of selection bias, it is not interpreted as final performance. Outer folds, repeats, the pooled result and the independent test are shown separately.</p>'])
     for scope in SCOPE:
         rows = [r for r in summary['metrics'] if r['scope'] == scope]
         if not rows:
             continue
-        title = 'Ayar değişikliği sonrası yeniden kullanılan test' if scope == 'independent' and reused else SCOPE[scope]
+        title = 'Test set reused after a settings change' if scope == 'independent' and reused else SCOPE[scope]
         parts.extend(['<h4>' + title + '</h4>',
-            _table(['Arama', 'Deneme', 'Tekrar', 'Kat', 'Ölçüt', 'Değer', 'Birim', 'Kayıt', 'Tekil kimlik', 'Grup', 'Aralıklı kayıt / toplam', 'Durum / neden'],
+            _table(['Search', 'Trial', 'Repeat', 'Fold', 'Metric', 'Value', 'Unit', 'Records', 'Unique IDs', 'Groups', 'Records with interval / total', 'Status / reason'],
                 [(r.get('role'), r.get('trial'), r.get('repeat'), r.get('fold'), r['label'], r['value'], r['unit'], r['n'], r['n_unique'], r['group_count'],
                   str(r.get('coverage_denominator')) + ' / ' + str(r.get('availability_denominator')) if r.get('interval_scope') else None,
-                  REASONS.get(r['reason'], r['reason']) if r['reason'] else 'Yalnız aralığı hesaplanan altküme' if r['status'] == 'available_subset' else 'Hesaplandı') for r in rows])])
-    parts.extend(['<h3>Ölçütlerin tanımları ve hesaplama kuralları</h3>',
-        '<p>y gözlenen, p tahmin edilen değer; e=p-y; n ilgili bölümdeki kayıt sayısıdır. mean aritmetik ortalamayı, I koşul sağlandığında 1 değerini belirtir. Hata ölçütleri özgün hedef ölçeğindedir.</p>',
-        '<p>R², Pearson r² değildir ve negatif olabilir. Lin katsayısında varyans ve kovaryans böleni n olur. Standart sapmalarda bölen n-1 olur.</p>',
-        '<p>Çeyrekler doğrusal ara değerle hesaplanır: sıralı veride h=(n-1)q, j=floor(h), Qq=y[j]+(h-j)*(y[min(j+1,n-1)]-y[j]); indeks sıfırdan başlar.</p>',
-        '<p>Sıfır payda, yetersiz kayıt veya sabit değişken nedeniyle tanımsız sonuç null ve neden koduyla saklanır. Sıfır hata için dağılım oranlarına sonsuz değer atanmaz.</p>',
-        _table(['Ölçüt', 'Tam formül', 'Birim türü'], [(v['label'], v['formula'], {'target': 'Hedef birimi', 'squared': 'Hedef biriminin karesi', 'dimensionless': 'Boyutsuz'}[v['unit_type']]) for v in summary['metric_definitions'].values()]),
-        '<h3>Belirsizlik, kalibrasyon ve altgruplar</h3>', _kv(settings.get('uncertainty')), _kv(summary['coverage_diagnostics']), _kv(summary['subgroup_diagnostics']),
-        '<p>Tahmin aralığı güven aralığı değildir. Yerel aralık yalnız bazı gözlemlerde hesaplandıysa kapsama paydası bu altkümedir. Aralığı olmayan gözlemler sıfır genişlikle doldurulmaz.</p>',
-        '<h3>Haritalama, uygulanabilirlik alanı ve artık kriging</h3>', _kv(settings.get('mapping')), _kv(summary['mapping_diagnostics']), _kv(summary['plain_model_comparison']),
-        '<p>Uygulanabilirlik alanı çevresel temsil tanısıdır; alan içindeki her hücrenin doğru olduğunu göstermez. Hücre payı, coğrafi alan payı olarak yorumlanmaz.</p>',
-        '<h3>Nihai model, öğrenilen dönüşümler ve katsayı kayıtları</h3>'])
+                  REASONS.get(r['reason'], r['reason']) if r['reason'] else 'Only the subset with computed intervals' if r['status'] == 'available_subset' else 'Computed') for r in rows])])
+    parts.extend(['<h3>Metric definitions and calculation rules</h3>',
+        '<p>y is the observed value and p is the predicted value; e=p-y; n is the number of records in the relevant partition. mean denotes the arithmetic mean, and I takes the value 1 when its condition holds. Error metrics are on the original target scale.</p>',
+        '<p>R² is not Pearson r² and can be negative. In Lin\'s coefficient, the divisor of the variance and covariance is n. In standard deviations, the divisor is n-1.</p>',
+        '<p>Quartiles are computed by linear interpolation: on sorted data, h=(n-1)q, j=floor(h), Qq=y[j]+(h-j)*(y[min(j+1,n-1)]-y[j]); indexing starts at zero.</p>',
+        '<p>A result that is undefined because of a zero denominator, too few records or a constant variable is stored as null with a reason code. Dispersion ratios are not set to infinity when the error is zero.</p>',
+        _table(['Metric', 'Exact formula', 'Unit type'], [(v['label'], v['formula'], {'target': 'Target unit', 'squared': 'Square of the target unit', 'dimensionless': 'Dimensionless'}[v['unit_type']]) for v in summary['metric_definitions'].values()]),
+        '<h3>Uncertainty, calibration and subgroups</h3>', _kv(settings.get('uncertainty')), _kv(summary['coverage_diagnostics']), _kv(summary['subgroup_diagnostics']),
+        '<p>A prediction interval is not a confidence interval. If a local interval was computed only for some observations, the coverage denominator is that subset. Observations without an interval are not filled with zero width.</p>',
+        '<h3>Mapping, area of applicability (AOA) and residual kriging</h3>', _kv(settings.get('mapping')), _kv(summary['mapping_diagnostics']), _kv(summary['plain_model_comparison']),
+        '<p>The area of applicability is a diagnostic of environmental representation; it does not show that every cell inside the area is correct. A fraction of cells is not interpreted as a fraction of geographic area.</p>',
+        '<h3>Final model, learned transformations and coefficient records</h3>'])
     for item in summary['model_records']:
         record = item['record']
         reduced = {key: value for key, value in record.items() if key not in ('train_metrics', 'calibration_metrics', 'training_ids', 'development_ids', 'calibration_ids', 'excluded_ids')}
         parts.extend(['<h4>' + html.escape(str(item['role'])) + '</h4>', _kv(reduced)])
-    parts.extend(['<h3>Çalışma zamanı, donanım, sürümler ve dosya özetleri</h3>',
+    parts.extend(['<h3>Runtime, hardware, versions and file digests</h3>',
         _kv({key: {'status': summary['context_status'][key], 'value': context[key]} for key in context if key not in ('descriptive_statistics', 'covariates')}),
-        '<p>UTC, eşgüdümlü evrensel zamandır. SHA-256, dosya içeriğinin kriptografik özetidir. Analiz süresi rapor dosyalarını yazma süresini içermeyebilir.</p>',
-        '<h3>Varsayımlar ve yorum sınırları</h3>',
-        '<p>Grup alanları, kaydedilmiş bağımlılığı korur; bilinmeyen bağımlılığı ortadan kaldırmaz. Mekânsal katlar bütün çalışma alanı için tasarıma dayalı doğruluk güvencesi değildir.</p>',
-        '<p>Zamansal değerlendirmede başlangıç geçmişi dış test sayılmaz. Sabit rasterler geleceğe ait harita doğruluğunu kanıtlamaz. Deneysel yöntemlerin sonuçları yalnız kaydedilmiş veri ve ayarlara aittir.</p>',
-        '<p>Değişken önemi nedensel etki değildir. Fiziksel sınırlar, derinlik, laboratuvar yöntemi ve örnek desteği yorumdan önce incelenmelidir. Eksik bilgi tamamlanmış kabul edilmez.</p>',
-        '<h3>Ayrıntılı dosyalar</h3><ul>'])
+        '<p>UTC is Coordinated Universal Time. SHA-256 is a cryptographic digest of the file content. The analysis duration may not include the time spent writing report files.</p>',
+        '<h3>Assumptions and limits of interpretation</h3>',
+        '<p>Group fields preserve the recorded dependence; they do not remove unknown dependence. Spatial folds are not a design-based accuracy guarantee for the whole study area.</p>',
+        '<p>In temporal evaluation, the initial history is not counted as an outer test. Static rasters do not prove future map accuracy. Results of experimental methods apply only to the recorded data and settings.</p>',
+        '<p>Variable importance is not a causal effect. Physical bounds, depth, laboratory method and sample support must be reviewed before interpretation. Missing information is not assumed to be complete.</p>',
+        '<h3>Detailed files</h3><ul>'])
     data_files = context.get('analysis_data', {}).get('files', [])
     parts.extend('<li><a href="' + name + '">' + name + '</a></li>' for name in FILES + data_files + ['evaluation.json', 'optimization_trials.json', 'final_record.json', 'learning_audit.json', 'figure_manifest.json'])
     artifact = context.get('model_artifact') or {}
     model_path = artifact.get('package_path')
     if model_path:
         if Path(model_path).is_absolute() or '..' in Path(model_path).parts or ':' in model_path:
-            raise JobError('REPORT_MODEL_LINK', 'Model paketinin bağlantısı yerel ve göreli olmalıdır.')
-        parts.append('<li>Kaydedilmiş model paketi: <code>' + html.escape(model_path) + '</code>. '
-                     'ArcMap panelinde <strong>10 Rapor ve günlük &gt; Modeli kaydet</strong> yoluyla dışa aktarın.</li>')
+            raise JobError('REPORT_MODEL_LINK', 'The model package link must be local and relative.')
+        parts.append('<li>Saved model package: <code>' + html.escape(model_path) + '</code>. '
+                     'Export it in the ArcMap panel with <strong>10 Report and log &gt; Save model</strong>.</li>')
     if data_files:
-        parts.append('<li>Tüm çalışma paketi: <code>study_package.spsstudy.zip</code>. Raporlar, veri tabloları, haritalar ve model paketi birlikte saklanır.</li>')
+        parts.append('<li>Full study package: <code>study_package.spsstudy.zip</code>. Reports, data tables, maps and the model package are stored together.</li>')
     parts.append('</ul>')
     if data_files:
-        parts.append('<p>sampled_data.csv, modele verilen özgün çıkarılmış değişken değerlerini içerir. '
-                     'role_data.csv aynı değerleri eğitim, kalibrasyon ve sınama üyelikleriyle birleştirir. '
-                     'Eksik değişkenler burada doldurulmaz. Dışlanan ham gözlemler ayrı dosyada gerekçeleriyle korunur.</p>')
-        parts.append('<p>trial_results.csv yalnız gerçekten başlatılan denemeleri içerir. '
-                     'inner_fold_results.csv tamamlanmayan katları boş ölçütlerle ayırır. '
-                     'İç kat modellerinin eğitim hatası ve iç aralık ölçütleri hesaplanmadı; yeni sonuç gibi üretilmez.</p>')
-    parts.append('<p>Tam ham kayıt evaluation.json içinde korunur. Tablolarda boş sayısal alan null değerini taşır; neden ve durum sütunları ayrı verilir.</p></section>')
+        parts.append('<p>sampled_data.csv contains the original extracted variable values given to the model. '
+                     'role_data.csv joins the same values with training, calibration and test memberships. '
+                     'Missing variable values are not filled in here. Excluded raw observations are kept in a separate file with their reasons.</p>')
+        parts.append('<p>trial_results.csv contains only trials that were actually started. '
+                     'inner_fold_results.csv marks incomplete folds with empty metrics. '
+                     'Training error of inner-fold models and inner interval metrics were not computed; they are not produced as if they were new results.</p>')
+    parts.append('<p>The full raw record is kept in evaluation.json. In the tables, an empty numeric field means null; reason and status columns are given separately.</p></section>')
     return '\n'.join(parts)
 
 
@@ -483,7 +483,7 @@ class _ReportTree(HTMLParser):
         self.feed(content)
         self.close()
         if len(self.stack) != 1:
-            raise JobError('REPORT_PAGE_STRUCTURE', 'Rapor bölümlerinin HTML yapısı kapanmamış.')
+            raise JobError('REPORT_PAGE_STRUCTURE', 'The HTML structure of the report sections is not closed.')
 
     def handle_starttag(self, tag, attrs):
         node = _HtmlNode(tag, attrs)
@@ -493,7 +493,7 @@ class _ReportTree(HTMLParser):
 
     def handle_endtag(self, tag):
         if len(self.stack) == 1 or self.stack[-1].tag != tag:
-            raise JobError('REPORT_PAGE_STRUCTURE', 'Rapor bölümlerinin HTML yapısı tutarsız.')
+            raise JobError('REPORT_PAGE_STRUCTURE', 'The HTML structure of the report sections is inconsistent.')
         self.stack.pop()
 
     def handle_data(self, value):
@@ -533,15 +533,15 @@ def _table_chunks(block):
         yield block
         return
     if len(tables) != 1:
-        raise JobError('REPORT_PAGE_STRUCTURE', 'Sayfalanacak blok tek tablo içermelidir.')
+        raise JobError('REPORT_PAGE_STRUCTURE', 'A block to be paged must contain exactly one table.')
     table = tables[0]
     heads = [node for node in table.children if isinstance(node, _HtmlNode) and node.tag == 'thead']
     bodies = [node for node in table.children if isinstance(node, _HtmlNode) and node.tag == 'tbody']
     if len(heads) != 1 or len(bodies) != 1:
-        raise JobError('REPORT_PAGE_STRUCTURE', 'Sayfalanacak tablonun başlığı veya gövdesi eksik.')
+        raise JobError('REPORT_PAGE_STRUCTURE', 'The table to be paged is missing its header or body.')
     head_rows = sum(1 for _ in _nodes(heads[0], 'tr'))
     if head_rows >= PAGE_ROW_LIMIT:
-        raise JobError('REPORT_PAGE_STRUCTURE', 'Tablo başlığı sayfa satır sınırını aşıyor.')
+        raise JobError('REPORT_PAGE_STRUCTURE', 'The table header exceeds the page row limit.')
     rows = [node for node in bodies[0].children if isinstance(node, _HtmlNode) and node.tag == 'tr']
     chunks, current, size = [], [], len(heads[0].render().encode('utf-8'))
     for row in rows:
@@ -557,7 +557,7 @@ def _table_chunks(block):
 
 
 def _page_document(title, content, navigation):
-    return '<!doctype html><html lang="tr"><head><meta charset="utf-8">' + \
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8">' + \
         '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src \'self\' data:; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'">' + \
         '<title>' + html.escape(title) + '</title><style>' + \
         'body{font-family:Segoe UI,Arial,sans-serif;line-height:1.45;color:#18222c;margin:1rem}table{border-collapse:collapse;width:100%}td,th{border:1px solid #cad1d7;padding:.35rem;text-align:left;vertical-align:top;word-wrap:break-word}th{background:#eef2f5}.study-table{overflow-x:auto}img{max-width:100%;height:auto}a{color:#005983}nav{padding:.7rem;background:#eef2f5;margin:.6rem 0}h1{font-size:1.35rem}h2{font-size:1.15rem}</style></head><body>' + \
@@ -568,34 +568,34 @@ def _report_supplement(document):
     """Keep the original report's unique content accessible in the panel."""
     body = document.partition('</head><body>')[2].rpartition('</body></html>')[0]
     if not body:
-        raise JobError('REPORT_PAGE_STRUCTURE', 'Ana raporun gövdesi bulunamadı.')
+        raise JobError('REPORT_PAGE_STRUCTURE', 'The body of the main report was not found.')
     tree = _ReportTree(body).root
     blocks, heading = [], None
     for node in tree.children:
         if not isinstance(node, _HtmlNode):
             if node.strip():
-                raise JobError('REPORT_PAGE_STRUCTURE', 'Ana raporun bölüm dışında metni var.')
+                raise JobError('REPORT_PAGE_STRUCTURE', 'The main report has text outside a section.')
             continue
         if node.tag in ('h1', 'figure'):
             continue
         if node.tag == 'section':
-            raise JobError('REPORT_PAGE_STRUCTURE', 'Ana rapor ekinde ayrıntılı bölüm yinelenemez.')
+            raise JobError('REPORT_PAGE_STRUCTURE', 'The detailed section cannot be repeated in the main report supplement.')
         if node.tag == 'pre':
-            if heading == 'Nihai model kaydı':
-                target, label = 'final_record.json', 'Nihai modelin tam kaydı'
-            elif heading == 'Kullanılan ayarlar':
-                target, label = 'evaluation.json', 'Kullanılan ayarları da içeren tam değerlendirme kaydı'
+            if heading == 'Final model record':
+                target, label = 'final_record.json', 'Full record of the final model'
+            elif heading == 'Settings used':
+                target, label = 'evaluation.json', 'Full evaluation record, including the settings used'
             else:
-                raise JobError('REPORT_PAGE_STRUCTURE', 'Ana raporda bilinmeyen ham kayıt bloğu var.')
-            node = _HtmlNode('p', children=[_HtmlNode('a', [('href', target)], [label]), '. Büyük ham kayıt yerel veri dosyasında eksiksiz korunur.'])
+                raise JobError('REPORT_PAGE_STRUCTURE', 'The main report has an unknown raw record block.')
+            node = _HtmlNode('p', children=[_HtmlNode('a', [('href', target)], [label]), '. The large raw record is kept complete in the local data file.'])
         elif node.tag == 'h2':
             heading = node.text()
             node.tag = 'h3'
-            node.children = ['Değerlendirme: '] + node.children
+            node.children = ['Evaluation: '] + node.children
         elif node.tag == 'h3':
             node.tag = 'h4'
         blocks.append(node)
-    return '<section><h3>Değerlendirme: çalışma kimliği</h3>' + ''.join(node.render() for node in blocks) + '</section>'
+    return '<section><h3>Evaluation: run ID</h3>' + ''.join(node.render() for node in blocks) + '</section>'
 
 
 def write_paged_study(folder, section, figure_fragments, *, check_cancel, supplemental_report=''):
@@ -603,7 +603,7 @@ def write_paged_study(folder, section, figure_fragments, *, check_cancel, supple
     tree = _ReportTree(section).root
     roots = [node for node in tree.children if isinstance(node, _HtmlNode) and node.tag == 'section']
     if len(roots) != 1:
-        raise JobError('REPORT_PAGE_STRUCTURE', 'Ayrıntılı çalışma bölümü tek olmalıdır.')
+        raise JobError('REPORT_PAGE_STRUCTURE', 'There must be exactly one detailed study section.')
     sources = [{'file': 'study_report.html', 'data_rows': len(_data_rows(tree))}]
     if supplemental_report:
         supplemental = _ReportTree(_report_supplement(supplemental_report)).root
@@ -612,11 +612,11 @@ def write_paged_study(folder, section, figure_fragments, *, check_cancel, supple
         sources.append({'file': 'report.html', 'scope': 'excluding the repeated study section and figures', 'data_rows': len(_data_rows(supplemental))})
     source_rows = _data_rows(tree)
     _panel_safe_links(tree)
-    sections = [('Çalışma raporunun kapsamı', [])]
+    sections = [('Scope of the study report', [])]
     for node in (node for root in roots for node in root.children):
         if not isinstance(node, _HtmlNode):
             if node.strip():
-                raise JobError('REPORT_PAGE_STRUCTURE', 'Bölüm dışında rapor metni bulundu.')
+                raise JobError('REPORT_PAGE_STRUCTURE', 'Report text was found outside a section.')
             continue
         if node.tag == 'h3':
             sections.append((node.text(), []))
@@ -650,32 +650,32 @@ def write_paged_study(folder, section, figure_fragments, *, check_cancel, supple
         flush()
     for i, fragment in enumerate(figure_fragments):
         check_cancel()
-        pages.append({'title': 'Yerel grafik %d' % (i + 1), 'content': fragment, 'table_rows': 0})
+        pages.append({'title': 'Local figure %d' % (i + 1), 'content': fragment, 'table_rows': 0})
     actual_rows = [row for page in pages for row in _data_rows(_ReportTree(page['content']).root)]
     if source_rows != actual_rows or any(page['table_rows'] > PAGE_ROW_LIMIT for page in pages):
-        raise JobError('REPORT_PAGE_ROWS', 'Rapor sayfaları bütün tablo satırlarını aynı sırayla korumalıdır.')
+        raise JobError('REPORT_PAGE_ROWS', 'Report pages must keep every table row in the same order.')
     metadata = []
     for i, page in enumerate(pages):
         check_cancel()
         filename = 'study_report_page_%03d.html' % (i + 1)
-        links = ['<a href="' + PAGE_INDEX + '">İçindekiler</a>']
+        links = ['<a href="' + PAGE_INDEX + '">Contents</a>']
         if i:
-            links.append('<a href="study_report_page_%03d.html">Önceki</a>' % i)
+            links.append('<a href="study_report_page_%03d.html">Previous</a>' % i)
         if i + 1 < len(pages):
-            links.append('<a href="study_report_page_%03d.html">Sonraki</a>' % (i + 2))
-        nav = '<nav>' + ' | '.join(links) + ' <span>Sayfa %d / %d</span></nav>' % (i + 1, len(pages))
+            links.append('<a href="study_report_page_%03d.html">Next</a>' % (i + 2))
+        nav = '<nav>' + ' | '.join(links) + ' <span>Page %d of %d</span></nav>' % (i + 1, len(pages))
         content = _page_document(page['title'], page['content'], nav)
         (folder / filename).write_text(content, encoding='utf-8')
         metadata.append({'file': filename, 'title': page['title'], 'table_rows': page['table_rows'],
                          'data_rows': len(_data_rows(_ReportTree(page['content']).root)), 'bytes': len(content.encode('utf-8'))})
-    index = ['<p>Ayrıntılı çalışma raporu yerel bölümlere ayrılmıştır. Tablo satırları eksiksiz korunur. Bölümler arasında bu içindekiler veya önceki ve sonraki bağlantılarıyla geçebilirsiniz.</p>',
-             '<p>Her sayfada başlıklarla birlikte en çok %d tablo satırı bulunur. Grafikler ayrı sayfalardadır.</p>' % PAGE_ROW_LIMIT,
-             '<p>Yayın ve arşiv için tam rapor dosyaları: <code>study_report.html</code> ve <code>report.html</code>. Panel, tam dosyalar yerine aşağıdaki bölümleri açar.</p><ol>']
+    index = ['<p>The detailed study report is split into local sections. Table rows are kept complete. Move between sections with this table of contents or with the previous and next links.</p>',
+             '<p>Each page has at most %d table rows, including header rows. Figures are on separate pages.</p>' % PAGE_ROW_LIMIT,
+             '<p>Full report files for publication and archiving: <code>study_report.html</code> and <code>report.html</code>. The panel opens the sections below instead of the full files.</p><ol>']
     for page in metadata:
-        index.append('<li><a href="' + page['file'] + '">' + html.escape(page['title']) + '</a> (%d veri satırı)</li>' % page['data_rows'])
+        index.append('<li><a href="' + page['file'] + '">' + html.escape(page['title']) + '</a> (data rows: %d)</li>' % page['data_rows'])
     index.append('</ol>')
     check_cancel()
-    (folder / PAGE_INDEX).write_text(_page_document('Ayrıntılı çalışma raporu: içindekiler', ''.join(index), ''), encoding='utf-8')
+    (folder / PAGE_INDEX).write_text(_page_document('Detailed study report: contents', ''.join(index), ''), encoding='utf-8')
     return {'index': PAGE_INDEX, 'pages': metadata, 'table_row_limit_including_headers': PAGE_ROW_LIMIT,
             'soft_content_byte_limit': PAGE_SOFT_BYTES, 'source_data_rows': len(source_rows), 'sources': sources,
             'source_rows_sha256': hashlib.sha256(json.dumps(source_rows, ensure_ascii=False).encode('utf-8')).hexdigest(),
@@ -693,16 +693,16 @@ def write_publication_reports(folder, evaluation, samples, settings, counts, fig
         check_cancel()
         _write_csv(folder / (key + '_predictions.csv'), rows, ['scope', 'role', 'trial', 'repeat', 'fold', 'model_id', 'sample_id', 'group_id', 'observed', 'predicted', 'residual'])
     section = _study_html(summary)
-    document = ['<!doctype html><html lang="tr"><head><meta charset="utf-8">',
+    document = ['<!doctype html><html lang="en"><head><meta charset="utf-8">',
         '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src \'self\' data:; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'">',
-        '<title>Ayrıntılı çalışma raporu</title><style>body{font-family:Segoe UI,Arial,sans-serif;line-height:1.5;color:#18222c;max-width:1400px;margin:2rem auto;padding:1rem}table{border-collapse:collapse;width:100%;margin:1rem 0}td,th{border:1px solid #cad1d7;padding:.4rem;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#eef2f5}.study-table{overflow-x:auto}img{max-width:100%;height:auto}a{color:#005983}@media print{.study-table{overflow:visible}h3{break-after:avoid}}</style></head><body><h1>Ayrıntılı çalışma raporu</h1>', section, '<h2>Yerel grafikler</h2>']
+        '<title>Detailed study report</title><style>body{font-family:Segoe UI,Arial,sans-serif;line-height:1.5;color:#18222c;max-width:1400px;margin:2rem auto;padding:1rem}table{border-collapse:collapse;width:100%;margin:1rem 0}td,th{border:1px solid #cad1d7;padding:.4rem;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#eef2f5}.study-table{overflow-x:auto}img{max-width:100%;height:auto}a{color:#005983}@media print{.study-table{overflow:visible}h3{break-after:avoid}}</style></head><body><h1>Detailed study report</h1>', section, '<h2>Local figures</h2>']
     figure_fragments = []
     for figure in figures:
         paths = figure.get('files', [])
         if len(paths) < 2 or any(Path(p).is_absolute() or '..' in Path(p).parts or ':' in p or not p.startswith('figures/') for p in paths):
-            raise JobError('REPORT_PUBLICATION_FIGURE', 'Ayrıntılı rapor yalnız kendi yerel grafiklerini kullanabilir.')
-        caption = html.escape(str(figure.get('caption', 'Grafik')))
-        fragment = '<figure><img src="' + html.escape(paths[1], quote=True) + '" alt="' + caption + '"><figcaption>' + caption + ' <a href="' + html.escape(paths[0], quote=True) + '">Vektörel grafik</a></figcaption></figure>'
+            raise JobError('REPORT_PUBLICATION_FIGURE', 'The detailed report can use only its own local figures.')
+        caption = html.escape(str(figure.get('caption', 'Figure')))
+        fragment = '<figure><img src="' + html.escape(paths[1], quote=True) + '" alt="' + caption + '"><figcaption>' + caption + ' <a href="' + html.escape(paths[0], quote=True) + '">Vector graphic</a></figcaption></figure>'
         document.append(fragment)
         figure_fragments.append(fragment)
     document.append('</body></html>')

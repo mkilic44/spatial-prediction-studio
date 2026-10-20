@@ -182,18 +182,18 @@ def make_point_estimator(model, seed=42):
     elif name in factories:
         estimator = factories[name]()
     else:
-        raise JobError("MODEL", "Desteklenmeyen regresyon modeli: " + name)
+        raise JobError("MODEL", "Unsupported regression model: " + name)
     if any(key in params for key in ("early_stopping_rounds", "eval_set", "callbacks")) or params.get("early_stopping", False) not in (False, None):
-        raise JobError("EARLY_STOPPING", "Erken durdurma bu aşamada kapalıdır; yineleme sayısı iç katlarda seçilir.")
+        raise JobError("EARLY_STOPPING", "Early stopping is turned off in this stage; the number of iterations is selected in inner folds.")
     if "n_jobs" in params and params["n_jobs"] != 1:
-        raise JobError("MODEL_PARALLELISM", "Model içi işçi sayısı 1 olmalıdır; paralellik arama düzeyinde seçilir.")
+        raise JobError("MODEL_PARALLELISM", "The number of workers within a model must be 1; parallelism is set at the search level.")
     unknown = set(params) - set(estimator.get_params())
     if unknown:
-        raise JobError("MODEL_PARAMETER", "Bilinmeyen model parametresi: " + sorted(unknown)[0])
+        raise JobError("MODEL_PARAMETER", "Unknown model parameter: " + sorted(unknown)[0])
     if name in ("mean", "median") and "strategy" in params:
-        raise JobError("MODEL_PARAMETER", "Başvuru modelinin stratejisi model kimliğiyle sabittir.")
+        raise JobError("MODEL_PARAMETER", "The strategy of a baseline model is fixed by its model ID.")
     if name == "xgboost" and (params.get("objective", "reg:squarederror") != "reg:squarederror" or params.get("device", "cpu") != "cpu"):
-        raise JobError("MODEL_PARAMETER", "XGBoost bu aşamada CPU ve reg:squarederror kullanır.")
+        raise JobError("MODEL_PARAMETER", "In this stage, XGBoost uses the CPU and reg:squarederror.")
     estimator.set_params(**params)
     return estimator
 
@@ -208,19 +208,19 @@ class TargetMap:
     def fit_transform(self, y):
         y = np.asarray(y, dtype=float)
         if y.ndim != 1 or not np.isfinite(y).all():
-            raise JobError("TARGET", "Hedef değerler sonlu olmalıdır; eksik hedefler doldurulamaz.")
+            raise JobError("TARGET", "Target values must be finite; missing targets cannot be imputed.")
         if self.method == "none":
             return y.copy()
         if self.method == "log":
             if np.any(y <= 0):
-                raise JobError("LOG_TARGET", "Logaritmik dönüşüm için bütün eğitim hedefleri pozitif olmalıdır.")
+                raise JobError("LOG_TARGET", "Log transformation requires all training targets to be positive.")
             return np.log(y)
         if self.method == "yeo_johnson":
             if np.ptp(y) == 0:
-                raise JobError("CONSTANT_TARGET_TRANSFORM", "Sabit hedef için Yeo-Johnson dönüşümü tanımlanmıyor.")
+                raise JobError("CONSTANT_TARGET_TRANSFORM", "The Yeo-Johnson transformation is not defined for a constant target.")
             self.transformer = PowerTransformer(method="yeo-johnson", standardize=True).fit(y[:, None])
             return self.transformer.transform(y[:, None])[:, 0]
-        raise JobError("TARGET_TRANSFORM", "Desteklenmeyen hedef dönüşümü.")
+        raise JobError("TARGET_TRANSFORM", "Unsupported target transformation.")
 
     def inverse(self, values, *, point=False):
         values = np.asarray(values, dtype=float)
@@ -233,7 +233,7 @@ class TargetMap:
         else:
             result = values.copy()
         if not np.isfinite(result).all():
-            raise JobError("INVERSE_TRANSFORM", "Hedef ters dönüşümü sonlu tahmin üretmedi.")
+            raise JobError("INVERSE_TRANSFORM", "The target back-transformation did not produce finite predictions.")
         return result
 
     def record(self):
@@ -268,9 +268,9 @@ class FittedWorkflow:
         nominal = float(self.settings.get("uncertainty", {}).get("coverage", .9))
         coverage = nominal if coverage is None else float(coverage)
         if not 0 < coverage < 1:
-            raise JobError("COVERAGE_LEVEL", "Kapsama düzeyi 0 ile 1 arasında olmalıdır.")
+            raise JobError("COVERAGE_LEVEL", "Coverage level must be between 0 and 1.")
         if self.quantile_estimators is not None and not np.isclose(coverage, nominal, rtol=0, atol=1e-12):
-            raise JobError("QUANTILE_LEVEL_NOT_FITTED", "Kantil güçlendirme bu düzeyde eğitilmedi; yeniden eğitim olmadan aralık üretilemez.")
+            raise JobError("QUANTILE_LEVEL_NOT_FITTED", "Gradient boosting with quantile loss was not trained at this level; no interval can be produced without retraining.")
         features = self.pipeline.transform(X)
         alpha = 1 - coverage
         if self.quantile_forest:
@@ -292,7 +292,7 @@ class FittedWorkflow:
     def predict_interval_at_coverage(self, X, coverage):
         interval = self._raw_interval(X, coverage)
         if interval is None:
-            raise JobError("NO_INTERVAL_METHOD", "Seçilen iş akışı tahmin aralığı üretmiyor.")
+            raise JobError("NO_INTERVAL_METHOD", "The selected workflow does not produce a prediction interval.")
         lower, upper = interval
         return np.minimum(lower, upper), np.maximum(lower, upper)
 
@@ -328,7 +328,7 @@ def fit_workflow(X, y, ids, coordinates, groups, covariates, settings, *, crs, r
     y = np.asarray(y, dtype=float)
     coordinates, groups = np.asarray(coordinates), np.asarray(groups)
     if len(ids) != len(y) or X.shape != (len(y), len(covariates)) or len(set(ids)) != len(ids):
-        raise JobError("FIT_SHAPE", "Eğitim kimlikleri, hedef ve değişken matrisi uyuşmuyor.")
+        raise JobError("FIT_SHAPE", "The training IDs, target and variable matrix do not match.")
     check_cancel()
     seed = int(settings.get("optimization", {}).get("seed", settings.get("validation", {}).get("seed", 42)))
     initial = None
@@ -348,7 +348,7 @@ def fit_workflow(X, y, ids, coordinates, groups, covariates, settings, *, crs, r
     estimator = make_point_estimator(settings["model"], seed)
     if quantile_forest:
         if settings["model"]["id"] != "random_forest":
-            raise JobError("UNCERTAINTY_MODEL", "Kantil ormanı, rastgele orman model ailesi gerektirir.")
+            raise JobError("UNCERTAINTY_MODEL", "The quantile regression forest requires the random forest model family.")
         from quantile_forest import RandomForestQuantileRegressor
         params = estimator.get_params()
         accepted = RandomForestQuantileRegressor().get_params()
@@ -356,7 +356,7 @@ def fit_workflow(X, y, ids, coordinates, groups, covariates, settings, *, crs, r
         estimator = RandomForestQuantileRegressor(**params, default_quantiles="mean", max_samples_leaf=None)
     elif quantile_method == "quantile_boosting":
         if settings["model"]["id"] != "hist_gradient_boosting":
-            raise JobError("UNCERTAINTY_MODEL", "Kantil güçlendirme, histogramla gradyan güçlendirme ailesi gerektirir.")
+            raise JobError("UNCERTAINTY_MODEL", "Gradient boosting with quantile loss requires the histogram-based gradient boosting model family.")
         alpha = 1 - float(uncertainty.get("coverage", .9))
         quantile_estimators = []
         for quantile in (alpha / 2, 1 - alpha / 2):
@@ -377,7 +377,7 @@ def fit_workflow(X, y, ids, coordinates, groups, covariates, settings, *, crs, r
         fitted = estimator.predict(features, quantiles="mean") if quantile_forest else estimator.predict(features)
         target.smearing = float(np.mean(np.exp(transformed - fitted)))
         if not np.isfinite(target.smearing):
-            raise JobError("SMEARING", "Eğitim artıklarından sonlu düzeltme katsayısı hesaplanamadı.")
+            raise JobError("SMEARING", "A finite smearing factor could not be computed from the training residuals.")
         audit(learning_audit, role, "log_smearing", ids)
     record = {**pipeline.record, "model": deepcopy(settings["model"]), "target_transform": target.record(), "training_ids": list(ids),
         "uncertainty_method": method, "early_stopping": False, "settings": deepcopy(settings),

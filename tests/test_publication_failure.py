@@ -4,7 +4,7 @@ from test_engine_b import request,run_request
 from sps.contract import Cancelled,JobError
 
 
-@pytest.mark.parametrize('failure',[Cancelled(),JobError('PACKAGE_TEST','Paketleme sınaması')])
+@pytest.mark.parametrize('failure',[Cancelled(),JobError('PACKAGE_TEST','Packaging test')])
 def test_late_package_failure_invalidates_report_and_preserves_failed_record(tmp_path,monkeypatch,failure):
     import sps.model_bundle
     def fail(*args,**kwargs):

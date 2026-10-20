@@ -20,6 +20,7 @@ def main():
     parser.add_argument('--evidence-dir', type=Path, default=ROOT / 'installer/final-acceptance')
     args = parser.parse_args()
     acceptance = args.acceptance.resolve()
+    # sps-ç and sps-ç2 locate the Turkish 0.5.0 acceptance records; keep as recorded.
     if not (acceptance.is_relative_to(ROOT / 'installer') or acceptance in (
             ROOT.parent / 'sps-ç/setup-acceptance.json', ROOT.parent / 'sps-ç2/setup-acceptance.json',
             ROOT.parent / 'sps-cs/setup-acceptance.json')):
@@ -36,6 +37,7 @@ def main():
         raise ValueError('Setup changed after isolated acceptance')
     sources = {p for p in (ROOT / 'installer').iterdir()
                if p.is_file() and p.suffix in {'.py', '.iss', '.R', '.txt', '.md'}}
+    # KURULUM_REHBERI.md is the installation guide file name recorded in the Turkish 0.5.0 payload; keep as recorded.
     sources.update({ROOT / 'tools/build_installer.py', ROOT / 'docs/KURULUM_REHBERI.md'})
     sources.update(p for p in (ROOT / 'mcp-server').rglob('*') if p.is_file()
                    and p.suffix.lower() in {'.py', '.md', '.txt', '.json'} and '__pycache__' not in p.parts)
@@ -53,9 +55,11 @@ def main():
     evidence.add(ROOT / 'build/claude-store-registration-review.json')
     evidence.update(p for p in (ROOT / 'installer/failed-6d5fb15e486c').glob('*')
                     if p.is_file() and p.suffix in {'.json', '.log'})
+    # Failed staging folder recorded during the Turkish 0.5.0 acceptance; keep as recorded.
     failed_stage = ROOT / 'installer/staging-çalışma-final'
     evidence.update(p for p in failed_stage.glob('*') if p.is_file() and p.suffix in {'.json', '.log'})
     evidence.update(failed_stage.glob('app/versions/*/deployment-error.json'))
+    # Staging folder recorded during the Turkish 0.5.0 acceptance; keep as recorded.
     previous_unicode_stage = ROOT.parent / 'sps-ç'
     if acceptance.parent != previous_unicode_stage:
         evidence.update(p for p in previous_unicode_stage.glob('*') if p.is_file() and p.suffix in {'.json', '.log'})
@@ -71,6 +75,7 @@ def main():
         if path.is_relative_to(ROOT):
             return path.relative_to(ROOT).as_posix()
         if path.is_relative_to(previous_unicode_stage) and acceptance.parent != previous_unicode_stage:
+            # Archive path mirrors the recorded sps-ç folder of the Turkish 0.5.0 acceptance; keep as recorded.
             return 'historical-isolated/sps-ç/' + path.relative_to(previous_unicode_stage).as_posix()
         return 'isolated-acceptance/' + path.relative_to(acceptance.parent).as_posix()
     index = {archive_name(p): {'sha256': sha(p), 'bytes': p.stat().st_size}

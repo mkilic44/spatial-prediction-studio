@@ -11,44 +11,47 @@ from sps_mcp.artifacts import read_text
 from register_clients import CLIENTS, template, main
 
 doc = ROOT / "build/MCP_CLIENT_SUPPORT_DRAFT.md"
+# The draft and mcp-server/README.md were recorded in Turkish. The first argument of each
+# replace() and the index() anchors match that recorded text; keep them as recorded.
 text = doc.read_text(encoding="utf-8").replace("arcmap_server", "spatial_prediction_studio")
 text = text.replace("Durum: resmî belgeler ve indirilen paket kaynağı doğrulandı; yedi istemcide canlı kabul henüz yapılmadı.",
-                    "Sürüm 0.5.0. Resmî belgeler, paket kaynağı ve yerel uygulama sınandı. Yedi istemcide gerçek ArcMap kabulü henüz yapılmadı.")
+                    "Version 0.5.0. Official documentation, the package source and the local implementation were tested. Real ArcMap acceptance in the seven clients has not been done yet.")
 start, end = text.index("## 2."), text.index("## 3.")
-text = text[:start] + """## 2. Yapılandırma şablonları
+text = text[:start] + """## 2. Configuration templates
 
-`build/mcp-client-templates/` yedi istemci için gerçek yerel yollarla üretilmiş şablonları içerir. `build/mcp-client-templates-draft.json` aynı kayıtları makine tarafından okunabilir biçimde toplar. Kurulum başka dizine yapıldığında şablonlar yeni kökten üretilir.
+`build/mcp-client-templates/` contains templates generated with real local paths for seven clients. `build/mcp-client-templates-draft.json` collects the same records in machine-readable form. When the installation is in another directory, the templates are generated from the new root.
 
-Uygulanan yardımcı `mcp-server/register_clients.py` olur. Varsayılan çalışma yalnız şablon üretir. `--apply --client <istemci>` açıkça verildiğinde yalnız `spatial_prediction_studio` kaydı birleştirilir. Önce mevcut dosya yedeklenir. Başka ürüne ait aynı ad reddedilir; diğer ayarlar korunur ve dosya yeniden ayrıştırılır.
+The implemented helper is `mcp-server/register_clients.py`. By default it only generates templates. Only when `--apply --client <client>` is given explicitly is the `spatial_prediction_studio` entry merged. The existing file is backed up first. The same name owned by another product is rejected; other settings are kept and the file is parsed again.
 
-Codex ile ChatGPT aynı dosyayı paylaşıyorsa tek yazma yapılır. PyCharm şablonu AI Assistant ayarlarından içe alınır. OpenCode yorumlu veya özel konumlu dosyasında otomatik yazma yapılmaz. `--remove --client <istemci>` yalnız sahiplik ve çalıştırma yolu bu kurulumla eşleşen kaydı kaldırır. Kullanıcının güven kararları değiştirilmez.
+If Codex and ChatGPT share the same file, a single write is made. The PyCharm template is imported from the AI Assistant settings. No automatic write is made to an OpenCode file with comments or in a custom location. `--remove --client <client>` removes only the entry whose ownership and launch path match this installation. The trust decisions of the user are not changed.
 
 """ + text[end:]
-text = text.replace("Sürümün wheel dosyası indirildi, kurulmadı.", "Sürümün wheel dosyası indirildi ve ayrı `runtime-mcp` ortamına kuruldu.")
+text = text.replace("Sürümün wheel dosyası indirildi, kurulmadı.", "The release wheel file was downloaded and installed into the separate `runtime-mcp` environment.")
 start, end = text.index("Mevcut `runtime-d`"), text.index("## 4.")
-text = text[:start] + """`runtime-mcp`, Python 3.12.3 ile oluşturulmuş ayrı geliştirme ortamıdır. Analiz ortamı değiştirilmedi. `requirements-mcp-lock.txt`, 35 paketin sürümünü ve Windows x64 wheel özetini sabitler. `pip check` geçti. `mcp-server/licenses/` gerçek paket üst verilerini ve tam lisans dosyalarını içerir. Taşınabilir kurucu bu sanal ortamı doğrudan kopyalamaz; kendi Python yorumlayıcısını kullanır.
+text = text[:start] + """`runtime-mcp` is a separate development environment created with Python 3.12.3. The analysis environment was not changed. `requirements-mcp-lock.txt` pins the versions of 35 packages and the Windows x64 wheel digests. `pip check` passed. `mcp-server/licenses/` contains the real package metadata and full license files. The portable installer does not copy this virtual environment directly; it uses its own Python interpreter.
 
 """ + text[end:]
-text = text.replace("On bir araç için bu yeterlidir.", "On beş araç için bu yeterlidir.")
+text = text.replace("On bir araç için bu yeterlidir.", "This is sufficient for fifteen tools.")
 text = text.replace("Yeni `Client` ile otomatik keşif, `ClientSession.initialize()` ile eski yol ayrı sınanmalıdır.",
-                    "Yeni `Client` ile otomatik keşif ve `ClientSession.initialize()` ile eski yol gerçek STDIO alt sürecinde ayrı sınandı.")
+                    "Automatic discovery with the new `Client` and the earlier path with `ClientSession.initialize()` were tested separately in a real STDIO child process.")
 start = text.index("Planlanan araçlar:")
-text = text[:start] + """Uygulanan 15 araç; oturum bulma, durum, katmanlar, proje okuma/açma/kaydetme, önizleme, çalışma, iptal, çıktı listeleme, metin/rapor/tablo okuma ve model/çalışma arşivi dışa aktarmayı kapsar. Genel Python veya kabuk çalıştırma yoktur.
+text = text[:start] + """The 15 implemented tools cover session discovery, status, layers, project read/open/save, preview, run, cancel, output listing, text/report/table reading and model/study archive export. There is no general Python or shell execution.
 
-Model işi iş kimliği döndürür; durum ve iptal ayrı çağrılardır. Yerel köprü 30 saniye, Python istemcisi 35 saniye sınırına sahiptir. Zaman aşımındaki değişiklik çağrısı otomatik yinelenmez. Önce durum uzlaştırılır. Raporlar yalnız doğrulanmış sonuç envanterinden, içerik özeti yeniden denetlenerek okunur.
+A model job returns a job ID; status and cancellation are separate calls. The local bridge has a 30-second limit and the Python client a 35-second limit. A state-changing call that times out is not retried automatically. The status is reconciled first. Reports are read only from the verified result inventory, and the content digest is checked again.
 
-Koordinatlar ve ham kaynak özellikleri varsayılan tablo/JSON okumasında gizlenir. Rapor tablolarındaki koordinat satırları ve ham önbiçimli içerik de gizlenir. `include_coordinates=true` seçimi ham içeriği açıkça ister. Serbest metindeki her sayının konum olup olmadığı otomatik belirlenemez.
+Coordinates and raw source properties are hidden in default table/JSON reads. Coordinate rows in report tables and raw preformatted content are also hidden. The `include_coordinates=true` option explicitly requests raw content. Whether each number in free text is a location cannot be determined automatically.
 
-## 6. Doğrulanan ve açık kalan işler
+## 6. Verified and open work
 
-`build/mcp-tests-final3.xml`: 58 sınama geçti, sıfır hata ve atlama. Gerçek SDK süreçleriyle iki protokol yolu, sentetik Windows kanalı, süre sınırı, yanlış süreç kimliği, kapalı parametre şemaları ve yedi yapılandırma şeması sınandı. Yedekleme, güvenli kaldırma, dosya kapsamı ve koordinat gizleme de kapsandı. Bunlar gerçek ArcMap kabulü değildir.
+`build/mcp-tests-final3.xml`: 58 tests passed, with zero errors and skips. Two protocol paths with real SDK processes, a synthetic Windows pipe, the time limit, a wrong process ID, closed parameter schemas and seven configuration schemas were tested. Backup, safe removal, file scope and coordinate hiding were also covered. These are not real ArcMap acceptance.
 
-Gerçek ArcMap oturumuyla bağlantı ve yedi istemcide araç çağrısı henüz açık. Kullanıcı bilgisayar kontrolünü durdurduğu için yeni ArcMap kabulü başlatılmadı. Temiz bilgisayar kurulumu ve istemcilerin kendi güven/onay adımları ayrıca doğrulanmalıdır.
+Connection with a real ArcMap session and tool calls in the seven clients are still open. No new ArcMap acceptance was started because the user stopped computer control. Clean-machine installation and the trust/approval steps of each client must be verified separately.
 
-Bu uygulama çalışmasında gerçek istemci yapılandırması değiştirilmedi. Kullanıcı verisi uzak MCP hizmetine gönderilmedi.
+No real client configuration was changed during this implementation work. No user data was sent to a remote MCP service.
 """
 doc.write_text(text, encoding="utf-8")
 readme = ROOT / "mcp-server/README.md"
+# Fragment of a Turkish sentence in the recorded 0.5.0 README; keep both arguments as recorded.
 readme.write_text(readme.read_text(encoding="utf-8").replace("55 hedefli sınama", "58 hedefli sınama"), encoding="utf-8")
 
 out = ROOT / "build/mcp-client-templates"

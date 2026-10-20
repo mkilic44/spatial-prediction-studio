@@ -16,7 +16,7 @@ class FixtureBridge:
         if method == "status":
             return {"busy": False, "state": "synthetic_protocol_fixture", "preview_ready": False}
         if method == "layers":
-            return {"points": [{"name": "Katman " + str(i), "path": "fixture.shp", "fields": []} for i in range(123)],
+            return {"points": [{"name": "Layer " + str(i), "path": "fixture.shp", "fields": []} for i in range(123)],
                     "raster_bands": [], "scope": "synthetic_current_map"}
         raise AssertionError("Not exercised by protocol fixture")
 

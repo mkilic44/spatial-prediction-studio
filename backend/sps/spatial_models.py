@@ -13,13 +13,13 @@ class KrigingSurface:
     def fit(self, xy, values):
         xy, values = np.asarray(xy, dtype=float), np.asarray(values, dtype=float)
         if xy.shape != (len(values), 2) or not np.isfinite(xy).all() or not np.isfinite(values).all():
-            raise JobError('KRIGING_INPUT', 'Kriging için sonlu hedef ve iki koordinat gerekir.')
+            raise JobError('KRIGING_INPUT', 'Kriging requires a finite target and two coordinates.')
         if len(values) > 2000:
-            raise JobError('KRIGING_MEMORY', 'Yoğun kriging sistemi bu sürümde en çok 2000 eğitim gözlemi kabul eder.')
+            raise JobError('KRIGING_MEMORY', 'In this version, the dense kriging system accepts at most 2000 training observations.')
         unique, inverse = np.unique(xy, axis=0, return_inverse=True)
         values = np.bincount(inverse, weights=values) / np.bincount(inverse)
         if len(unique) < 6:
-            raise JobError('KRIGING_SAMPLE_SIZE', 'Yarıvaryogram için en az altı farklı eğitim konumu gerekir.')
+            raise JobError('KRIGING_SAMPLE_SIZE', 'The semivariogram requires at least six distinct training locations.')
         self.n = len(unique)
         self.constant = float(values.mean()) if np.ptp(values) <= 1e-12 else None
         self.record = {'unique_training_locations': self.n, 'duplicate_policy': 'mean_within_training_only',
@@ -33,7 +33,7 @@ class KrigingSurface:
             coordinates_type='euclidean', exact_values=True, pseudo_inv=True,
             verbose=False, enable_plotting=False, enable_statistics=False)
         if not np.isfinite(self.model.variogram_model_parameters).all():
-            raise JobError('VARIOGRAM', 'Yarıvaryogram sonlu parametre üretmedi.')
+            raise JobError('VARIOGRAM', 'The semivariogram fit did not produce finite parameters.')
         self.record.update(variogram_model=self.model.variogram_model,
             parameters=self.model.variogram_model_parameters.tolist(),
             lag_distance_m=self.model.lags.tolist(), semivariance=self.model.semivariance.tolist(),
@@ -43,7 +43,7 @@ class KrigingSurface:
     def predict(self, xy):
         xy = np.asarray(xy,dtype=float)
         if xy.ndim != 2 or xy.shape[1] != 2 or not np.isfinite(xy).all():
-            raise JobError('KRIGING_COORDINATES', 'Tahmin koordinatları iki sonlu sütun olmalıdır.')
+            raise JobError('KRIGING_COORDINATES', 'Prediction coordinates must be two finite columns.')
         if self.constant is not None:
             return np.full(len(xy),self.constant)
         result = np.empty(len(xy), dtype=float)
@@ -53,7 +53,7 @@ class KrigingSurface:
                 n_closest_points=min(self.n,self.parameters.get('n_closest_points',12)))
             result[start:start+len(block)] = np.asarray(prediction)
         if not np.isfinite(result).all():
-            raise JobError('KRIGING_PREDICTION','Kriging sonlu tahmin üretmedi.')
+            raise JobError('KRIGING_PREDICTION','Kriging did not produce finite predictions.')
         return result
 
 
@@ -66,7 +66,7 @@ class SpatialWorkflow:
 
     def _coordinates(self, coordinates, n):
         if coordinates is None or np.asarray(coordinates).shape != (n,2):
-            raise JobError('KRIGING_COORDINATES','Mekânsal tahmin için her satırın koordinatı gereklidir.')
+            raise JobError('KRIGING_COORDINATES','Spatial prediction requires coordinates for every row.')
         return _metric_coordinates(np.asarray(coordinates),self.crs,self.settings['validation'],True)[0]
 
     def plain_predict(self, X, coordinates=None):
@@ -81,7 +81,7 @@ class SpatialWorkflow:
         return None
 
     def predict_interval_at_coverage(self, X, coverage, coordinates=None):
-        raise JobError('NO_INTERVAL_METHOD','Kriging varyansı toplam tahmin aralığı değildir; ayrı kalibrasyon seçin.')
+        raise JobError('NO_INTERVAL_METHOD','Kriging variance is not a total prediction interval; select a separate calibration.')
 
     def quantile_crossings(self, X, coordinates=None):
         return np.zeros(len(X),dtype=bool)
@@ -104,22 +104,22 @@ def fit_spatial_workflow(X,y,ids,coordinates,groups,covariates,settings,*,crs,ro
     from .modeling import fit_workflow
     check_cancel()
     if settings.get('target_transform',{}).get('method','none')!='none':
-        raise JobError('KRIGING_TRANSFORM','Kriging bu sürümde özgün hedef biriminde çalışır.')
+        raise JobError('KRIGING_TRANSFORM','In this version, kriging works in the original target unit.')
     if settings.get('uncertainty',{}).get('method','none') not in ('none','split_conformal','spatial_conformal'):
-        raise JobError('KRIGING_UNCERTAINTY','Kriging için aralıksız veya bölünmüş konformal yol seçilmelidir.')
+        raise JobError('KRIGING_UNCERTAINTY','For kriging, select no interval or split conformal prediction.')
     if settings.get('feature_selection',{}).get('method') in ('rfe','sfs'):
-        raise JobError('KRIGING_SELECTOR','Kriging için iç mekânsal modeli kullanmayan seçiciler RFE ve SFS kapalıdır.')
+        raise JobError('KRIGING_SELECTOR','For kriging, the RFE and SFS selectors are turned off because they do not use the inner spatial model.')
     params=settings['model'].get('parameters',{})
     allowed={'variogram_model','nlags','weight','n_closest_points','base_model','base_alpha','base_trees','base_depth'}
-    if set(params)-allowed:raise JobError('MODEL_PARAMETER','Kriging parametresi tanınmıyor.')
+    if set(params)-allowed:raise JobError('MODEL_PARAMETER','Unrecognized kriging parameter.')
     xy,_=_metric_coordinates(np.asarray(coordinates),crs,settings['validation'],True)
     plain=deepcopy(settings)
     ordinary=settings['model']['id']=='ordinary_kriging'
     if ordinary and (settings.get('feature_selection',{}).get('method','none')!='none' or settings.get('vif',{}).get('mode','off')!='off'):
-        raise JobError('KRIGING_SELECTOR','Adi kriging için değişken seçimi ve varyans şişirme tanısı kapalı olmalıdır.')
+        raise JobError('KRIGING_SELECTOR','For ordinary kriging, variable selection and the variance inflation factor diagnostic must be turned off.')
     base_id='mean' if ordinary else params.get('base_model','ridge')
     if base_id not in ('mean','ridge','random_forest'):
-        raise JobError('KRIGING_BASE','Desteklenmeyen yalın model.')
+        raise JobError('KRIGING_BASE','Unsupported base model.')
     base_params=({'alpha':params.get('base_alpha',1.)} if base_id=='ridge' else
                  {'n_estimators':params.get('base_trees',100),'max_depth':params.get('base_depth',10)} if base_id=='random_forest' else {})
     plain['model']={'id':base_id,'parameters':base_params}

@@ -73,6 +73,7 @@ def main():
     payload = args.payload.resolve()
     if not payload.is_relative_to(ROOT / 'installer'):
         raise ValueError('Expected an installer-owned source payload')
+    # sps-ç and sps-ç2 are the staging folders recorded during the Turkish 0.5.0 acceptance; keep as recorded.
     allowed_stage = stage.is_relative_to(ROOT / 'installer') or stage in (ROOT.parent / 'sps-ç', ROOT.parent / 'sps-ç2', ROOT.parent / 'sps-cs')
     if not allowed_stage or stage.exists():
         raise ValueError('A fresh installer-owned staging directory or the exact workspace sps-ç directory is required')
@@ -100,6 +101,7 @@ def main():
         assert sha(fixture_package) == read(fixture_manifest)['source_addin_sha256']
         original = fixture_package.read_bytes(); target.write_bytes(original)
         record['previous_addin_fixture'] = {'path': str(fixture_package), 'sha256': sha(fixture_package), 'real_package_in_isolated_documents': True}
+        # The Turkish file names, values and comments below are Unicode test data; keep them as is.
         sentinel = stage / 'UserStudies/korunan-çalışma.txt'; sentinel.parent.mkdir(); sentinel.write_text('Kullanıcı verisi ıİğĞşŞ', encoding='utf-8')
         sentinel_hash = sha(sentinel)
         opencode = stage / 'ClientHome/.config/opencode/opencode.jsonc'; opencode.parent.mkdir(parents=True)

@@ -16,10 +16,10 @@ def diagnostic_levels(nominal):
 def finite_sample_quantile(scores, coverage):
     scores = np.asarray(scores, dtype=float)
     if scores.ndim != 1 or len(scores) == 0 or not np.isfinite(scores).all() or not 0 < coverage < 1:
-        raise JobError("CALIBRATION", "Geçersiz kalibrasyon puanı veya kapsama oranı.")
+        raise JobError("CALIBRATION", "Invalid calibration score or coverage.")
     rank = int(math.ceil((len(scores) + 1) * float(coverage)))
     if rank > len(scores):
-        raise JobError("CALIBRATION_SIZE", "İstenen kapsama için kalibrasyon örneği yetersiz; sonlu sınır hesaplanamaz.")
+        raise JobError("CALIBRATION_SIZE", "Too few calibration samples for the nominal coverage; a finite bound cannot be computed.")
     return float(np.sort(scores)[rank - 1])
 
 
@@ -43,7 +43,7 @@ class CalibratedModel:
     def predict_interval_at_coverage(self, X, coverage, coordinates=None):
         entry = self.record["calibration"]["levels"].get(str(float(coverage)))
         if entry is None:
-            raise JobError("CALIBRATION_LEVEL_NOT_PREPARED", "Bu kapsama düzeyi ayrılmış kalibrasyon verisiyle hazırlanmadı.")
+            raise JobError("CALIBRATION_LEVEL_NOT_PREPARED", "This coverage level was not prepared with the reserved calibration data.")
         if entry["status"] != "available":
             raise JobError(entry["reason_code"], entry["reason"])
         adjustment = entry["adjustment"]
@@ -56,7 +56,7 @@ class CalibratedModel:
             lower, upper = self.base.predict_interval_at_coverage(X, coverage)
         lower, upper = lower - adjustment, upper + adjustment
         if np.any(lower > upper):
-            raise JobError("CQR_EMPTY_INTERVAL", "Negatif CQR düzeltmesi boş tahmin aralığı üretti; sınırlar yeniden sıralanamaz.")
+            raise JobError("CQR_EMPTY_INTERVAL", "A negative CQR adjustment produced an empty prediction interval; the bounds cannot be reordered.")
         return lower, upper
 
     def quantile_crossings(self, X, coordinates=None):
@@ -78,7 +78,7 @@ def calibrate(base, X, y, ids, settings, *, role, learning_audit, coordinates=No
         from .spatial_uncertainty_d import SpatialCalibration, SpatialCalibratedModel
         predictions = np.asarray(prediction_call(base, 'predict', X, coordinates), dtype=float)
         if y.shape != (len(ids),) or predictions.shape != y.shape or not np.isfinite(y).all() or not np.isfinite(predictions).all():
-            raise JobError("SPATIAL_CALIBRATION_SCORE", "Kalibrasyon gözlemleri ve özgün birimdeki tahminler sonlu ve eş boyutlu olmalıdır.")
+            raise JobError("SPATIAL_CALIBRATION_SCORE", "Calibration observations and predictions in the original unit must be finite and the same size.")
         calibration = SpatialCalibration(np.abs(y - predictions), coordinates, ids, groups, settings,
             crs=crs, validation=validation or {}, training_ids=training_ids,
             training_groups=training_groups, training_coordinates=training_coordinates)
@@ -92,7 +92,7 @@ def calibrate(base, X, y, ids, settings, *, role, learning_audit, coordinates=No
         lower, upper = base.predict_interval(X)
         scores = np.maximum(lower - y, y - upper)
     else:
-        raise JobError("CALIBRATION_METHOD", "Kalibrasyon yöntemi uyumsuz.")
+        raise JobError("CALIBRATION_METHOD", "Incompatible calibration method.")
     coverage = float(settings.get("coverage", .9))
     adjustment = finite_sample_quantile(scores, coverage)
     levels = {}
@@ -101,7 +101,7 @@ def calibrate(base, X, y, ids, settings, *, role, learning_audit, coordinates=No
             level_scores = scores
             if method == "cqr" and not np.isclose(level, coverage, rtol=0, atol=1e-12):
                 if not hasattr(base, "predict_interval_at_coverage"):
-                    raise JobError("QUANTILE_LEVEL_NOT_FITTED", "Bu kapsama düzeyi için kantil modeli bulunmuyor.")
+                    raise JobError("QUANTILE_LEVEL_NOT_FITTED", "No quantile model is available for this coverage level.")
                 lower, upper = base.predict_interval_at_coverage(X, level)
                 level_scores = np.maximum(lower - y, y - upper)
             levels[str(level)] = {"status": "available", "adjustment": finite_sample_quantile(level_scores, level),
@@ -121,7 +121,7 @@ def calibrate(base, X, y, ids, settings, *, role, learning_audit, coordinates=No
 def interval_metrics(y, lower, upper, coverage):
     y, lower, upper = [np.asarray(values, dtype=float) for values in (y, lower, upper)]
     if not (y.shape == lower.shape == upper.shape) or not np.isfinite(np.concatenate([y, lower, upper])).all() or (lower > upper).any():
-        raise JobError("INTERVAL", "Tahmin aralıklarının boyutu veya sınır sırası geçersiz.")
+        raise JobError("INTERVAL", "Invalid prediction interval size or bound order.")
     alpha = 1 - float(coverage)
     width = upper - lower
     def pinball(q, prediction):

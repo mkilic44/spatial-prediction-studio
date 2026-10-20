@@ -15,13 +15,13 @@ class Applicability:
     def fit(self, X, ids, folds, weights=None, check_cancel=lambda:None):
         X=np.asarray(X,dtype=float);ids=list(ids)
         if X.ndim!=2 or len(X)!=len(ids) or len(X)<3 or len(X)>10000 or not np.isfinite(X).all():
-            raise JobError('AOA_INPUT','Uygulanabilirlik için 3-10000 sonlu eğitim satırı gerekir.')
+            raise JobError('AOA_INPUT','Applicability requires 3-10000 finite training rows.')
         self.center=X.mean(axis=0);self.scale=X.std(axis=0,ddof=1)
         if not len(self.scale) or np.any(self.scale<=1e-12):
-            raise JobError('AOA_VARIANCE','Uygulanabilirlik tasarımında sıfır varyans var.')
+            raise JobError('AOA_VARIANCE','The applicability design has zero variance.')
         self.weights=np.ones(X.shape[1]) if weights is None else np.asarray(weights,dtype=float)
         if self.weights.shape!=(X.shape[1],) or not np.isfinite(self.weights).all() or np.any(self.weights<0) or not np.any(self.weights>0):
-            raise JobError('AOA_WEIGHTS','Uygulanabilirlik ağırlıkları sonlu, negatif olmayan ve en az biri pozitif olmalıdır.')
+            raise JobError('AOA_WEIGHTS','Applicability weights must be finite and non-negative, with at least one positive weight.')
         self.training=(X-self.center)/self.scale*self.weights
         total=0.
         for start in range(0,len(X),256):
@@ -29,14 +29,14 @@ class Applicability:
             d[np.arange(len(d)),np.arange(start,start+len(d))]=0
             total+=float(d.sum())
         self.mean_distance=total/(len(X)*(len(X)-1))
-        if self.mean_distance<=0:raise JobError('AOA_VARIANCE','Ağırlıklı uzayda sıfır varyans var.')
+        if self.mean_distance<=0:raise JobError('AOA_VARIANCE','The weighted space has zero variance.')
         nearest=np.full(len(X),np.nan);seen=np.zeros(len(X),dtype=int)
         for fold in folds:
             check_cancel();tr=indices_for(ids,fold['train_ids']);te=indices_for(ids,fold['test_ids'])
-            if len(tr)<1 or set(tr)&set(te):raise JobError('AOA_FOLDS','Uygulanabilirlik katları çakışıyor veya eğitim boş.')
+            if len(tr)<1 or set(tr)&set(te):raise JobError('AOA_FOLDS','Applicability folds overlap or the training set is empty.')
             seen[te]+=1;nearest[te]=cKDTree(self.training[tr]).query(self.training[te],k=1)[0]
         if not np.all(seen==1) or not np.isfinite(nearest).all():
-            raise JobError('AOA_FOLDS','Her eğitim gözlemi eşik katlarında tam bir kez sınanmalıdır.')
+            raise JobError('AOA_FOLDS','Each training observation must be tested exactly once in the threshold folds.')
         self.train_di=nearest/self.mean_distance
         q1,q3=np.quantile(self.train_di,[.25,.75],method='linear')
         self.threshold=float(min(self.train_di.max(),q3+1.5*(q3-q1)))
@@ -51,7 +51,7 @@ class Applicability:
     def predict(self,X):
         X=np.asarray(X,dtype=float)
         if X.ndim!=2 or X.shape[1]!=len(self.center) or not np.isfinite(X).all():
-            raise JobError('AOA_INPUT','Tahminin uygulanabilirlik tasarımı geçersiz.')
+            raise JobError('AOA_INPUT','The applicability design for prediction is invalid.')
         di=self.tree.query((X-self.center)/self.scale*self.weights,k=1)[0]/self.mean_distance
         return di,di<=self.threshold
 

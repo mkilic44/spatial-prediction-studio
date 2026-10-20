@@ -19,10 +19,10 @@ def comments(text):
 
 @pytest.mark.parametrize("original", [
     '{}', '{ /* boş */ }', '{"model":"keep"}', '{"mcp":{"other":{}}}',
-    '{"model":"keep" // yorum\n}', '{"model":"keep", /* son */}',
-    '{"model":"keep", "mcp":{}}', '{"mcp":{ /* sunucular */ }}',
-    '{"mcp":{"other":{"command":["leave"],"url":"https://host/a//b"} // korunur\n}}',
-    '{"mcp":{"other":{"command":["leave"],}, /* korunur */}, "extra":[1,2,],}',
+    '{"model":"keep" // comment\n}', '{"model":"keep", /* last */}',
+    '{"model":"keep", "mcp":{}}', '{"mcp":{ /* servers */ }}',
+    '{"mcp":{"other":{"command":["leave"],"url":"https://host/a//b"} // preserved\n}}',
+    '{"mcp":{"other":{"command":["leave"],}, /* preserved */}, "extra":[1,2,],}',
 ])
 def test_add_jsonc_preserves_comments_unrelated_values_and_idempotence(original):
     before = loads(original)
@@ -80,7 +80,7 @@ def test_jsonc_owned_record_replaces_bool_integer_mismatch_including_nested(tmp_
     patch["mcp"][KEY][field] = expected
     original_value = copy.deepcopy(patch)
     original_value["mcp"][KEY][field] = actual
-    original = '/* yorum korunur */\n' + json.dumps(original_value)
+    original = '/* comment preserved */\n' + json.dumps(original_value)
     path = tmp_path / 'opencode.jsonc'
     path.write_text(original, encoding='utf-8')
     result = atomic_merge(path, 'json', patch)

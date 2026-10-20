@@ -7,6 +7,7 @@ import shutil
 ROOT = Path(__file__).resolve().parents[1]
 PARENT_SHA = '70573b90e438cc5a875f5a61c9c27548975938597260512a719c27ad3a89bd2c'
 FROZEN = ('backend/', 'runtime-d/', 'runtime-mcp/', 'reference-r/', 'models/', 'package/')
+# KURULUM_REHBERI.md is the installation guide file name recorded in the Turkish 0.5.0 payload; keep as recorded.
 CHANGES = ('mcp-server/register_clients.py', 'mcp-server/tests/test_claude_profiles.py',
            'mcp-server/README.md', 'installer/deploy.py', 'docs/KURULUM_REHBERI.md')
 

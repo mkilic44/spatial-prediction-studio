@@ -454,6 +454,7 @@ def verify_run(output, base_verifier):
         require(row['value'] == '' if original['value'] is None else np.isclose(float(row['value']), original['value']), 'Publication metric value differs.')
     report = html.unescape((output / 'report.html').read_text(encoding='utf-8'))
     detail = html.unescape((output / 'study_report.html').read_text(encoding='utf-8'))
+    # The phrases below match the Turkish HTML reports recorded by the 0.4.1 D runs; keep as recorded.
     for phrase in ('R², Pearson r² değildir', 'İç doğrulama model ve parametre seçimine katılır', 'bağımsız doğrulama başarısı değildir', 'bağımsız test sonucu yoktur'):
         require(phrase in detail, 'Study HTML omits scientific meaning: ' + phrase)
     if temporal:
@@ -547,6 +548,7 @@ def verify_roundtrip(args, run_summaries, output_rows, project_helper):
     check('recorded_exit_code_is_130', observation.get('exit_code') == 130)
     if exit_source['kind'] == 'log':
         text = Path(exit_source['path']).read_text(encoding='utf-8-sig')
+        # Matches the Turkish worker log line recorded in the 0.4.1 D acceptance; keep as recorded.
         check('exit_code_log_contains_130', re.search(r'(?:İşçi çıkış kodu|exit_code)\s*[:=]\s*130\b', text, re.I) is not None)
     details['process_observation'] = {'evidence': snapshot(args.process_evidence),
         'worker_pid': observation['worker_pid'], 'exit_code': observation['exit_code'],

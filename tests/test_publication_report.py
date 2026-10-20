@@ -70,19 +70,19 @@ def test_metric_roles_formulas_and_parameter_provenance_are_distinct(tmp_path, s
     assert float(by_key['final_training', 'r2']['value']) == -0.5
     assert float(by_key['final_training', 'pearson_r2']['value']) == 1.0
     assert float(by_key['inner_validation', 'lin_ccc']['value']) == pytest.approx(4 / 7)
-    assert by_key['final_calibration', 'rmse']['scope_note'].startswith('Aralık ayarına')
-    assert 'seçim yanlılığı' in by_key['inner_validation', 'r2']['scope_note']
+    assert by_key['final_calibration', 'rmse']['scope_note'].startswith('Diagnostics on targets used for interval calibration')
+    assert 'selection bias' in by_key['inner_validation', 'r2']['scope_note']
     assert by_key['final_training', 'mse']['unit'] == '(g/kg)²'
     params = read_csv(tmp_path / 'hyperparameters.csv')
     assert any(r['kind'] == 'requested' and r['parameter'] == 'parameters.alpha' and r['value'] == '100.0' for r in params)
     assert any(r['kind'] == 'searched' and r['parameter'] == 'alpha' and r['value'] == '0.25' for r in params)
     assert any(r['kind'] == 'selected' and r['parameter'] == 'alpha' and r['value'] == '0.25' for r in params)
     assert any(r['kind'] == 'effective' and r['parameter'] == 'fit_intercept' and r['value'] == 'True' for r in params)
-    assert 'R², Pearson r² değildir' in section
-    assert 'böleni n olur' in section and 'h=(n-1)q' in section
+    assert 'R² is not Pearson r²' in section
+    assert 'the divisor of the variance and covariance is n' in section and 'h=(n-1)q' in section
     assert 'model_package.spsmodel.zip' in section
     assert 'href="model_package.spsmodel.zip"' not in section
-    assert 'Modeli kaydet' in section
+    assert 'Save model' in section
 
 
 def test_predictions_keep_context_and_never_renumber_identity(tmp_path, study_case):
@@ -120,7 +120,7 @@ def test_undefined_metric_reason_and_no_independent_test_are_explicit(tmp_path, 
     independent = [r for r in result['metrics'] if r['scope'] == 'independent']
     assert all(r['value'] is None and r['reason'] == 'not_applicable' for r in independent)
     assert next(r for r in result['metrics'] if r['scope'] == 'final_training' and r['metric'] == 'rpd')['reason'] == 'zero_rmse'
-    assert 'Uygulanmadı; bağımsız test sonucu yoktur' in (tmp_path / 'study_report.html').read_text(encoding='utf-8')
+    assert 'Not applied; there is no independent test result' in (tmp_path / 'study_report.html').read_text(encoding='utf-8')
 
 
 def test_old_records_do_not_invent_parameters_or_hardware(report_case):
@@ -359,21 +359,21 @@ def test_paged_html_preserves_every_row_and_figure_in_order(tmp_path, study_case
 
 def test_pagination_repeats_headers_and_preserves_context_for_long_table(tmp_path):
     from sps.publication_report import write_paged_study
-    table = '<div class="study-table"><table><thead><tr><th>Kimlik</th><th>Değer</th></tr></thead><tbody>' + ''.join(
-        '<tr><td>%s</td><td>&lt;değer&amp;%s&gt;</td></tr>' % (i, i) for i in range(244)) + '</tbody></table></div>'
-    section = '<section><h2>Çalışma</h2><p>Genel açıklama.</p><h3>İç doğrulama</h3><p>Seçim yanlılığı vardır.</p><h4>Aday 1</h4>' + table + '</section>'
+    table = '<div class="study-table"><table><thead><tr><th>ID</th><th>Value</th></tr></thead><tbody>' + ''.join(
+        '<tr><td>%s</td><td>&lt;value&amp;%s&gt;</td></tr>' % (i, i) for i in range(244)) + '</tbody></table></div>'
+    section = '<section><h2>Study</h2><p>General description.</p><h3>Inner validation</h3><p>Selection bias is present.</p><h4>Candidate 1</h4>' + table + '</section>'
     info = write_paged_study(tmp_path, section, [], check_cancel=lambda: None)
-    parts = [p for p in info['pages'] if p['title'] == 'İç doğrulama']
+    parts = [p for p in info['pages'] if p['title'] == 'Inner validation']
     assert len(parts) == 3
     actual = []
     for part in parts:
         text = (tmp_path / part['file']).read_text(encoding='utf-8')
-        assert '<th>Kimlik</th><th>Değer</th>' in text
-        assert 'Seçim yanlılığı vardır.' in text and '<h4>Aday 1</h4>' in text
+        assert '<th>ID</th><th>Value</th>' in text
+        assert 'Selection bias is present.' in text and '<h4>Candidate 1</h4>' in text
         page = PageContent(text)
         assert page.total_rows <= 120
         actual.extend(page.rows)
-    assert actual == [[str(i), '<değer&%d>' % i] for i in range(244)]
+    assert actual == [[str(i), '<value&%d>' % i] for i in range(244)]
 
 
 def test_main_report_explanations_and_permutation_rows_remain_accessible(tmp_path, study_case):
@@ -384,18 +384,18 @@ def test_main_report_explanations_and_permutation_rows_remain_accessible(tmp_pat
     build_reports(tmp_path, evaluation, samples, settings, check_cancel=lambda: None)
     summary = json.loads((tmp_path / 'study_summary.json').read_text(encoding='utf-8'))
     records = summary['pagination']['pages']
-    parts = [p for p in records if 'Değişkenleri karıştırarak model açıklama' in p['title']]
+    parts = [p for p in records if 'Model explanation by permuting variables' in p['title']]
     assert len(parts) == 3
     rows = []
     for part in parts:
         text = (tmp_path / part['file']).read_text(encoding='utf-8')
-        assert 'Sonuç nedensel değildir' in text and 'güven aralığı değildir' in text
+        assert 'The result is not causal' in text and 'is not a confidence interval' in text
         content = PageContent(text)
         assert content.total_rows <= 120
         rows.extend(content.rows)
     assert [r[1] for r in rows] == [r['feature'] for r in importance]
     texts = [(tmp_path / p['file']).read_text(encoding='utf-8') for p in records]
-    assert any('Shapley katkı açıklamaları' in text for text in texts)
+    assert any('Shapley value explanations' in text for text in texts)
     assert any('href="final_record.json"' in text for text in texts)
     assert any('href="evaluation.json"' in text for text in texts)
     assert all('<pre>' not in text for text in texts)

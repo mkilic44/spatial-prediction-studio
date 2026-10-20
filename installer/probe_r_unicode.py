@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
+# Installation recorded during the Turkish 0.5.0 acceptance; keep as recorded.
 installed = ROOT.parent / 'sps-ç/app/versions/0.5.0-6d5fb15e486c'
 rr = installed / 'reference-r'
 code = 'print(R.home());print(.Library);print(.libPaths());print(Sys.getlocale());print(l10n_info());print(file.exists(file.path(.Library,"compiler","DESCRIPTION")));print(list.files(.Library));print(Sys.getenv(c("R_HOME","R_LIBS","R_LIBS_USER","R_LIBS_SITE")))'

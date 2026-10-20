@@ -20,42 +20,42 @@ from .validation import _metric_coordinates
 
 
 REASONS = {
-    "SPATIAL_NO_SUPPORT": "Bu konumda pozitif ağırlıklı kalibrasyon gözlemi yok.",
-    "SPATIAL_EFFECTIVE_N": "Yerel kalibrasyonun etkin örnek sayısı belirlenen eşiğin altında.",
-    "SPATIAL_GROUP_SUPPORT": "Yerel kalibrasyonun grup sayısı veya etkin grup sayısı yetersiz.",
-    "SPATIAL_FINITE_MASS": "Test konumunun birim kütlesi eklendiğinde istenen kapsama için sonlu sınır yok.",
+    "SPATIAL_NO_SUPPORT": "No calibration observation has a positive weight at this location.",
+    "SPATIAL_EFFECTIVE_N": "The effective sample size of the local calibration is below the set threshold.",
+    "SPATIAL_GROUP_SUPPORT": "The local calibration has too few groups or too few effective groups.",
+    "SPATIAL_FINITE_MASS": "With the unit mass of the test location added, no finite bound exists for the nominal coverage.",
 }
 
 
 def _number(value, name, *, minimum=0, strict=True):
     if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float, np.number)):
-        raise JobError("SPATIAL_CALIBRATION_SETTING", name + " sonlu sayı olmalıdır.")
+        raise JobError("SPATIAL_CALIBRATION_SETTING", name + " must be a finite number.")
     value = float(value)
     if not math.isfinite(value) or (value <= minimum if strict else value < minimum):
-        raise JobError("SPATIAL_CALIBRATION_SETTING", name + " geçerli sınırda olmalıdır.")
+        raise JobError("SPATIAL_CALIBRATION_SETTING", name + " must be within the valid range.")
     return value
 
 
 def spatial_settings(settings):
     result = {
-        "spatial_bandwidth_m": _number(settings.get("spatial_bandwidth_m", 1000.), "Bant genişliği"),
-        "spatial_min_effective_n": _number(settings.get("spatial_min_effective_n", 5.), "Etkin örnek sayısı"),
+        "spatial_bandwidth_m": _number(settings.get("spatial_bandwidth_m", 1000.), "Bandwidth"),
+        "spatial_min_effective_n": _number(settings.get("spatial_min_effective_n", 5.), "Effective sample size"),
         "spatial_min_groups": settings.get("spatial_min_groups", 3),
         "spatial_kernel": settings.get("spatial_kernel", "gaussian"),
     }
     groups = result["spatial_min_groups"]
     if isinstance(groups, (bool, np.bool_)) or not isinstance(groups, (int, np.integer)) or groups < 2:
-        raise JobError("SPATIAL_CALIBRATION_SETTING", "En az iki kalibrasyon grubu istenmelidir.")
+        raise JobError("SPATIAL_CALIBRATION_SETTING", "The minimum number of calibration groups must be at least two.")
     result["spatial_min_groups"] = int(groups)
     if result["spatial_kernel"] not in ("gaussian", "compact"):
-        raise JobError("SPATIAL_CALIBRATION_SETTING", "Mekânsal çekirdek gaussian veya compact olmalıdır.")
+        raise JobError("SPATIAL_CALIBRATION_SETTING", "The spatial kernel must be gaussian or compact.")
     return result
 
 
 def _coverage(coverage):
-    coverage = _number(coverage, "Kapsama düzeyi")
+    coverage = _number(coverage, "Coverage level")
     if coverage >= 1:
-        raise JobError("COVERAGE_LEVEL", "Kapsama düzeyi 0 ile 1 arasında olmalıdır.")
+        raise JobError("COVERAGE_LEVEL", "Coverage level must be between 0 and 1.")
     return coverage
 
 
@@ -64,7 +64,7 @@ def weighted_conformal_quantile(scores, weights, coverage):
     coverage = _coverage(coverage)
     scores, weights = np.asarray(scores, dtype=float), np.asarray(weights, dtype=float)
     if scores.ndim != 1 or weights.shape != scores.shape or not np.isfinite(scores).all() or not np.isfinite(weights).all() or np.any(scores < 0) or np.any(weights < 0) or np.any(weights > 1):
-        raise JobError("SPATIAL_CALIBRATION_SCORE", "Puanlar ve çekirdek ağırlıkları sonlu ve geçerli olmalıdır.")
+        raise JobError("SPATIAL_CALIBRATION_SCORE", "Scores and kernel weights must be finite and valid.")
     order = np.argsort(scores, kind="stable")
     weights, scores = weights[order], scores[order]
     positive = weights > 0
@@ -82,7 +82,7 @@ def weighted_conformal_quantile(scores, weights, coverage):
 def _identities(values, name):
     values = list(values) if values is not None else []
     if not values or any(not isinstance(value, str) or not value.strip() for value in values):
-        raise JobError("SPATIAL_CALIBRATION_PROVENANCE", name + " kimlikleri boş olmayan metin olmalıdır.")
+        raise JobError("SPATIAL_CALIBRATION_PROVENANCE", name + " IDs must be non-empty text.")
     return values
 
 
@@ -90,9 +90,9 @@ def _xy(values, n):
     try:
         result = np.asarray(values, dtype=float)
     except (TypeError, ValueError) as exc:
-        raise JobError("COORDINATES", "Mekânsal kalibrasyon için sayısal koordinatlar gereklidir.") from exc
+        raise JobError("COORDINATES", "Spatial calibration requires numeric coordinates.") from exc
     if result.shape != (n, 2) or not np.isfinite(result).all():
-        raise JobError("COORDINATES", "Her gözlem için iki sonlu koordinat gereklidir.")
+        raise JobError("COORDINATES", "Two finite coordinates are required for each observation.")
     return result
 
 
@@ -101,26 +101,26 @@ class SpatialCalibration:
                  training_ids, training_groups, training_coordinates):
         self.config = spatial_settings(settings)
         self.coverage = _coverage(settings.get("coverage", .9))
-        ids, groups = _identities(ids, "Kalibrasyon"), _identities(groups, "Kalibrasyon grubu")
-        training_ids = _identities(training_ids, "Eğitim")
-        training_groups = _identities(training_groups, "Eğitim grubu")
+        ids, groups = _identities(ids, "Calibration"), _identities(groups, "Calibration group")
+        training_ids = _identities(training_ids, "Training")
+        training_groups = _identities(training_groups, "Training group")
         if len(groups) != len(ids) or len(training_groups) != len(training_ids) or len(set(ids)) != len(ids) or len(set(training_ids)) != len(training_ids):
-            raise JobError("SPATIAL_CALIBRATION_PROVENANCE", "Eğitim ve kalibrasyon kimlik/grup boyutları veya benzersizliği geçersiz.")
+            raise JobError("SPATIAL_CALIBRATION_PROVENANCE", "Training and calibration ID/group sizes or uniqueness are invalid.")
         if set(ids) & set(training_ids) or set(groups) & set(training_groups):
-            raise JobError("SPATIAL_CALIBRATION_LEAKAGE", "Eğitim ve kalibrasyon örnekleri veya bağımlılık grupları çakışıyor.")
+            raise JobError("SPATIAL_CALIBRATION_LEAKAGE", "Training and calibration samples or dependence groups overlap.")
         scores = np.asarray(scores, dtype=float)
         if scores.shape != (len(ids),) or not np.isfinite(scores).all() or np.any(scores < 0):
-            raise JobError("SPATIAL_CALIBRATION_SCORE", "Kalibrasyon mutlak hataları sonlu ve negatif olmayan değerler olmalıdır.")
+            raise JobError("SPATIAL_CALIBRATION_SCORE", "Calibration absolute errors must be finite and non-negative.")
         xy, train_xy = _xy(coordinates, len(ids)), _xy(training_coordinates, len(training_ids))
         self.crs, self.validation = crs, deepcopy(validation)
         metric, self.metric_crs = _metric_coordinates(xy, crs, self.validation, True)
         train_metric, _ = _metric_coordinates(train_xy, crs, self.validation, True)
-        buffer = _number(validation.get("buffer_distance", 0), "Tampon uzaklığı", strict=False)
+        buffer = _number(validation.get("buffer_distance", 0), "Buffer distance", strict=False)
         nearest = cKDTree(train_metric).query(metric, k=1, workers=1)[0]
         if np.any(nearest <= 1e-5) or (buffer > 0 and np.any(nearest < buffer)):
-            raise JobError("SPATIAL_CALIBRATION_LEAKAGE", "Kalibrasyon konumu eğitim konumuyla çakışıyor veya tampon sınırını ihlal ediyor.")
+            raise JobError("SPATIAL_CALIBRATION_LEAKAGE", "A calibration location coincides with a training location or violates the buffer limit.")
         if len(ids) < self.config["spatial_min_effective_n"] or len(set(groups)) < self.config["spatial_min_groups"] or self.coverage * (len(ids) + 1) > len(ids) + 1e-12:
-            raise JobError("SPATIAL_CALIBRATION_SIZE", "Ayrılmış kalibrasyonda örnek veya grup sayısı istenen yerel aralık için yetersiz.")
+            raise JobError("SPATIAL_CALIBRATION_SIZE", "The reserved calibration has too few samples or groups for the requested local interval.")
         order = np.argsort(ids, kind="stable")
         self.ids = tuple(ids[i] for i in order)
         self.groups = tuple(groups[i] for i in order)
@@ -213,11 +213,11 @@ class SpatialCalibratedModel:
         details = self.calibration.adjustments(_xy(coordinates, len(X)), coverage, check_cancel=getattr(self,'_check_cancel_',lambda:None))
         predicted = np.asarray(self.predict(X, coordinates), dtype=float)
         if predicted.shape != (len(X),) or not np.isfinite(predicted).all():
-            raise JobError("SPATIAL_CALIBRATION_PREDICTION", "Nokta tahmini sonlu ve gözlem sayısıyla eşleşen değerler vermelidir.")
+            raise JobError("SPATIAL_CALIBRATION_PREDICTION", "The point prediction must return finite values matching the number of observations.")
         lower, upper = predicted - details["adjustment"], predicted + details["adjustment"]
         available = details["interval_available"]
         if not np.isfinite(lower[available]).all() or not np.isfinite(upper[available]).all():
-            raise JobError("INTERVAL", "Yerel aralık özgün birimde sonlu hesaplanamadı.")
+            raise JobError("INTERVAL", "The local interval could not be computed as finite values in the original unit.")
         return {**details, "lower": lower, "upper": upper}
 
     def predict_interval(self, X, coordinates=None):
@@ -245,6 +245,6 @@ def spatial_interval_details(model, X, coordinates, coverage):
     current = model
     while not isinstance(current, SpatialCalibratedModel):
         if not hasattr(current, "base"):
-            raise JobError("SPATIAL_CALIBRATION_MODEL", "Mekânsal kalibrasyon sarmalayıcısı bulunamadı.")
+            raise JobError("SPATIAL_CALIBRATION_MODEL", "The spatial calibration wrapper was not found.")
         current = current.base
     return current.interval_details(X, coverage, coordinates)

@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--destination', type=Path, default=ROOT / 'installer/final-acceptance')
     args = parser.parse_args()
     source = args.acceptance.resolve()
+    # sps-ç2 is the staging folder recorded during the Turkish 0.5.0 acceptance; keep as recorded.
     if source not in (ROOT.parent / 'sps-ç2/setup-acceptance.json', ROOT.parent / 'sps-cs/setup-acceptance.json'):
         raise ValueError('Expected the authorized final synthetic staging root')
     result = read(source)

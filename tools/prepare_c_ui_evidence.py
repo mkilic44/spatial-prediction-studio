@@ -9,7 +9,7 @@ evidence=ROOT/'build/arcmap-evidence'
 project=json.loads((evidence/'b-roundtrip-panel-saved.sps.json').read_text(encoding='utf-8'))
 with (evidence/'b-samples.csv').open(encoding='utf-8-sig',newline='') as stream:
     reader=csv.DictReader(stream);fields=reader.fieldnames;rows=list(reader)
-for i,row in enumerate(rows):row['landuse']='sentetik_A' if i%2 else 'sentetik_B'
+for i,row in enumerate(rows):row['landuse']='synthetic_A' if i%2 else 'synthetic_B'
 path=evidence/'c-samples.csv'
 with path.open('w',encoding='utf-8-sig',newline='') as stream:
     writer=csv.DictWriter(stream,fieldnames=fields+['landuse']);writer.writeheader();writer.writerows(rows)
