@@ -4,7 +4,9 @@ This guide lists every method in the method registry (`backend/sps/registry.json
 
 Status "Available" means the method passed the automated backend acceptance tests of this version. "Not implemented" methods are listed for completeness and cannot be selected. Methods marked "experimental" passed the same tests but have known limits that are stated with the method.
 
-Every learned step (preprocessing, variable selection, tuning, interval calibration) is fitted inside the training part of each fold. The outer test observations and a locked independent test set never take part in these steps.
+Every learned step (preprocessing, variable selection, tuning, interval calibration) is fitted inside the training part of each fold. The outer test observations and a locked independent test set never take part in these steps (see [Hastie et al. (2009, Section 7.10.2)](#ref-hastie2009), [Varma and Simon (2006)](#ref-varma2006)).
+
+Each method names its sources; the [references](#references) at the end come from the DOI registration or the publisher page and were checked automatically.
 
 ## Contents
 
@@ -16,6 +18,8 @@ Every learned step (preprocessing, variable selection, tuning, interval calibrat
 - [Models](#models) (panel tab 6 Model and search)
 - [Hyperparameter search](#hyperparameter-search) (panel tab 6 Model and search)
 - [Prediction intervals](#prediction-intervals) (panel tab 8 Uncertainty)
+- [Sources of diagnostics and metrics](#sources-of-diagnostics-and-metrics)
+- [References](#references)
 
 ## Validation design
 
@@ -78,6 +82,8 @@ Observations linked by profile, parcel and farm relationships are kept together.
 
 Cost: Increases with data size and number of folds.
 
+References: [Roberts et al. (2017)](#ref-roberts2017).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Number of outer folds | `n_splits` | 5 | 2 to 50 |
@@ -96,6 +102,8 @@ Metric grid blocks are assigned to folds. This is not an unbiased estimate of ma
 
 Cost: Increases with data size and number of folds.
 
+References: [Roberts et al. (2017)](#ref-roberts2017), [Valavi et al. (2019)](#ref-valavi2019).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Number of outer folds | `n_splits` | 5 | 2 to 50 |
@@ -113,6 +121,8 @@ Cost: Increases with data size and number of folds.
 Training groups closer to the test blocks than the buffer distance are removed.
 
 Cost: Increases with data size and number of folds.
+
+References: [Le Rest et al. (2014)](#ref-lerest2014), [Roberts et al. (2017)](#ref-roberts2017).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -152,6 +162,8 @@ Installation: Needs the optional R 4.4.3 and CAST 1.0.4 runtime, which Install.c
 
 Cost: Increases with data size and number of folds.
 
+References: [Linnenbrink et al. (2024)](#ref-linnenbrink2024), [Milà et al. (2022)](#ref-mila2022), [Meyer et al. (2018a)](#ref-cast).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Number of outer folds | `n_splits` | 5 | 2 to 50 |
@@ -171,6 +183,8 @@ Cost: Increases with data size and number of folds.
 A date field is required. Profiles and same-day observations are not split. The training history moves forward; calibration is held out from the last eligible periods. Evaluation with fixed rasters does not validate a map for a specific future date.
 
 Cost: Increases with data size and number of folds.
+
+References: [Roberts et al. (2017)](#ref-roberts2017).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -203,6 +217,8 @@ Imputation, scaling and the handling of categories are learned only from the tra
 Each step is learned only from the relevant training observations.
 
 Cost: Increases with data size and number of folds.
+
+References: [Hastie et al. (2009, Section 7.10.2)](#ref-hastie2009).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -247,6 +263,8 @@ The transformation coefficient is learned from training data only.
 
 Cost: Increases with data size and number of folds.
 
+References: [Yeo (2000)](#ref-yeo2000).
+
 No parameters.
 
 ## Multicollinearity (variance inflation factor)
@@ -275,6 +293,8 @@ The variance inflation factor (VIF) measures collinearity among covariates. It d
 
 Cost: Increases with data size and number of folds.
 
+References: [Dormann et al. (2013)](#ref-dormann2013).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Elimination threshold | `threshold` | 10 | 1.01 to 100000 |
@@ -286,6 +306,8 @@ Cost: Increases with data size and number of folds.
 Continuous variables that exceed the threshold are eliminated one at a time within training. Categorical indicator columns are not split up.
 
 Cost: Increases with data size and number of folds.
+
+References: [Dormann et al. (2013)](#ref-dormann2013).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -353,6 +375,8 @@ Measures the nonlinear dependence between an input and the target soil property 
 
 Cost: Increases with data size and number of folds.
 
+References: [Kraskov et al. (2004)](#ref-kraskov2004), [Ross (2014)](#ref-ross2014).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Number of variables / components | `k` | 1 | 1 to 256 |
@@ -366,6 +390,8 @@ Cost: Increases with data size and number of folds.
 The linear selector model is separate from the final model.
 
 Cost: Increases with data size and number of folds.
+
+References: [Zou and Hastie (2005)](#ref-zou2005).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -381,6 +407,8 @@ Preprocessing is relearned in each subfold. The computational cost is high.
 
 Cost: Increases with data size and number of folds.
 
+References: [Meyer et al. (2018b)](#ref-meyer2018).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Number of variables / components | `k` | 1 | 1 to 256 |
@@ -394,6 +422,8 @@ Cost: Increases with data size and number of folds.
 Requires a model that provides coefficients or tree importance.
 
 Cost: Increases with data size and number of folds.
+
+References: [Guyon et al. (2002)](#ref-guyon2002).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -409,6 +439,8 @@ Searches for relevant variables. It does not guarantee the smallest best model.
 
 Cost: Increases with data size and number of folds.
 
+References: [Kursa and Rudnicki (2010)](#ref-kursa2010).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Number of variables / components | `k` | 1 | 1 to 256 |
@@ -422,6 +454,8 @@ Cost: Increases with data size and number of folds.
 A transformation learned on training data; it is not variable selection.
 
 Cost: Increases with data size and number of folds.
+
+References: [Jolliffe and Cadima (2016)](#ref-jolliffe2016).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -479,6 +513,8 @@ Linear regression that shrinks the coefficients.
 
 Cost: Increases with data size and number of folds.
 
+References: [Hoerl and Kennard (1970)](#ref-hoerl1970).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Regularization coefficient | `alpha` | 1 | 1e-06 to 1000000 |
@@ -488,6 +524,8 @@ Cost: Increases with data size and number of folds.
 Combines two regularization penalties.
 
 Cost: Increases with data size and number of folds.
+
+References: [Zou and Hastie (2005)](#ref-zou2005).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -500,6 +538,8 @@ Cost: Increases with data size and number of folds.
 Builds an ensemble of trees from training samples.
 
 Cost: Increases with data size and number of folds.
+
+References: [Breiman (2001)](#ref-breiman2001).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -514,6 +554,8 @@ Builds an ensemble of trees with random split points.
 
 Cost: Increases with data size and number of folds.
 
+References: [Geurts et al. (2006)](#ref-geurts2006).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Number of trees | `n_estimators` | 100 | 10 to 2000 |
@@ -526,6 +568,8 @@ Cost: Increases with data size and number of folds.
 Kernel-based regression. Costly for large samples.
 
 Cost: Increases with data size and number of folds.
+
+References: [Smola and Schölkopf (2004)](#ref-smola2004).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -540,6 +584,8 @@ Early stopping is off; the number of iterations is chosen in inner folds.
 
 Cost: Increases with data size and number of folds.
 
+References: [Friedman (2001)](#ref-friedman2001), [Ke et al. (2017)](#ref-ke2017).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Iterations | `max_iter` | 100 | 10 to 2000 |
@@ -552,6 +598,8 @@ Cost: Increases with data size and number of folds.
 Boosted trees on the CPU. Early stopping is off.
 
 Cost: Increases with data size and number of folds.
+
+References: [Chen and Guestrin (2016)](#ref-chen2016).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -566,6 +614,8 @@ Cost: Increases with data size and number of folds.
 A pinned version of the actual package runs on the local CPU. Early stopping and the model's own cross-validation are off.
 
 Cost: Increases with data size and number of folds.
+
+References: [Ke et al. (2017)](#ref-ke2017).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -584,6 +634,8 @@ A pinned version of the actual package runs on the local CPU. Early stopping and
 
 Cost: Increases with data size and number of folds.
 
+References: [Prokhorenkova et al. (2017)](#ref-prokhorenkova2018).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Iterations | `iterations` | 100 | 10 to 2000 |
@@ -597,6 +649,8 @@ Cost: Increases with data size and number of folds.
 A pinned version of the actual package runs on the local CPU. Early stopping and the model's own cross-validation are off.
 
 Cost: Increases with data size and number of folds.
+
+References: [Quinlan (1993)](#ref-quinlan1993).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -612,6 +666,8 @@ The semivariogram is fitted only in the relevant training fold. Kriging variance
 
 Cost: Increases with data size and number of folds.
 
+References: [Webster and Oliver (2007)](#ref-webster2007).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Semivariogram model | `variogram_model` | Spherical | Spherical (`spherical`); Exponential (`exponential`); Gaussian (`gaussian`) |
@@ -624,6 +680,8 @@ Cost: Increases with data size and number of folds.
 The semivariogram is fitted only in the relevant training fold. Kriging variance is not the total uncertainty; training uses at most 2000 observations.
 
 Cost: Increases with data size and number of folds.
+
+References: [Odeh et al. (1995)](#ref-odeh1995), [Hengl et al. (2004)](#ref-hengl2004).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -644,6 +702,8 @@ Installation: Needs the TabPFN v2 weights, which are installed only with Install
 
 Cost: At most 1000 training observations and 256 variables after encoding. Each subprocess may use at most 120 seconds and 2 GiB of memory.
 
+References: [Hollmann et al. (2025)](#ref-hollmann2025).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Number of ensemble members | `n_estimators` | 2 | 1 to 4 |
@@ -654,6 +714,8 @@ Cost: At most 1000 training observations and 256 variables after encoding. Each 
 Trained on the local CPU for a fixed number of epochs. Internal validation and early stopping are off. Each training run may use at most 120 seconds and 2 GiB of memory.
 
 Cost: At most 2000 training observations and 256 variables after encoding; single thread. It can be slow even on small data.
+
+References: [Gorishniy et al. (2024)](#ref-gorishniy2024).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -671,6 +733,8 @@ Cost: At most 2000 training observations and 256 variables after encoding; singl
 Trained on the local CPU for a fixed number of epochs. Internal validation and early stopping are off. Each training run may use at most 120 seconds and 2 GiB of memory.
 
 Cost: At most 2000 training observations and 256 variables after encoding; single thread. It can be slow even on small data.
+
+References: [Holzmüller et al. (2024)](#ref-holzmuller2024).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -727,6 +791,8 @@ Draws as many candidates from the defined ranges as the budget allows.
 
 Cost: Increases with data size and number of folds.
 
+References: [Bergstra and Bengio (2012)](#ref-bergstra2012).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Trial budget | `trials` | 10 | 1 to 10000 |
@@ -740,6 +806,8 @@ Cost: Increases with data size and number of folds.
 The Tree-structured Parzen Estimator (TPE) chooses new settings based on previous trials. It does not guarantee the global best result.
 
 Cost: Increases with data size and number of folds.
+
+References: [Akiba et al. (2019)](#ref-akiba2019).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -779,6 +847,8 @@ Builds intervals from the absolute errors of separate calibration observations.
 
 Cost: Increases with data size and number of folds.
 
+References: [Lei et al. (2018)](#ref-lei2018).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Nominal coverage | `coverage` | 0.9 | 0.5 to 0.99 |
@@ -790,6 +860,8 @@ Cost: Increases with data size and number of folds.
 True conditional quantiles in the random forest family. Coverage without calibration is tested in outer folds.
 
 Cost: Increases with data size and number of folds.
+
+References: [Meinshausen (2006)](#ref-meinshausen2006), [Johnson (2024)](#ref-johnson2024).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -803,6 +875,8 @@ Separate lower and upper quantile models in the histogram-based gradient boostin
 
 Cost: Increases with data size and number of folds.
 
+References: [Friedman (2001)](#ref-friedman2001), [Koenker and Bassett (1978)](#ref-koenker1978).
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Nominal coverage | `coverage` | 0.9 | 0.5 to 0.99 |
@@ -814,6 +888,8 @@ Cost: Increases with data size and number of folds.
 Adjusts the quantile interval with separate calibration data.
 
 Cost: Increases with data size and number of folds.
+
+References: [Romano et al. (2019)](#ref-romano2019).
 
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
@@ -827,6 +903,10 @@ Weights separate calibration residuals by distance. There is no exact coverage g
 
 Cost: Increases with data size and number of folds.
 
+References: [Tibshirani et al. (2019)](#ref-tibshirani2019), [Guan (2023)](#ref-guan2023).
+
+The method is not an implementation of the spatial conformal prediction of [Mao et al. (2024)](#ref-mao2024). The coverage results of these papers are not claimed for it.
+
 | Parameter | ID | Default | Allowed values |
 |---|---|---|---|
 | Nominal coverage | `coverage` | 0.9 | 0.5 to 0.99 |
@@ -835,3 +915,120 @@ Cost: Increases with data size and number of folds.
 | Distance weighting | `spatial_kernel` | Gaussian | Gaussian (`gaussian`); Compact support (`compact`) |
 | Minimum effective calibration size | `spatial_min_effective_n` | 5 | 2 to 10000 |
 | Minimum effective calibration groups | `spatial_min_groups` | 3 | 2 to 10000 |
+
+## Sources of diagnostics and metrics
+
+The diagnostics and metrics are described in [OUTPUTS.md](OUTPUTS.md) and [USER_GUIDE.md](USER_GUIDE.md).
+
+| Diagnostic or metric | Sources |
+|---|---|
+| Area of applicability (AOA) and dissimilarity index (DI) | [Meyer and Pebesma (2021)](#ref-meyer2021), [Meyer et al. (2018a)](#ref-cast) |
+| Permutation variable importance | [Breiman (2001)](#ref-breiman2001), [Fisher et al. (2019)](#ref-fisher2019) |
+| Lin's concordance correlation coefficient (CCC) | [Lin (1989)](#ref-lin1989) |
+| RPD and RPIQ | [Bellon-Maurel et al. (2010)](#ref-bellonmaurel2010) |
+| Interval score | [Gneiting and Raftery (2007)](#ref-gneiting2007) |
+| Pinball (quantile) loss | [Koenker and Bassett (1978)](#ref-koenker1978) |
+| Design-based map validation with a probability sample (listed, not implemented) | [Brus et al. (2011)](#ref-brus2011), [Wadoux et al. (2021)](#ref-wadoux2021) |
+
+## References
+
+Each record below comes from the DOI registration (doi.org) or, for a paper without DOI, from the citation tags of the publisher page. `tools/references.py` checks in the references workflow that each one is the expected work. "Cited for" states what the source supports here.
+
+- <a name="ref-akiba2019"></a>Akiba, T., Sano, S., Yanase, T., Ohta, T., Koyama, M. (2019). Optuna. *Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining*, 2623-2631. https://doi.org/10.1145/3292500.3330701  
+  Cited for: Optuna search with the Tree-structured Parzen Estimator.
+- <a name="ref-bellonmaurel2010"></a>Bellon-Maurel, V., Fernandez-Ahumada, E., Palagos, B., Roger, J., McBratney, A. (2010). Critical review of chemometric indicators commonly used for assessing the quality of the prediction of soil attributes by NIR spectroscopy. *TrAC Trends in Analytical Chemistry*, 29(9), 1073-1081. https://doi.org/10.1016/j.trac.2010.05.006  
+  Cited for: RPD and RPIQ for soil property predictions.
+- <a name="ref-bergstra2012"></a>Bergstra, J., Bengio, Y. (2012). Random Search for Hyper-Parameter Optimization. *Journal of Machine Learning Research*, 13(10), 281-305. https://jmlr.org/papers/v13/bergstra12a.html  
+  Cited for: Random search.
+- <a name="ref-breiman2001"></a>Breiman, L. (2001). Random Forests. *Machine Learning*, 45(1), 5-32. https://doi.org/10.1023/A:1010933404324  
+  Cited for: Random forest, and permutation variable importance in random forests.
+- <a name="ref-brus2011"></a>Brus, D. J., Kempen, B., Heuvelink, G. B. M. (2011). Sampling for validation of digital soil maps. *European Journal of Soil Science*, 62(3), 394-407. https://doi.org/10.1111/j.1365-2389.2011.01364.x  
+  Cited for: Design-based map validation with a probability sample (not implemented yet).
+- <a name="ref-chen2016"></a>Chen, T., Guestrin, C. (2016). XGBoost. *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 785-794. https://doi.org/10.1145/2939672.2939785  
+  Cited for: XGBoost.
+- <a name="ref-dormann2013"></a>Dormann, C. F., Elith, J., Bacher, S., Buchmann, C., Carl, G., Carré, G., et al. (2013). Collinearity: a review of methods to deal with it and a simulation study evaluating their performance. *Ecography*, 36(1), 27-46. https://doi.org/10.1111/j.1600-0587.2012.07348.x  
+  Cited for: Variance inflation factor as a collinearity diagnostic and its thresholds.
+- <a name="ref-fisher2019"></a>Fisher, A., Rudin, C., Dominici, F. (2019). All Models are Wrong, but Many are Useful: Learning a Variable's Importance by Studying an Entire Class of Prediction Models Simultaneously. *Journal of Machine Learning Research*, 20(177), 1-81. https://jmlr.org/papers/v20/18-760.html  
+  Cited for: Model-agnostic permutation variable importance.
+- <a name="ref-friedman2001"></a>Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. *The Annals of Statistics*, 29(5), 1189-1232. https://doi.org/10.1214/aos/1013203451  
+  Cited for: Gradient boosting: histogram-based gradient boosting and boosting with quantile loss.
+- <a name="ref-geurts2006"></a>Geurts, P., Ernst, D., Wehenkel, L. (2006). Extremely randomized trees. *Machine Learning*, 63(1), 3-42. https://doi.org/10.1007/s10994-006-6226-1  
+  Cited for: Extremely randomized trees.
+- <a name="ref-gneiting2007"></a>Gneiting, T., Raftery, A. E. (2007). Strictly Proper Scoring Rules, Prediction, and Estimation. *Journal of the American Statistical Association*, 102(477), 359-378. https://doi.org/10.1198/016214506000001437  
+  Cited for: Interval score.
+- <a name="ref-gorishniy2024"></a>Gorishniy, Y., Kotelnikov, A., Babenko, A. (2024). TabM: Advancing Tabular Deep Learning with Parameter-Efficient Ensembling. arXiv. https://doi.org/10.48550/arXiv.2410.24210  
+  Cited for: TabM (preprint of the ICLR 2025 paper).
+- <a name="ref-guan2023"></a>Guan, L. (2023). Localized conformal prediction: a generalized inference framework for conformal prediction. *Biometrika*, 110(1), 33-50. https://doi.org/10.1093/biomet/asac040  
+  Cited for: Spatially weighted conformal: localization of conformal calibration with kernel weights.
+- <a name="ref-guyon2002"></a>Guyon, I., Weston, J., Barnhill, S., Vapnik, V. (2002). Gene Selection for Cancer Classification using Support Vector Machines. *Machine Learning*, 46(1-3), 389-422. https://doi.org/10.1023/A:1012487302797  
+  Cited for: Recursive feature elimination.
+- <a name="ref-hastie2009"></a>Hastie, T., Tibshirani, R., Friedman, J. (2009). The Elements of Statistical Learning. Springer New York. https://doi.org/10.1007/978-0-387-84858-7  
+  Cited for: Preprocessing and variable selection inside each training fold ("the wrong and the right way to do cross-validation").
+- <a name="ref-hengl2004"></a>Hengl, T., Heuvelink, G. B. M., Stein, A. (2004). A generic framework for spatial prediction of soil variables based on regression-kriging. *Geoderma*, 120(1-2), 75-93. https://doi.org/10.1016/j.geoderma.2003.08.018  
+  Cited for: Regression kriging of soil properties.
+- <a name="ref-hoerl1970"></a>Hoerl, A. E., Kennard, R. W. (1970). Ridge Regression: Biased Estimation for Nonorthogonal Problems. *Technometrics*, 12(1), 55-67. https://doi.org/10.1080/00401706.1970.10488634  
+  Cited for: Ridge regression.
+- <a name="ref-hollmann2025"></a>Hollmann, N., Müller, S., Purucker, L., Krishnakumar, A., Körfer, M., Hoo, S. B., et al. (2025). Accurate predictions on small data with a tabular foundation model. *Nature*, 637(8045), 319-326. https://doi.org/10.1038/s41586-024-08328-6  
+  Cited for: TabPFN v2.
+- <a name="ref-holzmuller2024"></a>Holzmüller, D., Grinsztajn, L., Steinwart, I. (2024). Better by Default: Strong Pre-Tuned MLPs and Boosted Trees on Tabular Data. arXiv. https://doi.org/10.48550/arXiv.2407.04491  
+  Cited for: RealMLP (preprint of the NeurIPS 2024 paper).
+- <a name="ref-johnson2024"></a>Johnson, R. A. (2024). quantile-forest: A Python Package for Quantile Regression Forests. *Journal of Open Source Software*, 9(93), 5976. https://doi.org/10.21105/joss.05976  
+  Cited for: Quantile regression forest implementation used here (quantile-forest package).
+- <a name="ref-jolliffe2016"></a>Jolliffe, I. T., Cadima, J. (2016). Principal component analysis: a review and recent developments. *Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences*, 374(2065), 20150202. https://doi.org/10.1098/rsta.2015.0202  
+  Cited for: Principal component analysis.
+- <a name="ref-ke2017"></a>Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., et al. (2017). LightGBM: A Highly Efficient Gradient Boosting Decision Tree. *Advances in Neural Information Processing Systems*, 30. https://proceedings.neurips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html  
+  Cited for: LightGBM, and the histogram binning of histogram-based gradient boosting.
+- <a name="ref-koenker1978"></a>Koenker, R., Bassett, G. (1978). Regression Quantiles. *Econometrica*, 46(1), 33. https://doi.org/10.2307/1913643  
+  Cited for: Quantile loss (pinball loss) of quantile boosting and of the interval metrics.
+- <a name="ref-kraskov2004"></a>Kraskov, A., Stögbauer, H., Grassberger, P. (2004). Estimating mutual information. *Physical Review E*, 69(6). https://doi.org/10.1103/PhysRevE.69.066138  
+  Cited for: Mutual information filter: nearest-neighbour estimator for continuous variables (scikit-learn mutual_info_regression).
+- <a name="ref-kursa2010"></a>Kursa, M. B., Rudnicki, W. R. (2010). Feature Selection with the Boruta Package. *Journal of Statistical Software*, 36(11). https://doi.org/10.18637/jss.v036.i11  
+  Cited for: Boruta selection (BorutaPy implements this algorithm).
+- <a name="ref-lerest2014"></a>Le Rest, K., Pinaud, D., Monestiez, P., Chadoeuf, J., Bretagnolle, V. (2014). Spatial leave-one-out cross-validation for variable selection in the presence of spatial autocorrelation. *Global Ecology and Biogeography*, 23(7), 811-820. https://doi.org/10.1111/geb.12161  
+  Cited for: Buffered spatial validation: removing training observations within a buffer distance of the test observations.
+- <a name="ref-lei2018"></a>Lei, J., G’Sell, M., Rinaldo, A., Tibshirani, R. J., Wasserman, L. (2018). Distribution-Free Predictive Inference for Regression. *Journal of the American Statistical Association*, 113(523), 1094-1111. https://doi.org/10.1080/01621459.2017.1307116  
+  Cited for: Split conformal prediction intervals.
+- <a name="ref-lin1989"></a>Lin, L. I. (1989). A Concordance Correlation Coefficient to Evaluate Reproducibility. *Biometrics*, 45(1), 255. https://doi.org/10.2307/2532051  
+  Cited for: Lin's concordance correlation coefficient (CCC).
+- <a name="ref-linnenbrink2024"></a>Linnenbrink, J., Milà, C., Ludwig, M., Meyer, H. (2024). kNNDM CV: k-fold nearest-neighbour distance matching cross-validation for map accuracy estimation. *Geoscientific Model Development*, 17(15), 5897-5912. https://doi.org/10.5194/gmd-17-5897-2024  
+  Cited for: kNNDM validation design (the method that CAST 1.0.4 implements).
+- <a name="ref-mao2024"></a>Mao, H., Martin, R., Reich, B. J. (2024). Valid Model-Free Spatial Prediction. *Journal of the American Statistical Association*, 119(546), 904-914. https://doi.org/10.1080/01621459.2022.2147531  
+  Cited for: Spatially weighted conformal: related spatial method whose coverage results are not claimed here.
+- <a name="ref-meinshausen2006"></a>Meinshausen, N. (2006). Quantile Regression Forests. *Journal of Machine Learning Research*, 7(35), 983-999. https://jmlr.org/papers/v7/meinshausen06a.html  
+  Cited for: Quantile regression forest.
+- <a name="ref-cast"></a>Meyer, H., Milà, C., Ludwig, M., Linnenbrink, J., Schumacher, F. (2018a). CAST: 'caret' Applications for Spatial-Temporal Models. *CRAN: Contributed Packages*. https://doi.org/10.32614/CRAN.package.CAST  
+  Cited for: CAST R package (version 1.0.4 is used), through the private R runtime for kNNDM and as the reference for the area of applicability.
+- <a name="ref-meyer2018"></a>Meyer, H., Reudenbach, C., Hengl, T., Katurji, M., Nauss, T. (2018b). Improving performance of spatio-temporal machine learning models using forward feature selection and target-oriented validation. *Environmental Modelling & Software*, 101, 1-9. https://doi.org/10.1016/j.envsoft.2017.12.001  
+  Cited for: Sequential forward selection evaluated with spatially separated folds.
+- <a name="ref-meyer2021"></a>Meyer, H., Pebesma, E. (2021). Predicting into unknown space? Estimating the area of applicability of spatial prediction models. *Methods in Ecology and Evolution*, 12(9), 1620-1633. https://doi.org/10.1111/2041-210X.13650  
+  Cited for: Area of applicability (AOA) and dissimilarity index (DI).
+- <a name="ref-mila2022"></a>Milà, C., Mateu, J., Pebesma, E., Meyer, H. (2022). Nearest neighbour distance matching Leave-One-Out Cross-Validation for map validation. *Methods in Ecology and Evolution*, 13(6), 1304-1316. https://doi.org/10.1111/2041-210X.13851  
+  Cited for: kNNDM validation design: the nearest neighbour distance matching that kNNDM extends to k folds.
+- <a name="ref-odeh1995"></a>Odeh, I. O. A., McBratney, A. B., Chittleborough, D. J. (1995). Further results on prediction of soil properties from terrain attributes: heterotopic cokriging and regression-kriging. *Geoderma*, 67(3-4), 215-226. https://doi.org/10.1016/0016-7061(95)00007-B  
+  Cited for: Regression kriging of soil properties.
+- <a name="ref-prokhorenkova2018"></a>Prokhorenkova, L., Gusev, G., Vorobev, A., Dorogush, A. V., Gulin, A. (2017). CatBoost: unbiased boosting with categorical features. arXiv. https://doi.org/10.48550/arXiv.1706.09516  
+  Cited for: CatBoost (preprint of the NeurIPS 2018 paper).
+- <a name="ref-quinlan1993"></a>Quinlan, J. R. (1993). Combining Instance-Based and Model-Based Learning. *Machine Learning Proceedings 1993*, 236-243. https://doi.org/10.1016/B978-1-55860-307-3.50037-X  
+  Cited for: Cubist: rule-based model trees with instance-based correction.
+- <a name="ref-roberts2017"></a>Roberts, D. R., Bahn, V., Ciuti, S., Boyce, M. S., Elith, J., Guillera-Arroita, G., et al. (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. *Ecography*, 40(8), 913-929. https://doi.org/10.1111/ecog.02881  
+  Cited for: Grouped, spatial block, buffered and time-ordered validation: blocking dependent observations into folds.
+- <a name="ref-romano2019"></a>Romano, Y., Patterson, E., Candès, E. J. (2019). Conformalized Quantile Regression. arXiv. https://doi.org/10.48550/arXiv.1905.03222  
+  Cited for: Conformalized quantile regression (preprint of the NeurIPS 2019 paper).
+- <a name="ref-ross2014"></a>Ross, B. C. (2014). Mutual Information between Discrete and Continuous Data Sets. *PLoS ONE*, 9(2), e87357. https://doi.org/10.1371/journal.pone.0087357  
+  Cited for: Mutual information filter: estimator for discrete covariates and a continuous target (scikit-learn mutual_info_regression).
+- <a name="ref-smola2004"></a>Smola, A. J., Schölkopf, B. (2004). A tutorial on support vector regression. *Statistics and Computing*, 14(3), 199-222. https://doi.org/10.1023/B:STCO.0000035301.49549.88  
+  Cited for: Support vector regression.
+- <a name="ref-tibshirani2019"></a>Tibshirani, R. J., Barber, R. F., Candes, E. J., Ramdas, A. (2019). Conformal Prediction Under Covariate Shift. arXiv. https://doi.org/10.48550/arXiv.1904.06019  
+  Cited for: Spatially weighted conformal: weighted conformal quantile with the test point mass at infinity.
+- <a name="ref-valavi2019"></a>Valavi, R., Elith, J., Lahoz-Monfort, J. J., Guillera-Arroita, G. (2019). block CV: An r package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models. *Methods in Ecology and Evolution*, 10(2), 225-232. https://doi.org/10.1111/2041-210X.13107  
+  Cited for: Spatial block validation: assignment of spatial blocks to folds.
+- <a name="ref-varma2006"></a>Varma, S., Simon, R. (2006). Bias in error estimation when using cross-validation for model selection. *BMC Bioinformatics*, 7(1). https://doi.org/10.1186/1471-2105-7-91  
+  Cited for: Nested cross-validation: tuning and selection inside the outer training folds.
+- <a name="ref-wadoux2021"></a>Wadoux, A. M. J. -., Heuvelink, G. B. M., de Bruin, S., Brus, D. J. (2021). Spatial cross-validation is not the right way to evaluate map accuracy. *Ecological Modelling*, 457, 109692. https://doi.org/10.1016/j.ecolmodel.2021.109692  
+  Cited for: Design-based map validation (not implemented yet) and the limits of cross-validation as an estimate of map accuracy.
+- <a name="ref-webster2007"></a>Webster, R., Oliver, M. A. (2007). Geostatistics for Environmental Scientists. Wiley. https://doi.org/10.1002/9780470517277  
+  Cited for: Ordinary kriging and semivariogram fitting.
+- <a name="ref-yeo2000"></a>Yeo, I. -. (2000). A new family of power transformations to improve normality or symmetry. *Biometrika*, 87(4), 954-959. https://doi.org/10.1093/biomet/87.4.954  
+  Cited for: Yeo-Johnson target transformation.
+- <a name="ref-zou2005"></a>Zou, H., Hastie, T. (2005). Regularization and Variable Selection Via the Elastic Net. *Journal of the Royal Statistical Society Series B: Statistical Methodology*, 67(2), 301-320. https://doi.org/10.1111/j.1467-9868.2005.00503.x  
+  Cited for: Elastic Net selection and Elastic Net regression.

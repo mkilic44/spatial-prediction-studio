@@ -9,7 +9,77 @@
         "year": 2017,
         "title": "Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure"
       },
-      "used_for": "Grouped, spatial block, buffered and time-ordered validation: blocking dependent observations into folds."
+      "used_for": "Grouped, spatial block, buffered and time-ordered validation: blocking dependent observations into folds.",
+      "metadata": {
+        "authors": [
+          [
+            "Roberts",
+            "D. R."
+          ],
+          [
+            "Bahn",
+            "V."
+          ],
+          [
+            "Ciuti",
+            "S."
+          ],
+          [
+            "Boyce",
+            "M. S."
+          ],
+          [
+            "Elith",
+            "J."
+          ],
+          [
+            "Guillera-Arroita",
+            "G."
+          ],
+          [
+            "Hauenstein",
+            "S."
+          ],
+          [
+            "Lahoz-Monfort",
+            "J. J."
+          ],
+          [
+            "Schröder",
+            "B."
+          ],
+          [
+            "Thuiller",
+            "W."
+          ],
+          [
+            "Warton",
+            "D. I."
+          ],
+          [
+            "Wintle",
+            "B. A."
+          ],
+          [
+            "Hartig",
+            "F."
+          ],
+          [
+            "Dormann",
+            "C. F."
+          ]
+        ],
+        "year": 2017,
+        "title": "Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure",
+        "container": "Ecography",
+        "volume": "40",
+        "issue": "8",
+        "pages": "913-929",
+        "publisher": "Wiley",
+        "type": "journal-article",
+        "doi": "10.1111/ecog.02881",
+        "url": "https://doi.org/10.1111/ecog.02881"
+      }
     },
     "valavi2019": {
       "doi": "10.1111/2041-210X.13107",
@@ -18,7 +88,37 @@
         "year": 2019,
         "title": "An r package for generating spatially or environmentally separated folds"
       },
-      "used_for": "Spatial block validation: assignment of spatial blocks to folds."
+      "used_for": "Spatial block validation: assignment of spatial blocks to folds.",
+      "metadata": {
+        "authors": [
+          [
+            "Valavi",
+            "R."
+          ],
+          [
+            "Elith",
+            "J."
+          ],
+          [
+            "Lahoz-Monfort",
+            "J. J."
+          ],
+          [
+            "Guillera-Arroita",
+            "G."
+          ]
+        ],
+        "year": 2019,
+        "title": "block CV: An r package for generating spatially or environmentally separated folds for k-fold cross-validation of species distribution models",
+        "container": "Methods in Ecology and Evolution",
+        "volume": "10",
+        "issue": "2",
+        "pages": "225-232",
+        "publisher": "Wiley",
+        "type": "journal-article",
+        "doi": "10.1111/2041-210x.13107",
+        "url": "https://doi.org/10.1111/2041-210X.13107"
+      }
     },
     "lerest2014": {
       "doi": "10.1111/geb.12161",
@@ -27,7 +127,41 @@
         "year": 2014,
         "title": "Spatial leave-one-out cross-validation for variable selection in the presence of spatial autocorrelation"
       },
-      "used_for": "Buffered spatial validation: removing training observations within a buffer distance of the test observations."
+      "used_for": "Buffered spatial validation: removing training observations within a buffer distance of the test observations.",
+      "metadata": {
+        "authors": [
+          [
+            "Le Rest",
+            "K."
+          ],
+          [
+            "Pinaud",
+            "D."
+          ],
+          [
+            "Monestiez",
+            "P."
+          ],
+          [
+            "Chadoeuf",
+            "J."
+          ],
+          [
+            "Bretagnolle",
+            "V."
+          ]
+        ],
+        "year": 2014,
+        "title": "Spatial leave-one-out cross-validation for variable selection in the presence of spatial autocorrelation",
+        "container": "Global Ecology and Biogeography",
+        "volume": "23",
+        "issue": "7",
+        "pages": "811-820",
+        "publisher": "Wiley",
+        "type": "journal-article",
+        "doi": "10.1111/geb.12161",
+        "url": "https://doi.org/10.1111/geb.12161"
+      }
     },
     "linnenbrink2024": {
       "doi": "10.5194/gmd-17-5897-2024",
@@ -36,7 +170,37 @@
         "year": 2024,
         "title": "kNNDM CV"
       },
-      "used_for": "kNNDM validation design (the method that CAST 1.0.4 implements)."
+      "used_for": "kNNDM validation design (the method that CAST 1.0.4 implements).",
+      "metadata": {
+        "authors": [
+          [
+            "Linnenbrink",
+            "J."
+          ],
+          [
+            "Milà",
+            "C."
+          ],
+          [
+            "Ludwig",
+            "M."
+          ],
+          [
+            "Meyer",
+            "H."
+          ]
+        ],
+        "year": 2024,
+        "title": "kNNDM CV: k-fold nearest-neighbour distance matching cross-validation for map accuracy estimation",
+        "container": "Geoscientific Model Development",
+        "volume": "17",
+        "issue": "15",
+        "pages": "5897-5912",
+        "publisher": "Copernicus GmbH",
+        "type": "journal-article",
+        "doi": "10.5194/gmd-17-5897-2024",
+        "url": "https://doi.org/10.5194/gmd-17-5897-2024"
+      }
     },
     "mila2022": {
       "doi": "10.1111/2041-210X.13851",
@@ -45,7 +209,37 @@
         "year": 2022,
         "title": "Nearest neighbour distance matching Leave-One-Out Cross-Validation for map validation"
       },
-      "used_for": "kNNDM validation design: the nearest neighbour distance matching that kNNDM extends to k folds."
+      "used_for": "kNNDM validation design: the nearest neighbour distance matching that kNNDM extends to k folds.",
+      "metadata": {
+        "authors": [
+          [
+            "Milà",
+            "C."
+          ],
+          [
+            "Mateu",
+            "J."
+          ],
+          [
+            "Pebesma",
+            "E."
+          ],
+          [
+            "Meyer",
+            "H."
+          ]
+        ],
+        "year": 2022,
+        "title": "Nearest neighbour distance matching Leave-One-Out Cross-Validation for map validation",
+        "container": "Methods in Ecology and Evolution",
+        "volume": "13",
+        "issue": "6",
+        "pages": "1304-1316",
+        "publisher": "Wiley",
+        "type": "journal-article",
+        "doi": "10.1111/2041-210x.13851",
+        "url": "https://doi.org/10.1111/2041-210X.13851"
+      }
     },
     "cast": {
       "doi": "10.32614/CRAN.package.CAST",
@@ -54,7 +248,41 @@
         "year": 2018,
         "title": "CAST"
       },
-      "used_for": "CAST R package (version 1.0.4 is used), through the private R runtime for kNNDM and as the reference for the area of applicability."
+      "used_for": "CAST R package (version 1.0.4 is used), through the private R runtime for kNNDM and as the reference for the area of applicability.",
+      "metadata": {
+        "authors": [
+          [
+            "Meyer",
+            "H."
+          ],
+          [
+            "Milà",
+            "C."
+          ],
+          [
+            "Ludwig",
+            "M."
+          ],
+          [
+            "Linnenbrink",
+            "J."
+          ],
+          [
+            "Schumacher",
+            "F."
+          ]
+        ],
+        "year": 2018,
+        "title": "CAST: 'caret' Applications for Spatial-Temporal Models",
+        "container": "CRAN: Contributed Packages",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "publisher": "The R Foundation",
+        "type": "dataset",
+        "doi": "10.32614/cran.package.cast",
+        "url": "https://doi.org/10.32614/CRAN.package.CAST"
+      }
     },
     "brus2011": {
       "doi": "10.1111/j.1365-2389.2011.01364.x",
@@ -63,7 +291,33 @@
         "year": 2011,
         "title": "Sampling for validation of digital soil maps"
       },
-      "used_for": "Design-based map validation with a probability sample (not implemented yet)."
+      "used_for": "Design-based map validation with a probability sample (not implemented yet).",
+      "metadata": {
+        "authors": [
+          [
+            "Brus",
+            "D. J."
+          ],
+          [
+            "Kempen",
+            "B."
+          ],
+          [
+            "Heuvelink",
+            "G. B. M."
+          ]
+        ],
+        "year": 2011,
+        "title": "Sampling for validation of digital soil maps",
+        "container": "European Journal of Soil Science",
+        "volume": "62",
+        "issue": "3",
+        "pages": "394-407",
+        "publisher": "Wiley",
+        "type": "journal-article",
+        "doi": "10.1111/j.1365-2389.2011.01364.x",
+        "url": "https://doi.org/10.1111/j.1365-2389.2011.01364.x"
+      }
     },
     "wadoux2021": {
       "doi": "10.1016/j.ecolmodel.2021.109692",
@@ -72,7 +326,37 @@
         "year": 2021,
         "title": "Spatial cross-validation is not the right way to evaluate map accuracy"
       },
-      "used_for": "Design-based map validation (not implemented yet) and the limits of cross-validation as an estimate of map accuracy."
+      "used_for": "Design-based map validation (not implemented yet) and the limits of cross-validation as an estimate of map accuracy.",
+      "metadata": {
+        "authors": [
+          [
+            "Wadoux",
+            "A. M. J. -."
+          ],
+          [
+            "Heuvelink",
+            "G. B. M."
+          ],
+          [
+            "de Bruin",
+            "S."
+          ],
+          [
+            "Brus",
+            "D. J."
+          ]
+        ],
+        "year": 2021,
+        "title": "Spatial cross-validation is not the right way to evaluate map accuracy",
+        "container": "Ecological Modelling",
+        "volume": "457",
+        "issue": "",
+        "pages": "109692",
+        "publisher": "Elsevier BV",
+        "type": "journal-article",
+        "doi": "10.1016/j.ecolmodel.2021.109692",
+        "url": "https://doi.org/10.1016/j.ecolmodel.2021.109692"
+      }
     },
     "varma2006": {
       "doi": "10.1186/1471-2105-7-91",
@@ -81,7 +365,29 @@
         "year": 2006,
         "title": "Bias in error estimation when using cross-validation for model selection"
       },
-      "used_for": "Nested cross-validation: tuning and selection inside the outer training folds."
+      "used_for": "Nested cross-validation: tuning and selection inside the outer training folds.",
+      "metadata": {
+        "authors": [
+          [
+            "Varma",
+            "S."
+          ],
+          [
+            "Simon",
+            "R."
+          ]
+        ],
+        "year": 2006,
+        "title": "Bias in error estimation when using cross-validation for model selection",
+        "container": "BMC Bioinformatics",
+        "volume": "7",
+        "issue": "1",
+        "pages": "",
+        "publisher": "Springer Science and Business Media LLC",
+        "type": "journal-article",
+        "doi": "10.1186/1471-2105-7-91",
+        "url": "https://doi.org/10.1186/1471-2105-7-91"
+      }
     },
     "hastie2009": {
       "doi": "10.1007/978-0-387-84858-7",
@@ -91,7 +397,33 @@
         "title": "The Elements of Statistical Learning"
       },
       "used_for": "Preprocessing and variable selection inside each training fold (\"the wrong and the right way to do cross-validation\").",
-      "locator": "Section 7.10.2"
+      "locator": "Section 7.10.2",
+      "metadata": {
+        "authors": [
+          [
+            "Hastie",
+            "T."
+          ],
+          [
+            "Tibshirani",
+            "R."
+          ],
+          [
+            "Friedman",
+            "J."
+          ]
+        ],
+        "year": 2009,
+        "title": "The Elements of Statistical Learning",
+        "container": "Springer Series in Statistics",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "publisher": "Springer New York",
+        "type": "book",
+        "doi": "10.1007/978-0-387-84858-7",
+        "url": "https://doi.org/10.1007/978-0-387-84858-7"
+      }
     },
     "yeo2000": {
       "doi": "10.1093/biomet/87.4.954",
@@ -100,7 +432,25 @@
         "year": 2000,
         "title": "A new family of power transformations to improve normality or symmetry"
       },
-      "used_for": "Yeo-Johnson target transformation."
+      "used_for": "Yeo-Johnson target transformation.",
+      "metadata": {
+        "authors": [
+          [
+            "Yeo",
+            "I. -."
+          ]
+        ],
+        "year": 2000,
+        "title": "A new family of power transformations to improve normality or symmetry",
+        "container": "Biometrika",
+        "volume": "87",
+        "issue": "4",
+        "pages": "954-959",
+        "publisher": "Oxford University Press (OUP)",
+        "type": "journal-article",
+        "doi": "10.1093/biomet/87.4.954",
+        "url": "https://doi.org/10.1093/biomet/87.4.954"
+      }
     },
     "dormann2013": {
       "doi": "10.1111/j.1600-0587.2012.07348.x",
@@ -109,7 +459,93 @@
         "year": 2013,
         "title": "Collinearity"
       },
-      "used_for": "Variance inflation factor as a collinearity diagnostic and its thresholds."
+      "used_for": "Variance inflation factor as a collinearity diagnostic and its thresholds.",
+      "metadata": {
+        "authors": [
+          [
+            "Dormann",
+            "C. F."
+          ],
+          [
+            "Elith",
+            "J."
+          ],
+          [
+            "Bacher",
+            "S."
+          ],
+          [
+            "Buchmann",
+            "C."
+          ],
+          [
+            "Carl",
+            "G."
+          ],
+          [
+            "Carré",
+            "G."
+          ],
+          [
+            "Marquéz",
+            "J. R. G."
+          ],
+          [
+            "Gruber",
+            "B."
+          ],
+          [
+            "Lafourcade",
+            "B."
+          ],
+          [
+            "Leitão",
+            "P. J."
+          ],
+          [
+            "Münkemüller",
+            "T."
+          ],
+          [
+            "McClean",
+            "C."
+          ],
+          [
+            "Osborne",
+            "P. E."
+          ],
+          [
+            "Reineking",
+            "B."
+          ],
+          [
+            "Schröder",
+            "B."
+          ],
+          [
+            "Skidmore",
+            "A. K."
+          ],
+          [
+            "Zurell",
+            "D."
+          ],
+          [
+            "Lautenbach",
+            "S."
+          ]
+        ],
+        "year": 2013,
+        "title": "Collinearity: a review of methods to deal with it and a simulation study evaluating their performance",
+        "container": "Ecography",
+        "volume": "36",
+        "issue": "1",
+        "pages": "27-46",
+        "publisher": "Wiley",
+        "type": "journal-article",
+        "doi": "10.1111/j.1600-0587.2012.07348.x",
+        "url": "https://doi.org/10.1111/j.1600-0587.2012.07348.x"
+      }
     },
     "kraskov2004": {
       "doi": "10.1103/PhysRevE.69.066138",
@@ -118,7 +554,33 @@
         "year": 2004,
         "title": "Estimating mutual information"
       },
-      "used_for": "Mutual information filter: nearest-neighbour estimator for continuous variables (scikit-learn mutual_info_regression)."
+      "used_for": "Mutual information filter: nearest-neighbour estimator for continuous variables (scikit-learn mutual_info_regression).",
+      "metadata": {
+        "authors": [
+          [
+            "Kraskov",
+            "A."
+          ],
+          [
+            "Stögbauer",
+            "H."
+          ],
+          [
+            "Grassberger",
+            "P."
+          ]
+        ],
+        "year": 2004,
+        "title": "Estimating mutual information",
+        "container": "Physical Review E",
+        "volume": "69",
+        "issue": "6",
+        "pages": "",
+        "publisher": "American Physical Society (APS)",
+        "type": "journal-article",
+        "doi": "10.1103/physreve.69.066138",
+        "url": "https://doi.org/10.1103/PhysRevE.69.066138"
+      }
     },
     "ross2014": {
       "doi": "10.1371/journal.pone.0087357",
@@ -127,7 +589,25 @@
         "year": 2014,
         "title": "Mutual information between discrete and continuous data sets"
       },
-      "used_for": "Mutual information filter: estimator for discrete covariates and a continuous target (scikit-learn mutual_info_regression)."
+      "used_for": "Mutual information filter: estimator for discrete covariates and a continuous target (scikit-learn mutual_info_regression).",
+      "metadata": {
+        "authors": [
+          [
+            "Ross",
+            "B. C."
+          ]
+        ],
+        "year": 2014,
+        "title": "Mutual Information between Discrete and Continuous Data Sets",
+        "container": "PLoS ONE",
+        "volume": "9",
+        "issue": "2",
+        "pages": "e87357",
+        "publisher": "Public Library of Science (PLoS)",
+        "type": "journal-article",
+        "doi": "10.1371/journal.pone.0087357",
+        "url": "https://doi.org/10.1371/journal.pone.0087357"
+      }
     },
     "zou2005": {
       "doi": "10.1111/j.1467-9868.2005.00503.x",
@@ -136,7 +616,29 @@
         "year": 2005,
         "title": "Regularization and variable selection via the elastic net"
       },
-      "used_for": "Elastic Net selection and Elastic Net regression."
+      "used_for": "Elastic Net selection and Elastic Net regression.",
+      "metadata": {
+        "authors": [
+          [
+            "Zou",
+            "H."
+          ],
+          [
+            "Hastie",
+            "T."
+          ]
+        ],
+        "year": 2005,
+        "title": "Regularization and Variable Selection Via the Elastic Net",
+        "container": "Journal of the Royal Statistical Society Series B: Statistical Methodology",
+        "volume": "67",
+        "issue": "2",
+        "pages": "301-320",
+        "publisher": "Oxford University Press (OUP)",
+        "type": "journal-article",
+        "doi": "10.1111/j.1467-9868.2005.00503.x",
+        "url": "https://doi.org/10.1111/j.1467-9868.2005.00503.x"
+      }
     },
     "meyer2018": {
       "doi": "10.1016/j.envsoft.2017.12.001",
@@ -145,7 +647,41 @@
         "year": 2018,
         "title": "Improving performance of spatio-temporal machine learning models using forward feature selection and target-oriented validation"
       },
-      "used_for": "Sequential forward selection evaluated with spatially separated folds."
+      "used_for": "Sequential forward selection evaluated with spatially separated folds.",
+      "metadata": {
+        "authors": [
+          [
+            "Meyer",
+            "H."
+          ],
+          [
+            "Reudenbach",
+            "C."
+          ],
+          [
+            "Hengl",
+            "T."
+          ],
+          [
+            "Katurji",
+            "M."
+          ],
+          [
+            "Nauss",
+            "T."
+          ]
+        ],
+        "year": 2018,
+        "title": "Improving performance of spatio-temporal machine learning models using forward feature selection and target-oriented validation",
+        "container": "Environmental Modelling & Software",
+        "volume": "101",
+        "issue": "",
+        "pages": "1-9",
+        "publisher": "Elsevier BV",
+        "type": "journal-article",
+        "doi": "10.1016/j.envsoft.2017.12.001",
+        "url": "https://doi.org/10.1016/j.envsoft.2017.12.001"
+      }
     },
     "guyon2002": {
       "doi": "10.1023/A:1012487302797",
@@ -154,7 +690,37 @@
         "year": 2002,
         "title": "Gene selection for cancer classification using support vector machines"
       },
-      "used_for": "Recursive feature elimination."
+      "used_for": "Recursive feature elimination.",
+      "metadata": {
+        "authors": [
+          [
+            "Guyon",
+            "I."
+          ],
+          [
+            "Weston",
+            "J."
+          ],
+          [
+            "Barnhill",
+            "S."
+          ],
+          [
+            "Vapnik",
+            "V."
+          ]
+        ],
+        "year": 2002,
+        "title": "Gene Selection for Cancer Classification using Support Vector Machines",
+        "container": "Machine Learning",
+        "volume": "46",
+        "issue": "1-3",
+        "pages": "389-422",
+        "publisher": "Springer Science and Business Media LLC",
+        "type": "journal-article",
+        "doi": "10.1023/a:1012487302797",
+        "url": "https://doi.org/10.1023/A:1012487302797"
+      }
     },
     "kursa2010": {
       "doi": "10.18637/jss.v036.i11",
@@ -163,7 +729,29 @@
         "year": 2010,
         "title": "Feature Selection with the Boruta Package"
       },
-      "used_for": "Boruta selection (BorutaPy implements this algorithm)."
+      "used_for": "Boruta selection (BorutaPy implements this algorithm).",
+      "metadata": {
+        "authors": [
+          [
+            "Kursa",
+            "M. B."
+          ],
+          [
+            "Rudnicki",
+            "W. R."
+          ]
+        ],
+        "year": 2010,
+        "title": "Feature Selection with the Boruta Package",
+        "container": "Journal of Statistical Software",
+        "volume": "36",
+        "issue": "11",
+        "pages": "",
+        "publisher": "Foundation for Open Access Statistic",
+        "type": "journal-article",
+        "doi": "10.18637/jss.v036.i11",
+        "url": "https://doi.org/10.18637/jss.v036.i11"
+      }
     },
     "jolliffe2016": {
       "doi": "10.1098/rsta.2015.0202",
@@ -172,7 +760,29 @@
         "year": 2016,
         "title": "Principal component analysis"
       },
-      "used_for": "Principal component analysis."
+      "used_for": "Principal component analysis.",
+      "metadata": {
+        "authors": [
+          [
+            "Jolliffe",
+            "I. T."
+          ],
+          [
+            "Cadima",
+            "J."
+          ]
+        ],
+        "year": 2016,
+        "title": "Principal component analysis: a review and recent developments",
+        "container": "Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences",
+        "volume": "374",
+        "issue": "2065",
+        "pages": "20150202",
+        "publisher": "The Royal Society",
+        "type": "journal-article",
+        "doi": "10.1098/rsta.2015.0202",
+        "url": "https://doi.org/10.1098/rsta.2015.0202"
+      }
     },
     "hoerl1970": {
       "doi": "10.1080/00401706.1970.10488634",
@@ -181,7 +791,29 @@
         "year": 1970,
         "title": "Ridge regression"
       },
-      "used_for": "Ridge regression."
+      "used_for": "Ridge regression.",
+      "metadata": {
+        "authors": [
+          [
+            "Hoerl",
+            "A. E."
+          ],
+          [
+            "Kennard",
+            "R. W."
+          ]
+        ],
+        "year": 1970,
+        "title": "Ridge Regression: Biased Estimation for Nonorthogonal Problems",
+        "container": "Technometrics",
+        "volume": "12",
+        "issue": "1",
+        "pages": "55-67",
+        "publisher": "Informa UK Limited",
+        "type": "journal-article",
+        "doi": "10.1080/00401706.1970.10488634",
+        "url": "https://doi.org/10.1080/00401706.1970.10488634"
+      }
     },
     "breiman2001": {
       "doi": "10.1023/A:1010933404324",
@@ -190,7 +822,25 @@
         "year": 2001,
         "title": "Random Forests"
       },
-      "used_for": "Random forest, and permutation variable importance in random forests."
+      "used_for": "Random forest, and permutation variable importance in random forests.",
+      "metadata": {
+        "authors": [
+          [
+            "Breiman",
+            "L."
+          ]
+        ],
+        "year": 2001,
+        "title": "Random Forests",
+        "container": "Machine Learning",
+        "volume": "45",
+        "issue": "1",
+        "pages": "5-32",
+        "publisher": "Springer Science and Business Media LLC",
+        "type": "journal-article",
+        "doi": "10.1023/a:1010933404324",
+        "url": "https://doi.org/10.1023/A:1010933404324"
+      }
     },
     "geurts2006": {
       "doi": "10.1007/s10994-006-6226-1",
@@ -199,7 +849,33 @@
         "year": 2006,
         "title": "Extremely randomized trees"
       },
-      "used_for": "Extremely randomized trees."
+      "used_for": "Extremely randomized trees.",
+      "metadata": {
+        "authors": [
+          [
+            "Geurts",
+            "P."
+          ],
+          [
+            "Ernst",
+            "D."
+          ],
+          [
+            "Wehenkel",
+            "L."
+          ]
+        ],
+        "year": 2006,
+        "title": "Extremely randomized trees",
+        "container": "Machine Learning",
+        "volume": "63",
+        "issue": "1",
+        "pages": "3-42",
+        "publisher": "Springer Science and Business Media LLC",
+        "type": "journal-article",
+        "doi": "10.1007/s10994-006-6226-1",
+        "url": "https://doi.org/10.1007/s10994-006-6226-1"
+      }
     },
     "smola2004": {
       "doi": "10.1023/B:STCO.0000035301.49549.88",
@@ -208,7 +884,29 @@
         "year": 2004,
         "title": "A tutorial on support vector regression"
       },
-      "used_for": "Support vector regression."
+      "used_for": "Support vector regression.",
+      "metadata": {
+        "authors": [
+          [
+            "Smola",
+            "A. J."
+          ],
+          [
+            "Schölkopf",
+            "B."
+          ]
+        ],
+        "year": 2004,
+        "title": "A tutorial on support vector regression",
+        "container": "Statistics and Computing",
+        "volume": "14",
+        "issue": "3",
+        "pages": "199-222",
+        "publisher": "Springer Science and Business Media LLC",
+        "type": "journal-article",
+        "doi": "10.1023/b:stco.0000035301.49549.88",
+        "url": "https://doi.org/10.1023/B:STCO.0000035301.49549.88"
+      }
     },
     "friedman2001": {
       "doi": "10.1214/aos/1013203451",
@@ -217,7 +915,25 @@
         "year": 2001,
         "title": "Greedy function approximation"
       },
-      "used_for": "Gradient boosting: histogram-based gradient boosting and boosting with quantile loss."
+      "used_for": "Gradient boosting: histogram-based gradient boosting and boosting with quantile loss.",
+      "metadata": {
+        "authors": [
+          [
+            "Friedman",
+            "J. H."
+          ]
+        ],
+        "year": 2001,
+        "title": "Greedy function approximation: A gradient boosting machine.",
+        "container": "The Annals of Statistics",
+        "volume": "29",
+        "issue": "5",
+        "pages": "1189-1232",
+        "publisher": "Institute of Mathematical Statistics",
+        "type": "journal-article",
+        "doi": "10.1214/aos/1013203451",
+        "url": "https://doi.org/10.1214/aos/1013203451"
+      }
     },
     "chen2016": {
       "doi": "10.1145/2939672.2939785",
@@ -226,7 +942,29 @@
         "year": 2016,
         "title": "XGBoost"
       },
-      "used_for": "XGBoost."
+      "used_for": "XGBoost.",
+      "metadata": {
+        "authors": [
+          [
+            "Chen",
+            "T."
+          ],
+          [
+            "Guestrin",
+            "C."
+          ]
+        ],
+        "year": 2016,
+        "title": "XGBoost",
+        "container": "Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining",
+        "volume": "",
+        "issue": "",
+        "pages": "785-794",
+        "publisher": "ACM",
+        "type": "proceedings-article",
+        "doi": "10.1145/2939672.2939785",
+        "url": "https://doi.org/10.1145/2939672.2939785"
+      }
     },
     "ke2017": {
       "url": "https://proceedings.neurips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html",
@@ -235,7 +973,53 @@
         "year": 2017,
         "title": "LightGBM"
       },
-      "used_for": "LightGBM, and the histogram binning of histogram-based gradient boosting."
+      "used_for": "LightGBM, and the histogram binning of histogram-based gradient boosting.",
+      "metadata": {
+        "authors": [
+          [
+            "Ke",
+            "G."
+          ],
+          [
+            "Meng",
+            "Q."
+          ],
+          [
+            "Finley",
+            "T."
+          ],
+          [
+            "Wang",
+            "T."
+          ],
+          [
+            "Chen",
+            "W."
+          ],
+          [
+            "Ma",
+            "W."
+          ],
+          [
+            "Ye",
+            "Q."
+          ],
+          [
+            "Liu",
+            "T."
+          ]
+        ],
+        "year": 2017,
+        "title": "LightGBM: A Highly Efficient Gradient Boosting Decision Tree",
+        "container": "Advances in Neural Information Processing Systems",
+        "volume": "30",
+        "issue": "",
+        "pages": "",
+        "publisher": "",
+        "type": "article-journal",
+        "doi": "",
+        "url": "https://proceedings.neurips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html"
+      }
     },
     "prokhorenkova2018": {
       "doi": "10.48550/arXiv.1706.09516",
@@ -244,7 +1028,41 @@
         "year": 2017,
         "title": "CatBoost"
       },
-      "used_for": "CatBoost (preprint of the NeurIPS 2018 paper)."
+      "used_for": "CatBoost (preprint of the NeurIPS 2018 paper).",
+      "metadata": {
+        "authors": [
+          [
+            "Prokhorenkova",
+            "L."
+          ],
+          [
+            "Gusev",
+            "G."
+          ],
+          [
+            "Vorobev",
+            "A."
+          ],
+          [
+            "Dorogush",
+            "A. V."
+          ],
+          [
+            "Gulin",
+            "A."
+          ]
+        ],
+        "year": 2017,
+        "title": "CatBoost: unbiased boosting with categorical features",
+        "container": "",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "publisher": "arXiv",
+        "type": "article",
+        "doi": "10.48550/arxiv.1706.09516",
+        "url": "https://doi.org/10.48550/arXiv.1706.09516"
+      }
     },
     "quinlan1993": {
       "doi": "10.1016/B978-1-55860-307-3.50037-X",
@@ -253,7 +1071,25 @@
         "year": 1993,
         "title": "Combining Instance-Based and Model-Based Learning"
       },
-      "used_for": "Cubist: rule-based model trees with instance-based correction."
+      "used_for": "Cubist: rule-based model trees with instance-based correction.",
+      "metadata": {
+        "authors": [
+          [
+            "Quinlan",
+            "J. R."
+          ]
+        ],
+        "year": 1993,
+        "title": "Combining Instance-Based and Model-Based Learning",
+        "container": "Machine Learning Proceedings 1993",
+        "volume": "",
+        "issue": "",
+        "pages": "236-243",
+        "publisher": "Elsevier",
+        "type": "book-chapter",
+        "doi": "10.1016/b978-1-55860-307-3.50037-x",
+        "url": "https://doi.org/10.1016/B978-1-55860-307-3.50037-X"
+      }
     },
     "webster2007": {
       "doi": "10.1002/9780470517277",
@@ -262,7 +1098,29 @@
         "year": 2007,
         "title": "Geostatistics for Environmental Scientists"
       },
-      "used_for": "Ordinary kriging and semivariogram fitting."
+      "used_for": "Ordinary kriging and semivariogram fitting.",
+      "metadata": {
+        "authors": [
+          [
+            "Webster",
+            "R."
+          ],
+          [
+            "Oliver",
+            "M. A."
+          ]
+        ],
+        "year": 2007,
+        "title": "Geostatistics for Environmental Scientists",
+        "container": "",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "publisher": "Wiley",
+        "type": "monograph",
+        "doi": "10.1002/9780470517277",
+        "url": "https://doi.org/10.1002/9780470517277"
+      }
     },
     "odeh1995": {
       "doi": "10.1016/0016-7061(95)00007-B",
@@ -271,7 +1129,33 @@
         "year": 1995,
         "title": "Further results on prediction of soil properties from terrain attributes"
       },
-      "used_for": "Regression kriging of soil properties."
+      "used_for": "Regression kriging of soil properties.",
+      "metadata": {
+        "authors": [
+          [
+            "Odeh",
+            "I. O. A."
+          ],
+          [
+            "McBratney",
+            "A. B."
+          ],
+          [
+            "Chittleborough",
+            "D. J."
+          ]
+        ],
+        "year": 1995,
+        "title": "Further results on prediction of soil properties from terrain attributes: heterotopic cokriging and regression-kriging",
+        "container": "Geoderma",
+        "volume": "67",
+        "issue": "3-4",
+        "pages": "215-226",
+        "publisher": "Elsevier BV",
+        "type": "journal-article",
+        "doi": "10.1016/0016-7061(95)00007-b",
+        "url": "https://doi.org/10.1016/0016-7061(95)00007-B"
+      }
     },
     "hengl2004": {
       "doi": "10.1016/j.geoderma.2003.08.018",
@@ -280,7 +1164,33 @@
         "year": 2004,
         "title": "A generic framework for spatial prediction of soil variables based on regression-kriging"
       },
-      "used_for": "Regression kriging of soil properties."
+      "used_for": "Regression kriging of soil properties.",
+      "metadata": {
+        "authors": [
+          [
+            "Hengl",
+            "T."
+          ],
+          [
+            "Heuvelink",
+            "G. B. M."
+          ],
+          [
+            "Stein",
+            "A."
+          ]
+        ],
+        "year": 2004,
+        "title": "A generic framework for spatial prediction of soil variables based on regression-kriging",
+        "container": "Geoderma",
+        "volume": "120",
+        "issue": "1-2",
+        "pages": "75-93",
+        "publisher": "Elsevier BV",
+        "type": "journal-article",
+        "doi": "10.1016/j.geoderma.2003.08.018",
+        "url": "https://doi.org/10.1016/j.geoderma.2003.08.018"
+      }
     },
     "hollmann2025": {
       "doi": "10.1038/s41586-024-08328-6",
@@ -289,7 +1199,53 @@
         "year": 2025,
         "title": "Accurate predictions on small data with a tabular foundation model"
       },
-      "used_for": "TabPFN v2."
+      "used_for": "TabPFN v2.",
+      "metadata": {
+        "authors": [
+          [
+            "Hollmann",
+            "N."
+          ],
+          [
+            "Müller",
+            "S."
+          ],
+          [
+            "Purucker",
+            "L."
+          ],
+          [
+            "Krishnakumar",
+            "A."
+          ],
+          [
+            "Körfer",
+            "M."
+          ],
+          [
+            "Hoo",
+            "S. B."
+          ],
+          [
+            "Schirrmeister",
+            "R. T."
+          ],
+          [
+            "Hutter",
+            "F."
+          ]
+        ],
+        "year": 2025,
+        "title": "Accurate predictions on small data with a tabular foundation model",
+        "container": "Nature",
+        "volume": "637",
+        "issue": "8045",
+        "pages": "319-326",
+        "publisher": "Springer Science and Business Media LLC",
+        "type": "journal-article",
+        "doi": "10.1038/s41586-024-08328-6",
+        "url": "https://doi.org/10.1038/s41586-024-08328-6"
+      }
     },
     "gorishniy2024": {
       "doi": "10.48550/arXiv.2410.24210",
@@ -298,7 +1254,33 @@
         "year": 2024,
         "title": "TabM"
       },
-      "used_for": "TabM (preprint of the ICLR 2025 paper)."
+      "used_for": "TabM (preprint of the ICLR 2025 paper).",
+      "metadata": {
+        "authors": [
+          [
+            "Gorishniy",
+            "Y."
+          ],
+          [
+            "Kotelnikov",
+            "A."
+          ],
+          [
+            "Babenko",
+            "A."
+          ]
+        ],
+        "year": 2024,
+        "title": "TabM: Advancing Tabular Deep Learning with Parameter-Efficient Ensembling",
+        "container": "",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "publisher": "arXiv",
+        "type": "article",
+        "doi": "10.48550/arxiv.2410.24210",
+        "url": "https://doi.org/10.48550/arXiv.2410.24210"
+      }
     },
     "holzmuller2024": {
       "doi": "10.48550/arXiv.2407.04491",
@@ -307,7 +1289,33 @@
         "year": 2024,
         "title": "Better by Default"
       },
-      "used_for": "RealMLP (preprint of the NeurIPS 2024 paper)."
+      "used_for": "RealMLP (preprint of the NeurIPS 2024 paper).",
+      "metadata": {
+        "authors": [
+          [
+            "Holzmüller",
+            "D."
+          ],
+          [
+            "Grinsztajn",
+            "L."
+          ],
+          [
+            "Steinwart",
+            "I."
+          ]
+        ],
+        "year": 2024,
+        "title": "Better by Default: Strong Pre-Tuned MLPs and Boosted Trees on Tabular Data",
+        "container": "",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "publisher": "arXiv",
+        "type": "article",
+        "doi": "10.48550/arxiv.2407.04491",
+        "url": "https://doi.org/10.48550/arXiv.2407.04491"
+      }
     },
     "bergstra2012": {
       "url": "https://jmlr.org/papers/v13/bergstra12a.html",
@@ -316,7 +1324,29 @@
         "year": 2012,
         "title": "Random Search for Hyper-Parameter Optimization"
       },
-      "used_for": "Random search."
+      "used_for": "Random search.",
+      "metadata": {
+        "authors": [
+          [
+            "Bergstra",
+            "J."
+          ],
+          [
+            "Bengio",
+            "Y."
+          ]
+        ],
+        "year": 2012,
+        "title": "Random Search for Hyper-Parameter Optimization",
+        "container": "Journal of Machine Learning Research",
+        "volume": "13",
+        "issue": "10",
+        "pages": "281-305",
+        "publisher": "",
+        "type": "article-journal",
+        "doi": "",
+        "url": "https://jmlr.org/papers/v13/bergstra12a.html"
+      }
     },
     "akiba2019": {
       "doi": "10.1145/3292500.3330701",
@@ -325,7 +1355,41 @@
         "year": 2019,
         "title": "Optuna"
       },
-      "used_for": "Optuna search with the Tree-structured Parzen Estimator."
+      "used_for": "Optuna search with the Tree-structured Parzen Estimator.",
+      "metadata": {
+        "authors": [
+          [
+            "Akiba",
+            "T."
+          ],
+          [
+            "Sano",
+            "S."
+          ],
+          [
+            "Yanase",
+            "T."
+          ],
+          [
+            "Ohta",
+            "T."
+          ],
+          [
+            "Koyama",
+            "M."
+          ]
+        ],
+        "year": 2019,
+        "title": "Optuna",
+        "container": "Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining",
+        "volume": "",
+        "issue": "",
+        "pages": "2623-2631",
+        "publisher": "ACM",
+        "type": "proceedings-article",
+        "doi": "10.1145/3292500.3330701",
+        "url": "https://doi.org/10.1145/3292500.3330701"
+      }
     },
     "lei2018": {
       "doi": "10.1080/01621459.2017.1307116",
@@ -334,7 +1398,41 @@
         "year": 2018,
         "title": "Distribution-Free Predictive Inference for Regression"
       },
-      "used_for": "Split conformal prediction intervals."
+      "used_for": "Split conformal prediction intervals.",
+      "metadata": {
+        "authors": [
+          [
+            "Lei",
+            "J."
+          ],
+          [
+            "G’Sell",
+            "M."
+          ],
+          [
+            "Rinaldo",
+            "A."
+          ],
+          [
+            "Tibshirani",
+            "R. J."
+          ],
+          [
+            "Wasserman",
+            "L."
+          ]
+        ],
+        "year": 2018,
+        "title": "Distribution-Free Predictive Inference for Regression",
+        "container": "Journal of the American Statistical Association",
+        "volume": "113",
+        "issue": "523",
+        "pages": "1094-1111",
+        "publisher": "Informa UK Limited",
+        "type": "journal-article",
+        "doi": "10.1080/01621459.2017.1307116",
+        "url": "https://doi.org/10.1080/01621459.2017.1307116"
+      }
     },
     "meinshausen2006": {
       "url": "https://jmlr.org/papers/v7/meinshausen06a.html",
@@ -343,7 +1441,25 @@
         "year": 2006,
         "title": "Quantile Regression Forests"
       },
-      "used_for": "Quantile regression forest."
+      "used_for": "Quantile regression forest.",
+      "metadata": {
+        "authors": [
+          [
+            "Meinshausen",
+            "N."
+          ]
+        ],
+        "year": 2006,
+        "title": "Quantile Regression Forests",
+        "container": "Journal of Machine Learning Research",
+        "volume": "7",
+        "issue": "35",
+        "pages": "983-999",
+        "publisher": "",
+        "type": "article-journal",
+        "doi": "",
+        "url": "https://jmlr.org/papers/v7/meinshausen06a.html"
+      }
     },
     "johnson2024": {
       "doi": "10.21105/joss.05976",
@@ -352,7 +1468,25 @@
         "year": 2024,
         "title": "quantile-forest"
       },
-      "used_for": "Quantile regression forest implementation used here (quantile-forest package)."
+      "used_for": "Quantile regression forest implementation used here (quantile-forest package).",
+      "metadata": {
+        "authors": [
+          [
+            "Johnson",
+            "R. A."
+          ]
+        ],
+        "year": 2024,
+        "title": "quantile-forest: A Python Package for Quantile Regression Forests",
+        "container": "Journal of Open Source Software",
+        "volume": "9",
+        "issue": "93",
+        "pages": "5976",
+        "publisher": "The Open Journal",
+        "type": "journal-article",
+        "doi": "10.21105/joss.05976",
+        "url": "https://doi.org/10.21105/joss.05976"
+      }
     },
     "koenker1978": {
       "doi": "10.2307/1913643",
@@ -361,7 +1495,29 @@
         "year": 1978,
         "title": "Regression Quantiles"
       },
-      "used_for": "Quantile loss (pinball loss) of quantile boosting and of the interval metrics."
+      "used_for": "Quantile loss (pinball loss) of quantile boosting and of the interval metrics.",
+      "metadata": {
+        "authors": [
+          [
+            "Koenker",
+            "R."
+          ],
+          [
+            "Bassett",
+            "G."
+          ]
+        ],
+        "year": 1978,
+        "title": "Regression Quantiles",
+        "container": "Econometrica",
+        "volume": "46",
+        "issue": "1",
+        "pages": "33",
+        "publisher": "JSTOR",
+        "type": "journal-article",
+        "doi": "10.2307/1913643",
+        "url": "https://doi.org/10.2307/1913643"
+      }
     },
     "romano2019": {
       "doi": "10.48550/arXiv.1905.03222",
@@ -370,7 +1526,33 @@
         "year": 2019,
         "title": "Conformalized Quantile Regression"
       },
-      "used_for": "Conformalized quantile regression (preprint of the NeurIPS 2019 paper)."
+      "used_for": "Conformalized quantile regression (preprint of the NeurIPS 2019 paper).",
+      "metadata": {
+        "authors": [
+          [
+            "Romano",
+            "Y."
+          ],
+          [
+            "Patterson",
+            "E."
+          ],
+          [
+            "Candès",
+            "E. J."
+          ]
+        ],
+        "year": 2019,
+        "title": "Conformalized Quantile Regression",
+        "container": "",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "publisher": "arXiv",
+        "type": "article",
+        "doi": "10.48550/arxiv.1905.03222",
+        "url": "https://doi.org/10.48550/arXiv.1905.03222"
+      }
     },
     "tibshirani2019": {
       "doi": "10.48550/arXiv.1904.06019",
@@ -379,7 +1561,37 @@
         "year": 2019,
         "title": "Conformal Prediction Under Covariate Shift"
       },
-      "used_for": "Spatially weighted conformal: weighted conformal quantile with the test point mass at infinity."
+      "used_for": "Spatially weighted conformal: weighted conformal quantile with the test point mass at infinity.",
+      "metadata": {
+        "authors": [
+          [
+            "Tibshirani",
+            "R. J."
+          ],
+          [
+            "Barber",
+            "R. F."
+          ],
+          [
+            "Candes",
+            "E. J."
+          ],
+          [
+            "Ramdas",
+            "A."
+          ]
+        ],
+        "year": 2019,
+        "title": "Conformal Prediction Under Covariate Shift",
+        "container": "",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "publisher": "arXiv",
+        "type": "article",
+        "doi": "10.48550/arxiv.1904.06019",
+        "url": "https://doi.org/10.48550/arXiv.1904.06019"
+      }
     },
     "guan2023": {
       "doi": "10.1093/biomet/asac040",
@@ -388,7 +1600,25 @@
         "year": 2023,
         "title": "Localized conformal prediction"
       },
-      "used_for": "Spatially weighted conformal: localization of conformal calibration with kernel weights."
+      "used_for": "Spatially weighted conformal: localization of conformal calibration with kernel weights.",
+      "metadata": {
+        "authors": [
+          [
+            "Guan",
+            "L."
+          ]
+        ],
+        "year": 2023,
+        "title": "Localized conformal prediction: a generalized inference framework for conformal prediction",
+        "container": "Biometrika",
+        "volume": "110",
+        "issue": "1",
+        "pages": "33-50",
+        "publisher": "Oxford University Press (OUP)",
+        "type": "journal-article",
+        "doi": "10.1093/biomet/asac040",
+        "url": "https://doi.org/10.1093/biomet/asac040"
+      }
     },
     "mao2024": {
       "doi": "10.1080/01621459.2022.2147531",
@@ -397,7 +1627,33 @@
         "year": 2024,
         "title": "Valid model-free spatial prediction"
       },
-      "used_for": "Spatially weighted conformal: related spatial method whose coverage results are not claimed here."
+      "used_for": "Spatially weighted conformal: related spatial method whose coverage results are not claimed here.",
+      "metadata": {
+        "authors": [
+          [
+            "Mao",
+            "H."
+          ],
+          [
+            "Martin",
+            "R."
+          ],
+          [
+            "Reich",
+            "B. J."
+          ]
+        ],
+        "year": 2024,
+        "title": "Valid Model-Free Spatial Prediction",
+        "container": "Journal of the American Statistical Association",
+        "volume": "119",
+        "issue": "546",
+        "pages": "904-914",
+        "publisher": "Informa UK Limited",
+        "type": "journal-article",
+        "doi": "10.1080/01621459.2022.2147531",
+        "url": "https://doi.org/10.1080/01621459.2022.2147531"
+      }
     },
     "meyer2021": {
       "doi": "10.1111/2041-210X.13650",
@@ -406,7 +1662,29 @@
         "year": 2021,
         "title": "Predicting into unknown space"
       },
-      "used_for": "Area of applicability (AOA) and dissimilarity index (DI)."
+      "used_for": "Area of applicability (AOA) and dissimilarity index (DI).",
+      "metadata": {
+        "authors": [
+          [
+            "Meyer",
+            "H."
+          ],
+          [
+            "Pebesma",
+            "E."
+          ]
+        ],
+        "year": 2021,
+        "title": "Predicting into unknown space? Estimating the area of applicability of spatial prediction models",
+        "container": "Methods in Ecology and Evolution",
+        "volume": "12",
+        "issue": "9",
+        "pages": "1620-1633",
+        "publisher": "Wiley",
+        "type": "journal-article",
+        "doi": "10.1111/2041-210x.13650",
+        "url": "https://doi.org/10.1111/2041-210X.13650"
+      }
     },
     "fisher2019": {
       "url": "https://jmlr.org/papers/v20/18-760.html",
@@ -415,7 +1693,33 @@
         "year": 2019,
         "title": "All Models are Wrong, but Many are Useful"
       },
-      "used_for": "Model-agnostic permutation variable importance."
+      "used_for": "Model-agnostic permutation variable importance.",
+      "metadata": {
+        "authors": [
+          [
+            "Fisher",
+            "A."
+          ],
+          [
+            "Rudin",
+            "C."
+          ],
+          [
+            "Dominici",
+            "F."
+          ]
+        ],
+        "year": 2019,
+        "title": "All Models are Wrong, but Many are Useful: Learning a Variable's Importance by Studying an Entire Class of Prediction Models Simultaneously",
+        "container": "Journal of Machine Learning Research",
+        "volume": "20",
+        "issue": "177",
+        "pages": "1-81",
+        "publisher": "",
+        "type": "article-journal",
+        "doi": "",
+        "url": "https://jmlr.org/papers/v20/18-760.html"
+      }
     },
     "lin1989": {
       "doi": "10.2307/2532051",
@@ -424,7 +1728,25 @@
         "year": 1989,
         "title": "A concordance correlation coefficient to evaluate reproducibility"
       },
-      "used_for": "Lin's concordance correlation coefficient (CCC)."
+      "used_for": "Lin's concordance correlation coefficient (CCC).",
+      "metadata": {
+        "authors": [
+          [
+            "Lin",
+            "L. I."
+          ]
+        ],
+        "year": 1989,
+        "title": "A Concordance Correlation Coefficient to Evaluate Reproducibility",
+        "container": "Biometrics",
+        "volume": "45",
+        "issue": "1",
+        "pages": "255",
+        "publisher": "JSTOR",
+        "type": "journal-article",
+        "doi": "10.2307/2532051",
+        "url": "https://doi.org/10.2307/2532051"
+      }
     },
     "bellonmaurel2010": {
       "doi": "10.1016/j.trac.2010.05.006",
@@ -433,7 +1755,41 @@
         "year": 2010,
         "title": "Critical review of chemometric indicators commonly used for assessing the quality of the prediction of soil attributes by NIR spectroscopy"
       },
-      "used_for": "RPD and RPIQ for soil property predictions."
+      "used_for": "RPD and RPIQ for soil property predictions.",
+      "metadata": {
+        "authors": [
+          [
+            "Bellon-Maurel",
+            "V."
+          ],
+          [
+            "Fernandez-Ahumada",
+            "E."
+          ],
+          [
+            "Palagos",
+            "B."
+          ],
+          [
+            "Roger",
+            "J."
+          ],
+          [
+            "McBratney",
+            "A."
+          ]
+        ],
+        "year": 2010,
+        "title": "Critical review of chemometric indicators commonly used for assessing the quality of the prediction of soil attributes by NIR spectroscopy",
+        "container": "TrAC Trends in Analytical Chemistry",
+        "volume": "29",
+        "issue": "9",
+        "pages": "1073-1081",
+        "publisher": "Elsevier BV",
+        "type": "journal-article",
+        "doi": "10.1016/j.trac.2010.05.006",
+        "url": "https://doi.org/10.1016/j.trac.2010.05.006"
+      }
     },
     "gneiting2007": {
       "doi": "10.1198/016214506000001437",
@@ -442,7 +1798,29 @@
         "year": 2007,
         "title": "Strictly Proper Scoring Rules, Prediction, and Estimation"
       },
-      "used_for": "Interval score."
+      "used_for": "Interval score.",
+      "metadata": {
+        "authors": [
+          [
+            "Gneiting",
+            "T."
+          ],
+          [
+            "Raftery",
+            "A. E."
+          ]
+        ],
+        "year": 2007,
+        "title": "Strictly Proper Scoring Rules, Prediction, and Estimation",
+        "container": "Journal of the American Statistical Association",
+        "volume": "102",
+        "issue": "477",
+        "pages": "359-378",
+        "publisher": "Informa UK Limited",
+        "type": "journal-article",
+        "doi": "10.1198/016214506000001437",
+        "url": "https://doi.org/10.1198/016214506000001437"
+      }
     }
   }
 }

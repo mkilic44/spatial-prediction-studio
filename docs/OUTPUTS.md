@@ -101,3 +101,5 @@ Residual: e_i = p_i - y_i, prediction minus observation. n is the number of eval
 | Upper pinball loss | mean(max(tau*(y-q),(tau-1)*(y-q))); tau=1-alpha/2 | target unit |
 
 R² is not the squared Pearson correlation and can be negative; it is undefined for a constant target or a single observation. In Lin's coefficient the divisor of the variance and covariance is n; in standard deviations it is n-1. A result that is undefined (zero denominator, too few records, constant variable) is stored as null with a reason code; it is never replaced with zero.
+
+The sources of CCC, RPD and RPIQ, the interval score and the pinball loss are listed in [METHODS.md](METHODS.md#sources-of-diagnostics-and-metrics).

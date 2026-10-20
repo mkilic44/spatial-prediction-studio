@@ -86,7 +86,7 @@ Choose the prediction interval method and its nominal coverage. Quantile regress
 - **Physical lower bound / upper bound**: predictions outside these bounds are flagged in a separate layer. Prediction values are not clipped.
 - **Maximum missing data fraction**: the largest share of observations that may have a missing covariate value at their location. Above it, or when a covariate is missing everywhere, the run stops.
 - **Figure resolution** for report figures: 150 or 900 dots per inch (dpi).
-- **Compute the model's area of applicability (AOA)**: the applicability layer has the value 1 inside and 0 outside the area. Low environmental dissimilarity does not by itself show that a prediction is adequate.
+- **Compute the model's area of applicability (AOA)**: the applicability layer has the value 1 inside and 0 outside the area. Low environmental dissimilarity does not by itself show that a prediction is adequate. The Python implementation follows Meyer and Pebesma (2021), and its tests compare it with values written by CAST 1.0.4; see [METHODS.md](METHODS.md#sources-of-diagnostics-and-metrics).
 
 ## 10 Report and log
 

@@ -54,7 +54,8 @@ def pin_binaries(plan_csv, target_csv, cache, log):
         name = '%s_%s.zip' % (row['Package'], row['Version'])
         url = row['Repository'].rstrip('/') + '/' + name
         log('    pinning ' + url)
-        with urllib.request.urlopen(url, timeout=120) as response:
+        request = urllib.request.Request(url, headers={'User-Agent': installer.USER_AGENT})
+        with urllib.request.urlopen(request, timeout=120) as response:
             data = response.read()
         (folder / name).write_bytes(data)
         row['SHA256'] = hashlib.sha256(data).hexdigest()

@@ -58,8 +58,9 @@ def fetch(url, accept):
 
 
 def initials(given):
-    parts = re.split(r'[\s.]+', clean(given))
-    return ' '.join(part[0] + '.' for part in parts if part)
+    """'Hanna' -> 'H.', 'In-Kwon' -> 'I.-K.', 'J. J.' -> 'J. J.'"""
+    words = [word for word in re.split(r'[\s.]+', clean(given)) if word]
+    return ' '.join('-'.join(part[0] + '.' for part in word.split('-') if part) for word in words)
 
 
 def from_csl(data, doi):
@@ -74,7 +75,12 @@ def from_csl(data, doi):
     container = data.get('container-title') or ''
     if isinstance(container, list):
         container = container[0] if container else ''
-    return {'authors': authors, 'year': parts[0][0], 'title': clean(data.get('title', '')),
+    title = clean(data.get('title', ''))
+    subtitle = data.get('subtitle') or []
+    subtitle = clean(subtitle[0] if isinstance(subtitle, list) and subtitle else subtitle)
+    if subtitle and subtitle.lower() not in title.lower():
+        title = title.rstrip(':') + ': ' + subtitle
+    return {'authors': authors, 'year': parts[0][0], 'title': title,
             'container': clean(container), 'volume': clean(data.get('volume', '')), 'issue': clean(data.get('issue', '')),
             'pages': clean(data.get('page', '')), 'publisher': clean(data.get('publisher', '')),
             'type': data.get('type', ''), 'doi': doi.lower(), 'url': 'https://doi.org/' + doi}
@@ -115,11 +121,36 @@ def from_page(html, url):
             'doi': '', 'url': url}
 
 
+def openalex_authors(doi):
+    """Author list of a DOI in OpenAlex, as [family, initials]."""
+    data = json.loads(fetch('https://api.openalex.org/works/https://doi.org/' + doi, 'application/json'))
+    result = []
+    for item in data.get('authorships', []):
+        name = clean((item.get('author') or {}).get('display_name', ''))
+        given, _, family = name.rpartition(' ')
+        result.append([family, initials(given)])
+    return result
+
+
 def record(entry):
     if entry.get('doi'):
         data = json.loads(fetch('https://doi.org/' + entry['doi'], 'application/vnd.citationstyles.csl+json'))
-        return from_csl(data, entry['doi'])
-    return from_page(fetch(entry['url'], 'text/html'), entry['url'])
+        metadata = from_csl(data, entry['doi'])
+        metadata['authors_source'] = 'doi'
+        if len(metadata['authors']) == 1 and data.get('type') not in ('dataset',):
+            # Some DOI records list only the first author. OpenAlex completes the list when its first
+            # author is the same person; the record then says where the authors come from.
+            try:
+                others = openalex_authors(entry['doi'])
+            except RuntimeError:
+                others = []
+            if len(others) > 1 and simple(others[0][0]) == simple(metadata['authors'][0][0]):
+                metadata['authors'] = metadata['authors'] + others[1:]
+                metadata['authors_source'] = 'doi+openalex'
+        return metadata
+    metadata = from_page(fetch(entry['url'], 'text/html'), entry['url'])
+    metadata['authors_source'] = 'publisher page'
+    return metadata
 
 
 def problems(key, entry, metadata):

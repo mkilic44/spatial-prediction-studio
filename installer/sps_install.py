@@ -37,6 +37,7 @@ import subprocess
 import sys
 import tarfile
 import time
+import urllib.error
 import urllib.request
 import uuid
 import zipfile
@@ -158,8 +159,22 @@ def run(command, log, *, cwd=None, timeout=None, capture=False, env=None):
 # Downloads
 
 
-def download(url, destination, expected_digest, log, algorithm='sha512'):
-    """Download once into the cache and verify the pinned digest (SHA-512 unless stated otherwise)."""
+USER_AGENT = 'SpatialPredictionStudio-installer (https://github.com/mkilic44/spatial-prediction-studio)'
+
+
+def retry_delay(error, attempt):
+    """Seconds to wait before the next attempt; servers that limit requests (429, 503) say how long."""
+    if isinstance(error, urllib.error.HTTPError) and error.code in (429, 503):
+        try:
+            return min(max(int(error.headers.get('Retry-After', '')), 1), 120)
+        except ValueError:
+            return min(15 * 2 ** attempt, 120)
+    return 2 ** attempt
+
+
+def download(url, destination, expected_digest, log, algorithm='sha512', mirrors=()):
+    """Download once into the cache and verify the pinned digest (SHA-512 unless stated otherwise).
+    mirrors are further URLs of the same file; the digest decides whether a copy is accepted."""
     digest = {'sha512': sha512, 'sha256': sha256}[algorithm]
     label = algorithm.upper().replace('SHA', 'SHA-')
     destination = Path(destination)
@@ -168,15 +183,17 @@ def download(url, destination, expected_digest, log, algorithm='sha512'):
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_name(destination.name + '.' + uuid.uuid4().hex + '.part')
     log('    downloading ' + url)
-    last = None
-    for attempt in range(4):
+    sources, last = [url, *mirrors], None
+    for attempt in range(6):
+        source = sources[attempt % len(sources)]
         try:
-            with urllib.request.urlopen(url, timeout=120) as response, temporary.open('wb') as stream:
+            request = urllib.request.Request(source, headers={'User-Agent': USER_AGENT})
+            with urllib.request.urlopen(request, timeout=120) as response, temporary.open('wb') as stream:
                 shutil.copyfileobj(response, stream, 1 << 20)
             break
         except OSError as error:
             last = error
-            time.sleep(2 ** attempt)
+            time.sleep(retry_delay(error, attempt))
     else:
         raise InstallError('Download failed: %s (%s). Check the internet connection or proxy settings.' % (url, last))
     actual = digest(temporary)
@@ -451,14 +468,20 @@ def create_r_environment(prefix, cache, source, pins, log, runtime_dlls=()):
     return rscript
 
 
+CRAN_MIRRORS = ('https://cloud.r-project.org', 'https://cran.r-project.org')
+
+
 def cran_binaries(package_list, cache, log):
-    """Download the CRAN Windows binaries of reference-r-packages.csv and check their SHA-256 digests."""
+    """Download the CRAN Windows binaries of reference-r-packages.csv and check their SHA-256 digests.
+    The main CRAN server is a fallback mirror; the digests decide which copies are accepted."""
     folder = Path(cache) / 'cran'
     with Path(package_list).open(newline='', encoding='utf-8') as stream:
         rows = list(csv.DictReader(stream))
     for row in rows:
         name = '%s_%s.zip' % (row['Package'], row['Version'])
-        download(row['Repository'].rstrip('/') + '/' + name, folder / name, row['SHA256'].lower(), log, 'sha256')
+        url = row['Repository'].rstrip('/') + '/' + name
+        mirrors = [url.replace(CRAN_MIRRORS[0], other, 1) for other in CRAN_MIRRORS[1:] if url.startswith(CRAN_MIRRORS[0])]
+        download(url, folder / name, row['SHA256'].lower(), log, 'sha256', mirrors)
     return folder
 
 
