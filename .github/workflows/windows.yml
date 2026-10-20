@@ -25,7 +25,7 @@ jobs:
       - name: Keep stored line endings on checkout
         run: git config --global core.autocrlf false
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install with Install.cmd's script (staging, ArcObjects stand-ins, MCP server, R runtime)
         run: |
@@ -104,7 +104,7 @@ jobs:
 
       - name: Keep the installer logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: installer-logs
           path: ${{ runner.temp }}\sps\logs
