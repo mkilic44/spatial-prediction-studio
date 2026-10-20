@@ -40,7 +40,8 @@ jobs:
       # Each test command runs through annotate_failure.py, which repeats the end of a failing
       # command's output as annotations, because job logs are not readable from every environment.
       - name: Backend tests with the installed runtime
-        # R/CAST tests need the optional R runtime; TabPFN tests need the licensed weights.
+        # R/CAST tests need the optional R runtime. TabPFN tests need the licensed weights; the model
+        # comparison test is deselected by name because it includes TabPFN.
         run: |
           $app = (Get-Content "$env:RUNNER_TEMP\sps\current.json" -Raw | ConvertFrom-Json).application_root
           $py = "$app\runtime-d\Scripts\python.exe"
@@ -54,7 +55,8 @@ jobs:
             --deselect tests/test_engine_c.py::test_knndm_mapping_domain_and_nested_training `
             --deselect tests/test_knndm_c.py::test_real_cast_bridge_matches_reference_folds_and_three_distance_distributions `
             --deselect tests/test_knndm_c.py::test_real_cast_reads_unicode_work_paths_with_c_parent_locale `
-            --deselect tests/test_knndm_c.py::test_folds_preserve_reference_distances_and_reject_group_splitting
+            --deselect tests/test_knndm_c.py::test_folds_preserve_reference_distances_and_reject_group_splitting `
+            --deselect tests/test_models_d.py::test_actual_models_and_baselines_share_identical_heldout_folds
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Native contract tests (C# panel, job client, process ownership)

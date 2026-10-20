@@ -31,7 +31,7 @@ cd mcp-server && python -m pip install -r <requirements-mcp-lock.txt without pyw
 Some tests need parts that are not on every machine:
 
 - R with CAST 1.0.4 and its reference fixtures (`tests/fixtures/cast-1.0.4`): three tests in `test_applicability_c.py`, three in `test_knndm_c.py`, one in `test_engine_c.py`.
-- The deep-learning environment (`requirements-d-lock.txt`, PyTorch 2.8.0+cpu) for `test_models_d.py`, `test_model_integration_d.py`, `test_publication_models_d.py`; the TabPFN weights for `test_tabpfn_d.py` and the TabPFN cases.
+- The deep-learning environment (`requirements-d-lock.txt`, PyTorch 2.8.0+cpu) for `test_models_d.py`, `test_model_integration_d.py`, `test_publication_models_d.py`; the TabPFN weights for `test_tabpfn_d.py`, the TabPFN cases and `test_models_d.py::test_actual_models_and_baselines_share_identical_heldout_folds`.
 - Windows for the named-pipe MCP tests and for `installer/test_deploy.py`.
 - A built package for `tests/test_package.py`.
 
