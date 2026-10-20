@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ESRI.Configuration xmlns="http://schemas.esri.com/Desktop/AddIns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>Spatial Prediction Studio</Name>
+  <AddInID>{DC2D1F95-349B-4F9A-A681-202610170101}</AddInID>
+  <Description>ArcMap içinde mekânsal tahmin. Deneysel tablo modelleri, yerel kalibrasyon ve zaman sıralı doğrulama.</Description>
+  <Version>0.5.0</Version>
+  <Image>Images\studio.png</Image>
+  <Author>MIRAC</Author>
+  <Company></Company>
+  <Date>10/17/2026</Date>
+  <Targets><Target name="Desktop" version="10.8" /></Targets>
+  <AddIn language="CLR4.5" library="SpatialPredictionStudio.dll" namespace="SpatialPredictionStudio">
+    <ArcMap>
+      <Commands>
+        <Button id="SpatialPredictionStudio_OpenStudioButton" class="OpenStudioButton" caption="Mekânsal Tahmin" category="Spatial Prediction Studio" image="Images\studio.png" tip="Mekânsal tahmin panelini aç" message="Nokta ve raster katmanlarıyla yerel tahmin işini başlat."><Help heading="Spatial Prediction Studio" /></Button>
+      </Commands>
+      <Toolbars>
+        <Toolbar id="SpatialPredictionStudio_Toolbar" caption="Spatial Prediction Studio" category="Spatial Prediction Studio" showInitially="true"><Items><Button refID="SpatialPredictionStudio_OpenStudioButton" /></Items></Toolbar>
+      </Toolbars>
+      <DockableWindows>
+        <DockableWindow id="SpatialPredictionStudio_StudioDockWindow" class="StudioDockWindow" caption="Mekânsal Tahmin" image="Images\studio.png">
+          <InitialPlacement height="740" width="560" state="pinned" position="right" />
+        </DockableWindow>
+      </DockableWindows>
+    </ArcMap>
+  </AddIn>
+</ESRI.Configuration>

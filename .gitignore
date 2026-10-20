@@ -1,0 +1,10 @@
+runtime/
+dist/
+build/
+native/**/bin/
+native/**/obj/
+__pycache__/
+.pytest_cache/
+examples/
+runs/
+*.pyc

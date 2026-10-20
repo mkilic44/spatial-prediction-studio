@@ -1,0 +1,2526 @@
+{
+  "schema_version": 1,
+  "registry_version": "0.4.1",
+  "categories": {
+    "validation": [
+      {
+        "id": "random",
+        "label": "Rastgele k-katlı",
+        "description": "Bağımlı grupları ayırmaz; böyle veri varsa gruplu yöntemi seçin.",
+        "parameters": {
+          "n_splits": {
+            "label": "Dış kat sayısı",
+            "type": "int",
+            "default": 5,
+            "min": 2,
+            "max": 50
+          },
+          "inner_splits": {
+            "label": "İç kat sayısı",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 20
+          },
+          "repeats": {
+            "label": "Tekrar sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100
+          },
+          "seed": {
+            "label": "Rastgelelik tohumu",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "block_size": {
+            "label": "Blok boyutu (m)",
+            "type": "float",
+            "default": 1000,
+            "min": 1,
+            "max": 1000000
+          },
+          "buffer_distance": {
+            "label": "Tampon uzaklığı (m)",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000000
+          },
+          "metric_crs": {
+            "label": "Metrik koordinat sistemi",
+            "type": "string",
+            "default": ""
+          },
+          "min_train_groups": {
+            "label": "Asgari eğitim grubu",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 10000
+          },
+          "inner_method": {
+            "label": "Özel katlarda iç ayırma",
+            "type": "enum",
+            "default": "group",
+            "choices": [
+              {
+                "id": "group",
+                "label": "Gruplu"
+              },
+              {
+                "id": "random",
+                "label": "Rastgele"
+              },
+              {
+                "id": "spatial_block",
+                "label": "Mekânsal bloklu"
+              },
+              {
+                "id": "buffered",
+                "label": "Tamponlu"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "repeated",
+        "label": "Tekrarlı rastgele k-katlı",
+        "description": "Her tekrar ayrı değerlendirilir; tahmin sayısı bağımsız örnek sayısı değildir.",
+        "parameters": {
+          "n_splits": {
+            "label": "Dış kat sayısı",
+            "type": "int",
+            "default": 5,
+            "min": 2,
+            "max": 50
+          },
+          "inner_splits": {
+            "label": "İç kat sayısı",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 20
+          },
+          "repeats": {
+            "label": "Tekrar sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100
+          },
+          "seed": {
+            "label": "Rastgelelik tohumu",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "block_size": {
+            "label": "Blok boyutu (m)",
+            "type": "float",
+            "default": 1000,
+            "min": 1,
+            "max": 1000000
+          },
+          "buffer_distance": {
+            "label": "Tampon uzaklığı (m)",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000000
+          },
+          "metric_crs": {
+            "label": "Metrik koordinat sistemi",
+            "type": "string",
+            "default": ""
+          },
+          "min_train_groups": {
+            "label": "Asgari eğitim grubu",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 10000
+          },
+          "inner_method": {
+            "label": "Özel katlarda iç ayırma",
+            "type": "enum",
+            "default": "group",
+            "choices": [
+              {
+                "id": "group",
+                "label": "Gruplu"
+              },
+              {
+                "id": "random",
+                "label": "Rastgele"
+              },
+              {
+                "id": "spatial_block",
+                "label": "Mekânsal bloklu"
+              },
+              {
+                "id": "buffered",
+                "label": "Tamponlu"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "group",
+        "label": "Gruplu k-katlı",
+        "description": "Profil, parsel ve işletme ilişkileriyle bağlı gözlemler birlikte tutulur.",
+        "parameters": {
+          "n_splits": {
+            "label": "Dış kat sayısı",
+            "type": "int",
+            "default": 5,
+            "min": 2,
+            "max": 50
+          },
+          "inner_splits": {
+            "label": "İç kat sayısı",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 20
+          },
+          "repeats": {
+            "label": "Tekrar sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100
+          },
+          "seed": {
+            "label": "Rastgelelik tohumu",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "block_size": {
+            "label": "Blok boyutu (m)",
+            "type": "float",
+            "default": 1000,
+            "min": 1,
+            "max": 1000000
+          },
+          "buffer_distance": {
+            "label": "Tampon uzaklığı (m)",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000000
+          },
+          "metric_crs": {
+            "label": "Metrik koordinat sistemi",
+            "type": "string",
+            "default": ""
+          },
+          "min_train_groups": {
+            "label": "Asgari eğitim grubu",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 10000
+          },
+          "inner_method": {
+            "label": "Özel katlarda iç ayırma",
+            "type": "enum",
+            "default": "group",
+            "choices": [
+              {
+                "id": "group",
+                "label": "Gruplu"
+              },
+              {
+                "id": "random",
+                "label": "Rastgele"
+              },
+              {
+                "id": "spatial_block",
+                "label": "Mekânsal bloklu"
+              },
+              {
+                "id": "buffered",
+                "label": "Tamponlu"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "spatial_block",
+        "label": "Mekânsal bloklu",
+        "description": "Metrik grid blokları katlara atanır. Alan doğruluğunun yansız tahmini değildir.",
+        "parameters": {
+          "n_splits": {
+            "label": "Dış kat sayısı",
+            "type": "int",
+            "default": 5,
+            "min": 2,
+            "max": 50
+          },
+          "inner_splits": {
+            "label": "İç kat sayısı",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 20
+          },
+          "repeats": {
+            "label": "Tekrar sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100
+          },
+          "seed": {
+            "label": "Rastgelelik tohumu",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "block_size": {
+            "label": "Blok boyutu (m)",
+            "type": "float",
+            "default": 1000,
+            "min": 1,
+            "max": 1000000
+          },
+          "buffer_distance": {
+            "label": "Tampon uzaklığı (m)",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000000
+          },
+          "metric_crs": {
+            "label": "Metrik koordinat sistemi",
+            "type": "string",
+            "default": ""
+          },
+          "min_train_groups": {
+            "label": "Asgari eğitim grubu",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 10000
+          },
+          "inner_method": {
+            "label": "Özel katlarda iç ayırma",
+            "type": "enum",
+            "default": "group",
+            "choices": [
+              {
+                "id": "group",
+                "label": "Gruplu"
+              },
+              {
+                "id": "random",
+                "label": "Rastgele"
+              },
+              {
+                "id": "spatial_block",
+                "label": "Mekânsal bloklu"
+              },
+              {
+                "id": "buffered",
+                "label": "Tamponlu"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "buffered",
+        "label": "Tamponlu mekânsal",
+        "description": "Test bloklarına tampon uzaklığından yakın eğitim grupları çıkarılır.",
+        "parameters": {
+          "n_splits": {
+            "label": "Dış kat sayısı",
+            "type": "int",
+            "default": 5,
+            "min": 2,
+            "max": 50
+          },
+          "inner_splits": {
+            "label": "İç kat sayısı",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 20
+          },
+          "repeats": {
+            "label": "Tekrar sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100
+          },
+          "seed": {
+            "label": "Rastgelelik tohumu",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "block_size": {
+            "label": "Blok boyutu (m)",
+            "type": "float",
+            "default": 1000,
+            "min": 1,
+            "max": 1000000
+          },
+          "buffer_distance": {
+            "label": "Tampon uzaklığı (m)",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000000
+          },
+          "metric_crs": {
+            "label": "Metrik koordinat sistemi",
+            "type": "string",
+            "default": ""
+          },
+          "min_train_groups": {
+            "label": "Asgari eğitim grubu",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 10000
+          },
+          "inner_method": {
+            "label": "Özel katlarda iç ayırma",
+            "type": "enum",
+            "default": "group",
+            "choices": [
+              {
+                "id": "group",
+                "label": "Gruplu"
+              },
+              {
+                "id": "random",
+                "label": "Rastgele"
+              },
+              {
+                "id": "spatial_block",
+                "label": "Mekânsal bloklu"
+              },
+              {
+                "id": "buffered",
+                "label": "Tamponlu"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "custom",
+        "label": "Kullanıcı tanımlı katlar",
+        "description": "Kimlik kapsamı, grup ve uzaklık koşulları yine denetlenir.",
+        "parameters": {
+          "n_splits": {
+            "label": "Dış kat sayısı",
+            "type": "int",
+            "default": 5,
+            "min": 2,
+            "max": 50
+          },
+          "inner_splits": {
+            "label": "İç kat sayısı",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 20
+          },
+          "repeats": {
+            "label": "Tekrar sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100
+          },
+          "seed": {
+            "label": "Rastgelelik tohumu",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "block_size": {
+            "label": "Blok boyutu (m)",
+            "type": "float",
+            "default": 1000,
+            "min": 1,
+            "max": 1000000
+          },
+          "buffer_distance": {
+            "label": "Tampon uzaklığı (m)",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000000
+          },
+          "metric_crs": {
+            "label": "Metrik koordinat sistemi",
+            "type": "string",
+            "default": ""
+          },
+          "min_train_groups": {
+            "label": "Asgari eğitim grubu",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 10000
+          },
+          "inner_method": {
+            "label": "Özel katlarda iç ayırma",
+            "type": "enum",
+            "default": "group",
+            "choices": [
+              {
+                "id": "group",
+                "label": "Gruplu"
+              },
+              {
+                "id": "random",
+                "label": "Rastgele"
+              },
+              {
+                "id": "spatial_block",
+                "label": "Mekânsal bloklu"
+              },
+              {
+                "id": "buffered",
+                "label": "Tamponlu"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "knndm",
+        "label": "En yakın komşu uzaklığı eşleme",
+        "description": "Yerel CAST 1.0.4 ile uzaklık eşleme. Bu sürümde yalnız tekil bağımsız gözlemler, metrik koordinatlar ve en fazla 2000 eğitim noktası desteklenir.",
+        "parameters": {
+          "n_splits": {
+            "label": "Dış kat sayısı",
+            "type": "int",
+            "default": 5,
+            "min": 2,
+            "max": 50
+          },
+          "inner_splits": {
+            "label": "İç kat sayısı",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 20
+          },
+          "repeats": {
+            "label": "Tekrar sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100
+          },
+          "seed": {
+            "label": "Rastgelelik tohumu",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "block_size": {
+            "label": "Blok boyutu (m)",
+            "type": "float",
+            "default": 1000,
+            "min": 1,
+            "max": 1000000
+          },
+          "buffer_distance": {
+            "label": "Tampon uzaklığı (m)",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000000
+          },
+          "metric_crs": {
+            "label": "Metrik koordinat sistemi",
+            "type": "string",
+            "default": ""
+          },
+          "min_train_groups": {
+            "label": "Asgari eğitim grubu",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 10000
+          },
+          "inner_method": {
+            "label": "Özel katlarda iç ayırma",
+            "type": "enum",
+            "default": "group",
+            "choices": [
+              {
+                "id": "group",
+                "label": "Gruplu"
+              },
+              {
+                "id": "random",
+                "label": "Rastgele"
+              },
+              {
+                "id": "spatial_block",
+                "label": "Mekânsal bloklu"
+              },
+              {
+                "id": "buffered",
+                "label": "Tamponlu"
+              }
+            ]
+          },
+          "maxp": {
+            "label": "Bir katın azami gözlem oranı",
+            "type": "float",
+            "default": 0.75,
+            "min": 0.1,
+            "max": 0.99
+          },
+          "prediction_samples": {
+            "label": "Alan örnekleme hedefi",
+            "type": "int",
+            "default": 1000,
+            "min": 25,
+            "max": 4000
+          }
+        },
+        "stage": "C",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "environmental",
+        "label": "Çevresel kümeler",
+        "description": "Çevresel aktarımın ayrıca sınanması gerekir.",
+        "parameters": {},
+        "stage": "C",
+        "enabled": false,
+        "status": "not_implemented",
+        "reason": "Bu aşama henüz uygulanmadı.",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "temporal",
+        "label": "Zaman sıralı doğrulama (yeni gruplar)",
+        "description": "Tarih alanı zorunludur. Profiller ve aynı günler bölünmez. Eğitim geçmişi ilerler; kalibrasyon son uygun dönemlerden ayrılır. Sabit rasterlerle değerlendirme, belirli bir gelecek tarihin haritasını doğrulamaz.",
+        "parameters": {
+          "n_splits": {
+            "label": "Dış kat sayısı",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 50
+          },
+          "inner_splits": {
+            "label": "İç kat sayısı",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 20
+          },
+          "repeats": {
+            "label": "Tekrar sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          },
+          "seed": {
+            "label": "Rastgelelik tohumu",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "buffer_distance": {
+            "label": "Tampon uzaklığı (m)",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000000
+          },
+          "metric_crs": {
+            "label": "Metrik koordinat sistemi",
+            "type": "string",
+            "default": ""
+          },
+          "min_train_groups": {
+            "label": "Asgari eğitim grubu",
+            "type": "int",
+            "default": 2,
+            "min": 2,
+            "max": 10000
+          },
+          "temporal_mode": {
+            "label": "Zamansal değerlendirme amacı",
+            "type": "enum",
+            "default": "temporal_new_groups",
+            "choices": [
+              {
+                "id": "temporal_new_groups",
+                "label": "Sonraki tarihlerde yeni profil veya parseller"
+              }
+            ]
+          },
+          "timezone": {
+            "label": "Saat dilimi (IANA adı)",
+            "type": "string",
+            "default": "UTC"
+          },
+          "gap_days": {
+            "label": "Roller arasında boş takvim günü",
+            "type": "int",
+            "default": 0,
+            "min": 0,
+            "max": 36500
+          },
+          "initial_train_periods": {
+            "label": "İlk dış eğitimde dönem sayısı",
+            "type": "int",
+            "default": 12,
+            "min": 1,
+            "max": 100000
+          },
+          "inner_initial_train_periods": {
+            "label": "İlk iç eğitimde dönem sayısı",
+            "type": "int",
+            "default": 4,
+            "min": 1,
+            "max": 100000
+          },
+          "selector_initial_train_periods": {
+            "label": "Ardışık seçicide ilk eğitim dönemi",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100000
+          }
+        },
+        "stage": "D",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "design_based",
+        "label": "Olasılıklı alan doğrulaması",
+        "description": "Örnekleme tasarımına uygun ağırlıklı tahminci henüz uygulanmadı.",
+        "parameters": {},
+        "stage": "separate",
+        "enabled": false,
+        "status": "not_implemented",
+        "reason": "Bu aşama henüz uygulanmadı.",
+        "cost": "Veri ve kat sayısıyla artar."
+      }
+    ],
+    "preprocessing": [
+      {
+        "id": "standard_pipeline",
+        "label": "Ön işleme",
+        "description": "Her işlem yalnız ilgili eğitim gözlemlerinde öğrenilir.",
+        "parameters": {
+          "imputation": {
+            "label": "Eksik girdi",
+            "type": "enum",
+            "default": "median",
+            "choices": [
+              {
+                "id": "none",
+                "label": "İşlem yok"
+              },
+              {
+                "id": "median",
+                "label": "Medyan"
+              },
+              {
+                "id": "knn",
+                "label": "En yakın komşu"
+              }
+            ]
+          },
+          "scaling": {
+            "label": "Ölçekleme",
+            "type": "enum",
+            "default": "standard",
+            "choices": [
+              {
+                "id": "none",
+                "label": "İşlem yok"
+              },
+              {
+                "id": "standard",
+                "label": "Standart"
+              },
+              {
+                "id": "robust",
+                "label": "Dayanıklı"
+              }
+            ]
+          },
+          "unknown_category": {
+            "label": "Bilinmeyen kategori",
+            "type": "enum",
+            "default": "flag",
+            "choices": [
+              {
+                "id": "error",
+                "label": "Durdur"
+              },
+              {
+                "id": "flag",
+                "label": "İşaretle"
+              }
+            ]
+          },
+          "knn_neighbors": {
+            "label": "Komşu sayısı",
+            "type": "int",
+            "default": 5,
+            "min": 1,
+            "max": 100
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      }
+    ],
+    "target_transform": [
+      {
+        "id": "none",
+        "label": "Dönüşüm yok",
+        "description": "Özgün hedef biriminde eğitim.",
+        "parameters": {},
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "log",
+        "label": "Logaritmik dönüşüm",
+        "description": "Yalnız pozitif hedef. Geri dönüşüm büyüklüğü önceden seçilir.",
+        "parameters": {
+          "log_estimand": {
+            "label": "Haritalanan büyüklük",
+            "type": "enum",
+            "default": "median",
+            "choices": [
+              {
+                "id": "median",
+                "label": "Üstel geri dönüşüm"
+              },
+              {
+                "id": "mean_smearing",
+                "label": "Eğitim artıklarından ortalama düzeltmesi"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "yeo_johnson",
+        "label": "Yeo-Johnson dönüşümü",
+        "description": "Dönüşüm katsayısı yalnız eğitimde öğrenilir.",
+        "parameters": {},
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      }
+    ],
+    "vif": [
+      {
+        "id": "off",
+        "label": "Kapalı",
+        "description": "Çoklu bağlantı tanısı yapılmaz.",
+        "parameters": {},
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "diagnostic",
+        "label": "Yalnız tanı",
+        "description": "Varyans şişirme faktörü, açıklayıcı değişkenler arasındaki bağlantıyı ölçer. Eleme yapmaz.",
+        "parameters": {
+          "threshold": {
+            "label": "Eleme eşiği",
+            "type": "float",
+            "default": 10,
+            "min": 1.01,
+            "max": 100000
+          },
+          "protected_ids": {
+            "label": "Korunacak değişken kimlikleri",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Önce elenecek değişken kimlikleri",
+            "type": "ids",
+            "default": []
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "iterative",
+        "label": "İteratif eleme",
+        "description": "Eşiği aşan sürekli değişkenler eğitim içinde sırayla elenir. Kategorik gösterge sütunları parçalanmaz.",
+        "parameters": {
+          "threshold": {
+            "label": "Eleme eşiği",
+            "type": "float",
+            "default": 10,
+            "min": 1.01,
+            "max": 100000
+          },
+          "protected_ids": {
+            "label": "Korunacak değişken kimlikleri",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Önce elenecek değişken kimlikleri",
+            "type": "ids",
+            "default": []
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      }
+    ],
+    "feature_selection": [
+      {
+        "id": "none",
+        "label": "Seçim yok",
+        "description": "Bütün seçilmiş girdileri kullanır.",
+        "parameters": {},
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "pearson",
+        "label": "Pearson filtresi",
+        "description": "Yüksek doğrusal bağlantılı değişkenleri eğitimde eler.",
+        "parameters": {
+          "k": {
+            "label": "Değişken / bileşen sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 256
+          },
+          "threshold": {
+            "label": "Bağlantı eşiği",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.01,
+            "max": 1
+          },
+          "protected_ids": {
+            "label": "Korunacak kimlikler",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Eleme önceliği",
+            "type": "ids",
+            "default": []
+          },
+          "compare_without_selection": {
+            "label": "Seçim yapılmamış karşılığıyla karşılaştır",
+            "type": "bool",
+            "default": false
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "spearman",
+        "label": "Spearman filtresi",
+        "description": "Sıralama bağlantısını eğitimde değerlendirir.",
+        "parameters": {
+          "k": {
+            "label": "Değişken / bileşen sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 256
+          },
+          "threshold": {
+            "label": "Bağlantı eşiği",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.01,
+            "max": 1
+          },
+          "protected_ids": {
+            "label": "Korunacak kimlikler",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Eleme önceliği",
+            "type": "ids",
+            "default": []
+          },
+          "compare_without_selection": {
+            "label": "Seçim yapılmamış karşılığıyla karşılaştır",
+            "type": "bool",
+            "default": false
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "mutual_info",
+        "label": "Karşılıklı bilgi",
+        "description": "Girdinin hedef toprak özelliğiyle doğrusal olmayan bağımlılığını eğitimde ölçer.",
+        "parameters": {
+          "k": {
+            "label": "Değişken / bileşen sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 256
+          },
+          "threshold": {
+            "label": "Bağlantı eşiği",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.01,
+            "max": 1
+          },
+          "protected_ids": {
+            "label": "Korunacak kimlikler",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Eleme önceliği",
+            "type": "ids",
+            "default": []
+          },
+          "compare_without_selection": {
+            "label": "Seçim yapılmamış karşılığıyla karşılaştır",
+            "type": "bool",
+            "default": false
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "elastic_net",
+        "label": "Elastic Net ile seçim",
+        "description": "Seçici doğrusal modeli nihai modelden ayrıdır.",
+        "parameters": {
+          "k": {
+            "label": "Değişken / bileşen sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 256
+          },
+          "threshold": {
+            "label": "Bağlantı eşiği",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.01,
+            "max": 1
+          },
+          "protected_ids": {
+            "label": "Korunacak kimlikler",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Eleme önceliği",
+            "type": "ids",
+            "default": []
+          },
+          "compare_without_selection": {
+            "label": "Seçim yapılmamış karşılığıyla karşılaştır",
+            "type": "bool",
+            "default": false
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "sfs",
+        "label": "Ardışık ileri seçim",
+        "description": "Her altkatta ön işleme yeniden öğrenilir. Hesaplama maliyeti yüksektir.",
+        "parameters": {
+          "k": {
+            "label": "Değişken / bileşen sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 256
+          },
+          "threshold": {
+            "label": "Bağlantı eşiği",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.01,
+            "max": 1
+          },
+          "protected_ids": {
+            "label": "Korunacak kimlikler",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Eleme önceliği",
+            "type": "ids",
+            "default": []
+          },
+          "compare_without_selection": {
+            "label": "Seçim yapılmamış karşılığıyla karşılaştır",
+            "type": "bool",
+            "default": false
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "rfe",
+        "label": "Özyinelemeli eleme",
+        "description": "Katsayı veya ağaç önemine uygun model gerekir.",
+        "parameters": {
+          "k": {
+            "label": "Değişken / bileşen sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 256
+          },
+          "threshold": {
+            "label": "Bağlantı eşiği",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.01,
+            "max": 1
+          },
+          "protected_ids": {
+            "label": "Korunacak kimlikler",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Eleme önceliği",
+            "type": "ids",
+            "default": []
+          },
+          "compare_without_selection": {
+            "label": "Seçim yapılmamış karşılığıyla karşılaştır",
+            "type": "bool",
+            "default": false
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "boruta",
+        "label": "Boruta",
+        "description": "İlişkili değişkenleri arar. En küçük en iyi modeli garanti etmez.",
+        "parameters": {
+          "k": {
+            "label": "Değişken / bileşen sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 256
+          },
+          "threshold": {
+            "label": "Bağlantı eşiği",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.01,
+            "max": 1
+          },
+          "protected_ids": {
+            "label": "Korunacak kimlikler",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Eleme önceliği",
+            "type": "ids",
+            "default": []
+          },
+          "compare_without_selection": {
+            "label": "Seçim yapılmamış karşılığıyla karşılaştır",
+            "type": "bool",
+            "default": false
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "pca",
+        "label": "Temel bileşenler analizi",
+        "description": "Eğitimde öğrenilen dönüşümdür; değişken seçimi değildir.",
+        "parameters": {
+          "k": {
+            "label": "Değişken / bileşen sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 256
+          },
+          "threshold": {
+            "label": "Bağlantı eşiği",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.01,
+            "max": 1
+          },
+          "protected_ids": {
+            "label": "Korunacak kimlikler",
+            "type": "ids",
+            "default": []
+          },
+          "priority_ids": {
+            "label": "Eleme önceliği",
+            "type": "ids",
+            "default": []
+          },
+          "compare_without_selection": {
+            "label": "Seçim yapılmamış karşılığıyla karşılaştır",
+            "type": "bool",
+            "default": false
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      }
+    ],
+    "model": [
+      {
+        "id": "mean",
+        "label": "Eğitim ortalaması",
+        "description": "Eğitim hedefi ortalamasını karşılaştırıcı olarak kullanır.",
+        "parameters": {},
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "median",
+        "label": "Eğitim medyanı",
+        "description": "Eğitim hedefi medyanını karşılaştırıcı olarak kullanır.",
+        "parameters": {},
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "ridge",
+        "label": "Ridge regresyonu",
+        "description": "Katsayıları küçülten doğrusal regresyon.",
+        "parameters": {
+          "alpha": {
+            "label": "Düzenlileştirme katsayısı",
+            "type": "float",
+            "default": 1,
+            "min": 1e-06,
+            "max": 1000000
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "elastic_net",
+        "label": "Elastic Net regresyonu",
+        "description": "İki düzenlileştirme cezasını birleştirir.",
+        "parameters": {
+          "alpha": {
+            "label": "Düzenlileştirme katsayısı",
+            "type": "float",
+            "default": 1,
+            "min": 1e-06,
+            "max": 1000000
+          },
+          "l1_ratio": {
+            "label": "Birinci cezanın oranı",
+            "type": "float",
+            "default": 0.5,
+            "min": 0,
+            "max": 1
+          },
+          "max_iter": {
+            "label": "Azami yineleme",
+            "type": "int",
+            "default": 10000,
+            "min": 100,
+            "max": 100000
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "random_forest",
+        "label": "Rastgele orman",
+        "description": "Eğitim örneklerinden ağaç topluluğu kurar.",
+        "parameters": {
+          "n_estimators": {
+            "label": "Ağaç sayısı",
+            "type": "int",
+            "default": 100,
+            "min": 10,
+            "max": 2000
+          },
+          "max_depth": {
+            "label": "Azami derinlik",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 100
+          },
+          "min_samples_leaf": {
+            "label": "Yapraktaki asgari gözlem",
+            "type": "int",
+            "default": 2,
+            "min": 1,
+            "max": 100
+          },
+          "max_features": {
+            "label": "Değişken oranı",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.01,
+            "max": 1
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "extra_trees",
+        "label": "Aşırı rastgeleleştirilmiş ağaçlar",
+        "description": "Rastgele bölme noktalarıyla ağaç topluluğu kurar.",
+        "parameters": {
+          "n_estimators": {
+            "label": "Ağaç sayısı",
+            "type": "int",
+            "default": 100,
+            "min": 10,
+            "max": 2000
+          },
+          "max_depth": {
+            "label": "Azami derinlik",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 100
+          },
+          "min_samples_leaf": {
+            "label": "Yapraktaki asgari gözlem",
+            "type": "int",
+            "default": 2,
+            "min": 1,
+            "max": 100
+          },
+          "max_features": {
+            "label": "Değişken oranı",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.01,
+            "max": 1
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "svr",
+        "label": "Destek vektör regresyonu",
+        "description": "Çekirdek yöntemiyle regresyon. Büyük örneklemde maliyetlidir.",
+        "parameters": {
+          "C": {
+            "label": "Ceza katsayısı",
+            "type": "float",
+            "default": 1,
+            "min": 1e-06,
+            "max": 1000000
+          },
+          "epsilon": {
+            "label": "Hata toleransı",
+            "type": "float",
+            "default": 0.1,
+            "min": 0,
+            "max": 10000
+          },
+          "kernel": {
+            "label": "Çekirdek",
+            "type": "enum",
+            "default": "rbf",
+            "choices": [
+              {
+                "id": "rbf",
+                "label": "Radyal"
+              },
+              {
+                "id": "linear",
+                "label": "Doğrusal"
+              }
+            ]
+          },
+          "gamma": {
+            "label": "Çekirdek ölçeği",
+            "type": "enum",
+            "default": "scale",
+            "choices": [
+              {
+                "id": "scale",
+                "label": "Varyansa göre"
+              },
+              {
+                "id": "auto",
+                "label": "Değişken sayısına göre"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "hist_gradient_boosting",
+        "label": "Histogram tabanlı gradyan artırma",
+        "description": "Erken durdurma kapalı; yineleme sayısı iç katlarda seçilir.",
+        "parameters": {
+          "max_iter": {
+            "label": "Yineleme",
+            "type": "int",
+            "default": 100,
+            "min": 10,
+            "max": 2000
+          },
+          "max_leaf_nodes": {
+            "label": "Yaprak sayısı",
+            "type": "int",
+            "default": 31,
+            "min": 2,
+            "max": 255
+          },
+          "learning_rate": {
+            "label": "Öğrenme oranı",
+            "type": "float",
+            "default": 0.1,
+            "min": 0.0001,
+            "max": 1
+          },
+          "min_samples_leaf": {
+            "label": "Yapraktaki asgari gözlem",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 100
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "xgboost",
+        "label": "XGBoost",
+        "description": "İşlemci üzerinde artırmalı ağaçlar. Erken durdurma kapalı.",
+        "parameters": {
+          "n_estimators": {
+            "label": "Ağaç sayısı",
+            "type": "int",
+            "default": 100,
+            "min": 10,
+            "max": 2000
+          },
+          "max_depth": {
+            "label": "Derinlik",
+            "type": "int",
+            "default": 6,
+            "min": 1,
+            "max": 20
+          },
+          "learning_rate": {
+            "label": "Öğrenme oranı",
+            "type": "float",
+            "default": 0.1,
+            "min": 0.0001,
+            "max": 1
+          },
+          "subsample": {
+            "label": "Gözlem oranı",
+            "type": "float",
+            "default": 1,
+            "min": 0.1,
+            "max": 1
+          },
+          "colsample_bytree": {
+            "label": "Değişken oranı",
+            "type": "float",
+            "default": 1,
+            "min": 0.1,
+            "max": 1
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "lightgbm",
+        "label": "LightGBM",
+        "description": "Yerel işlemci üzerinde sabitlenmiş gerçek paket. Erken durdurma ve modelin kendi çapraz doğrulaması kapalıdır.",
+        "parameters": {
+          "n_estimators": {
+            "label": "Ağaç sayısı",
+            "type": "int",
+            "default": 100,
+            "min": 10,
+            "max": 2000
+          },
+          "num_leaves": {
+            "label": "Yaprak sayısı",
+            "type": "int",
+            "default": 31,
+            "min": 2,
+            "max": 255
+          },
+          "max_depth": {
+            "label": "Azami derinlik (-1 sınırsız)",
+            "type": "int",
+            "default": -1,
+            "min": -1,
+            "max": 50
+          },
+          "learning_rate": {
+            "label": "Öğrenme oranı",
+            "type": "float",
+            "default": 0.1,
+            "min": 0.0001,
+            "max": 1
+          },
+          "min_child_samples": {
+            "label": "Yaprakta asgari gözlem",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 200
+          },
+          "colsample_bytree": {
+            "label": "Değişken oranı",
+            "type": "float",
+            "default": 1,
+            "min": 0.1,
+            "max": 1
+          },
+          "reg_alpha": {
+            "label": "Mutlak ceza",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000
+          },
+          "reg_lambda": {
+            "label": "Karesel ceza",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 1000
+          }
+        },
+        "stage": "C",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "catboost",
+        "label": "CatBoost",
+        "description": "Yerel işlemci üzerinde sabitlenmiş gerçek paket. Erken durdurma ve modelin kendi çapraz doğrulaması kapalıdır.",
+        "parameters": {
+          "iterations": {
+            "label": "Yineleme",
+            "type": "int",
+            "default": 100,
+            "min": 10,
+            "max": 2000
+          },
+          "depth": {
+            "label": "Derinlik",
+            "type": "int",
+            "default": 6,
+            "min": 1,
+            "max": 12
+          },
+          "learning_rate": {
+            "label": "Öğrenme oranı",
+            "type": "float",
+            "default": 0.1,
+            "min": 0.0001,
+            "max": 1
+          },
+          "l2_leaf_reg": {
+            "label": "Düzenlileştirme",
+            "type": "float",
+            "default": 3,
+            "min": 0,
+            "max": 1000
+          },
+          "random_strength": {
+            "label": "Rastgelelik gücü",
+            "type": "float",
+            "default": 1,
+            "min": 0,
+            "max": 100
+          }
+        },
+        "stage": "C",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "cubist",
+        "label": "Cubist",
+        "description": "Yerel işlemci üzerinde sabitlenmiş gerçek paket. Erken durdurma ve modelin kendi çapraz doğrulaması kapalıdır.",
+        "parameters": {
+          "n_committees": {
+            "label": "Komite sayısı",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 100
+          },
+          "n_rules": {
+            "label": "Kural sınırı",
+            "type": "int",
+            "default": 100,
+            "min": 1,
+            "max": 500
+          },
+          "neighbors": {
+            "label": "Düzeltme komşusu (0 kapalı)",
+            "type": "int",
+            "default": 0,
+            "min": 0,
+            "max": 9
+          },
+          "unbiased": {
+            "label": "Yanlılık düzeltmesi",
+            "type": "bool",
+            "default": false
+          },
+          "extrapolation": {
+            "label": "Dışa taşıma oranı",
+            "type": "float",
+            "default": 0.05,
+            "min": 0,
+            "max": 1
+          }
+        },
+        "stage": "C",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "ordinary_kriging",
+        "label": "Adi kriging",
+        "description": "Yalnız ilgili eğitim katında yarıvaryogram. Kriging varyansı toplam belirsizlik değildir; eğitimde en fazla 2000 gözlem.",
+        "parameters": {
+          "variogram_model": {
+            "label": "Yarıvaryogram modeli",
+            "type": "enum",
+            "default": "spherical",
+            "choices": [
+              {
+                "id": "spherical",
+                "label": "Küresel"
+              },
+              {
+                "id": "exponential",
+                "label": "Üstel"
+              },
+              {
+                "id": "gaussian",
+                "label": "Gauss"
+              }
+            ]
+          },
+          "nlags": {
+            "label": "Uzaklık sınıfı sayısı",
+            "type": "int",
+            "default": 6,
+            "min": 3,
+            "max": 30
+          },
+          "weight": {
+            "label": "Kısa uzaklıklara daha fazla ağırlık",
+            "type": "bool",
+            "default": false
+          },
+          "n_closest_points": {
+            "label": "Yerel komşu sayısı",
+            "type": "int",
+            "default": 12,
+            "min": 3,
+            "max": 200
+          }
+        },
+        "stage": "C",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "regression_kriging",
+        "label": "Regresyon-kriging",
+        "description": "Yalnız ilgili eğitim katında yarıvaryogram. Kriging varyansı toplam belirsizlik değildir; eğitimde en fazla 2000 gözlem.",
+        "parameters": {
+          "variogram_model": {
+            "label": "Yarıvaryogram modeli",
+            "type": "enum",
+            "default": "spherical",
+            "choices": [
+              {
+                "id": "spherical",
+                "label": "Küresel"
+              },
+              {
+                "id": "exponential",
+                "label": "Üstel"
+              },
+              {
+                "id": "gaussian",
+                "label": "Gauss"
+              }
+            ]
+          },
+          "nlags": {
+            "label": "Uzaklık sınıfı sayısı",
+            "type": "int",
+            "default": 6,
+            "min": 3,
+            "max": 30
+          },
+          "weight": {
+            "label": "Kısa uzaklıklara daha fazla ağırlık",
+            "type": "bool",
+            "default": false
+          },
+          "n_closest_points": {
+            "label": "Yerel komşu sayısı",
+            "type": "int",
+            "default": 12,
+            "min": 3,
+            "max": 200
+          },
+          "base_model": {
+            "label": "Yalın model",
+            "type": "enum",
+            "default": "ridge",
+            "choices": [
+              {
+                "id": "ridge",
+                "label": "Ridge"
+              },
+              {
+                "id": "random_forest",
+                "label": "Rastgele orman"
+              }
+            ]
+          },
+          "base_alpha": {
+            "label": "Ridge cezası",
+            "type": "float",
+            "default": 1,
+            "min": 1e-06,
+            "max": 1000000
+          },
+          "base_trees": {
+            "label": "Orman ağaç sayısı",
+            "type": "int",
+            "default": 100,
+            "min": 10,
+            "max": 2000
+          },
+          "base_depth": {
+            "label": "Orman derinliği",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 100
+          }
+        },
+        "stage": "C",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "tabpfn",
+        "label": "TabPFN v2 (deneysel)",
+        "description": "Önceden eğitilmiş tablo modeli yerel işlemcide çalışır. Built with PriorLabs-TabPFN. Otomatik indirme ve telemetri kapalıdır.",
+        "parameters": {
+          "n_estimators": {
+            "label": "Topluluk üyesi",
+            "type": "int",
+            "default": 2,
+            "min": 1,
+            "max": 4
+          },
+          "softmax_temperature": {
+            "label": "Olasılık sıcaklığı",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.05,
+            "max": 5
+          }
+        },
+        "stage": "D",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "En fazla 1000 eğitim gözlemi ve kodlama sonrası 256 değişken. Her alt süreç en fazla 120 saniye ve 2 GiB bellek kullanabilir."
+      },
+      {
+        "id": "tabm",
+        "label": "TabM (deneysel)",
+        "description": "Yerel işlemcide sabit turla eğitim. Gizli doğrulama ve erken durdurma kapalı. Her eğitim en fazla 120 saniye ve 2 GiB bellek kullanabilir.",
+        "parameters": {
+          "n_epochs": {
+            "label": "Eğitim turu",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 200
+          },
+          "batch_size": {
+            "label": "Eğitim yığını",
+            "type": "int",
+            "default": 16,
+            "min": 4,
+            "max": 512
+          },
+          "hidden_size": {
+            "label": "Gizli katman genişliği",
+            "type": "int",
+            "default": 32,
+            "min": 8,
+            "max": 256
+          },
+          "n_layers": {
+            "label": "Gizli katman sayısı",
+            "type": "int",
+            "default": 2,
+            "min": 1,
+            "max": 4
+          },
+          "k": {
+            "label": "Topluluk üyesi",
+            "type": "int",
+            "default": 4,
+            "min": 2,
+            "max": 32
+          },
+          "dropout": {
+            "label": "Eğitimde birim kapatma oranı",
+            "type": "float",
+            "default": 0.1,
+            "min": 0,
+            "max": 0.8
+          },
+          "lr": {
+            "label": "Öğrenme oranı",
+            "type": "float",
+            "default": 0.001,
+            "min": 1e-06,
+            "max": 0.2
+          },
+          "weight_decay": {
+            "label": "Ağırlık cezası",
+            "type": "float",
+            "default": 0.0001,
+            "min": 0,
+            "max": 0.1
+          }
+        },
+        "stage": "D",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "En fazla 2000 eğitim gözlemi ve kodlama sonrası 256 değişken; tek iş parçacığı. Küçük veride de yavaş olabilir."
+      },
+      {
+        "id": "realmlp",
+        "label": "RealMLP (deneysel)",
+        "description": "Yerel işlemcide sabit turla eğitim. Gizli doğrulama ve erken durdurma kapalı. Her eğitim en fazla 120 saniye ve 2 GiB bellek kullanabilir.",
+        "parameters": {
+          "n_epochs": {
+            "label": "Eğitim turu",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 200
+          },
+          "batch_size": {
+            "label": "Eğitim yığını",
+            "type": "int",
+            "default": 16,
+            "min": 4,
+            "max": 512
+          },
+          "hidden_size": {
+            "label": "Gizli katman genişliği",
+            "type": "int",
+            "default": 32,
+            "min": 8,
+            "max": 256
+          },
+          "n_layers": {
+            "label": "Gizli katman sayısı",
+            "type": "int",
+            "default": 2,
+            "min": 1,
+            "max": 4
+          },
+          "lr": {
+            "label": "Öğrenme oranı",
+            "type": "float",
+            "default": 0.04,
+            "min": 1e-06,
+            "max": 0.2
+          }
+        },
+        "stage": "D",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "En fazla 2000 eğitim gözlemi ve kodlama sonrası 256 değişken; tek iş parçacığı. Küçük veride de yavaş olabilir."
+      }
+    ],
+    "optimization": [
+      {
+        "id": "manual",
+        "label": "Manuel",
+        "description": "Önceden belirlenmiş ayarları aynı iç katlarda değerlendirir.",
+        "parameters": {
+          "trials": {
+            "label": "Deneme bütçesi",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 10000
+          },
+          "timeout_seconds": {
+            "label": "Süre bütçesi (s)",
+            "type": "int",
+            "default": 300,
+            "min": 1,
+            "max": 86400
+          },
+          "seed": {
+            "label": "Tohum",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "metric": {
+            "label": "Birincil hata ölçütü",
+            "type": "enum",
+            "default": "rmse",
+            "choices": [
+              {
+                "id": "rmse",
+                "label": "Ortalama kare hatanın karekökü"
+              },
+              {
+                "id": "mae",
+                "label": "Ortalama mutlak hata"
+              }
+            ]
+          },
+          "n_jobs": {
+            "label": "Eşzamanlı iş",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "grid",
+        "label": "Izgara araması",
+        "description": "Sonlu aday ayarların tamamını bütçe içinde değerlendirir.",
+        "parameters": {
+          "trials": {
+            "label": "Deneme bütçesi",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 10000
+          },
+          "timeout_seconds": {
+            "label": "Süre bütçesi (s)",
+            "type": "int",
+            "default": 300,
+            "min": 1,
+            "max": 86400
+          },
+          "seed": {
+            "label": "Tohum",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "metric": {
+            "label": "Birincil hata ölçütü",
+            "type": "enum",
+            "default": "rmse",
+            "choices": [
+              {
+                "id": "rmse",
+                "label": "Ortalama kare hatanın karekökü"
+              },
+              {
+                "id": "mae",
+                "label": "Ortalama mutlak hata"
+              }
+            ]
+          },
+          "n_jobs": {
+            "label": "Eşzamanlı iş",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "random",
+        "label": "Rastgele arama",
+        "description": "Tanımlanan aralıklardan bütçe kadar aday alır.",
+        "parameters": {
+          "trials": {
+            "label": "Deneme bütçesi",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 10000
+          },
+          "timeout_seconds": {
+            "label": "Süre bütçesi (s)",
+            "type": "int",
+            "default": 300,
+            "min": 1,
+            "max": 86400
+          },
+          "seed": {
+            "label": "Tohum",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "metric": {
+            "label": "Birincil hata ölçütü",
+            "type": "enum",
+            "default": "rmse",
+            "choices": [
+              {
+                "id": "rmse",
+                "label": "Ortalama kare hatanın karekökü"
+              },
+              {
+                "id": "mae",
+                "label": "Ortalama mutlak hata"
+              }
+            ]
+          },
+          "n_jobs": {
+            "label": "Eşzamanlı iş",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "optuna",
+        "label": "Optuna",
+        "description": "Ağaç yapılı Parzen kestiricisi önceki denemelerden yeni ayarlar seçer. Küresel en iyi sonucu garanti etmez.",
+        "parameters": {
+          "trials": {
+            "label": "Deneme bütçesi",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "max": 10000
+          },
+          "timeout_seconds": {
+            "label": "Süre bütçesi (s)",
+            "type": "int",
+            "default": 300,
+            "min": 1,
+            "max": 86400
+          },
+          "seed": {
+            "label": "Tohum",
+            "type": "int",
+            "default": 42,
+            "min": 0,
+            "max": 2147483646
+          },
+          "metric": {
+            "label": "Birincil hata ölçütü",
+            "type": "enum",
+            "default": "rmse",
+            "choices": [
+              {
+                "id": "rmse",
+                "label": "Ortalama kare hatanın karekökü"
+              },
+              {
+                "id": "mae",
+                "label": "Ortalama mutlak hata"
+              }
+            ]
+          },
+          "n_jobs": {
+            "label": "Eşzamanlı iş",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      }
+    ],
+    "uncertainty": [
+      {
+        "id": "none",
+        "label": "Aralık yok",
+        "description": "Yalnız nokta tahmini.",
+        "parameters": {},
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "split_conformal",
+        "label": "Bölünmüş konformal",
+        "description": "Ayrı kalibrasyon gözlemlerinin mutlak hatalarıyla aralık kurar.",
+        "parameters": {
+          "coverage": {
+            "label": "Nominal kapsama",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.5,
+            "max": 0.99
+          },
+          "calibration_fraction": {
+            "label": "Kalibrasyon oranı",
+            "type": "float",
+            "default": 0.25,
+            "min": 0.05,
+            "max": 0.5
+          },
+          "quantile_model": {
+            "label": "Kantil modeli",
+            "type": "enum",
+            "default": "quantile_forest",
+            "choices": [
+              {
+                "id": "quantile_forest",
+                "label": "Kantil regresyon ormanı"
+              },
+              {
+                "id": "quantile_boosting",
+                "label": "Kantil kayıplı gradyan artırma"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "quantile_forest",
+        "label": "Kantil regresyon ormanı",
+        "description": "Rastgele orman ailesinde gerçek koşullu kantiller. Kalibrasyonsuz kapsam dış katlarda sınanır.",
+        "parameters": {
+          "coverage": {
+            "label": "Nominal kapsama",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.5,
+            "max": 0.99
+          },
+          "calibration_fraction": {
+            "label": "Kalibrasyon oranı",
+            "type": "float",
+            "default": 0.25,
+            "min": 0.05,
+            "max": 0.5
+          },
+          "quantile_model": {
+            "label": "Kantil modeli",
+            "type": "enum",
+            "default": "quantile_forest",
+            "choices": [
+              {
+                "id": "quantile_forest",
+                "label": "Kantil regresyon ormanı"
+              },
+              {
+                "id": "quantile_boosting",
+                "label": "Kantil kayıplı gradyan artırma"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "quantile_boosting",
+        "label": "Kantil kayıplı gradyan artırma",
+        "description": "Histogram ailesinde ayrı alt ve üst kantil modelleri.",
+        "parameters": {
+          "coverage": {
+            "label": "Nominal kapsama",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.5,
+            "max": 0.99
+          },
+          "calibration_fraction": {
+            "label": "Kalibrasyon oranı",
+            "type": "float",
+            "default": 0.25,
+            "min": 0.05,
+            "max": 0.5
+          },
+          "quantile_model": {
+            "label": "Kantil modeli",
+            "type": "enum",
+            "default": "quantile_forest",
+            "choices": [
+              {
+                "id": "quantile_forest",
+                "label": "Kantil regresyon ormanı"
+              },
+              {
+                "id": "quantile_boosting",
+                "label": "Kantil kayıplı gradyan artırma"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "cqr",
+        "label": "Konformalize kantil regresyonu",
+        "description": "Kantil aralığını ayrı kalibrasyon verisiyle düzeltir.",
+        "parameters": {
+          "coverage": {
+            "label": "Nominal kapsama",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.5,
+            "max": 0.99
+          },
+          "calibration_fraction": {
+            "label": "Kalibrasyon oranı",
+            "type": "float",
+            "default": 0.25,
+            "min": 0.05,
+            "max": 0.5
+          },
+          "quantile_model": {
+            "label": "Kantil modeli",
+            "type": "enum",
+            "default": "quantile_forest",
+            "choices": [
+              {
+                "id": "quantile_forest",
+                "label": "Kantil regresyon ormanı"
+              },
+              {
+                "id": "quantile_boosting",
+                "label": "Kantil kayıplı gradyan artırma"
+              }
+            ]
+          }
+        },
+        "stage": "B",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "group_bootstrap",
+        "label": "Grup bootstrap yayılımı",
+        "description": "Modelleme değişkenliğidir; gözlem tahmin aralığı değildir.",
+        "parameters": {},
+        "stage": "C",
+        "enabled": false,
+        "status": "not_implemented",
+        "reason": "Bu aşama henüz uygulanmadı.",
+        "cost": "Veri ve kat sayısıyla artar."
+      },
+      {
+        "id": "spatial_conformal",
+        "label": "Mekânsal ağırlıklı konformal (deneysel)",
+        "description": "Ayrı kalibrasyon artıklarını uzaklıkla ağırlıklandırır. Kesin kapsama güvencesi yoktur. Yerel destek yetersizse nokta tahmini korunur; aralık üretilmez.",
+        "parameters": {
+          "coverage": {
+            "label": "İstenen kapsama oranı",
+            "type": "float",
+            "default": 0.9,
+            "min": 0.5,
+            "max": 0.99
+          },
+          "calibration_fraction": {
+            "label": "Kalibrasyon için ayrılan grup oranı",
+            "type": "float",
+            "default": 0.3,
+            "min": 0.1,
+            "max": 0.5
+          },
+          "spatial_bandwidth_m": {
+            "label": "Önceden belirlenen bant genişliği (m)",
+            "type": "float",
+            "default": 1000,
+            "min": 1,
+            "max": 1000000
+          },
+          "spatial_kernel": {
+            "label": "Uzaklık ağırlığı",
+            "type": "enum",
+            "default": "gaussian",
+            "choices": [
+              {
+                "id": "gaussian",
+                "label": "Gauss"
+              },
+              {
+                "id": "compact",
+                "label": "Sınırlı destek"
+              }
+            ]
+          },
+          "spatial_min_effective_n": {
+            "label": "Asgari etkin kalibrasyon sayısı",
+            "type": "float",
+            "default": 5,
+            "min": 2,
+            "max": 10000
+          },
+          "spatial_min_groups": {
+            "label": "Asgari etkin kalibrasyon grubu",
+            "type": "int",
+            "default": 3,
+            "min": 2,
+            "max": 10000
+          }
+        },
+        "stage": "D",
+        "enabled": true,
+        "status": "backend_verified",
+        "reason": "",
+        "cost": "Veri ve kat sayısıyla artar."
+      }
+    ]
+  },
+  "acceptance": {
+    "scope": "automated_backend_tests; real ArcMap acceptance is separately recorded",
+    "tests": 177,
+    "evidence_sha256": "d8e33209aec5903fd9583d3220a22f84e2124ba54f62c98676d758ee55ab4e86"
+  },
+  "acceptance_c": {
+    "scope": "Automated backend verified; real ArcMap acceptance separately required",
+    "tests": 261,
+    "evidence_sha256": "cf513ebf066234a488581509c80ebb5227e5a8d431a7a8f905c1388bf157f8eb",
+    "tested_source_manifest_sha256": "bee8a5d0e25a5d3c050b2273cfd4b2d04dfd78f0d59fedb1ee2e7aa41136e390"
+  }
+}

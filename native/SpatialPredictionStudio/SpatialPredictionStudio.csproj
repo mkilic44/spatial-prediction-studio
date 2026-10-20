@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{7DE2AB3D-90CB-46EF-9A7E-C216D78929D7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>SpatialPredictionStudio</RootNamespace>
+    <AssemblyName>SpatialPredictionStudio</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Deterministic>true</Deterministic>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <ArcGISBin Condition=" '$(ArcGISBin)' == '' ">C:\Program Files (x86)\ArcGIS\Desktop10.8\bin</ArcGISBin>
+    <ArcGISGac Condition=" '$(ArcGISGac)' == '' ">C:\Windows\Microsoft.NET\assembly\GAC_MSIL</ArcGISGac>
+    <ArcGISAssemblyVersion Condition=" '$(ArcGISAssemblyVersion)' == '' ">10.8.0.0</ArcGISAssemblyVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System"/><Reference Include="System.Core"/><Reference Include="System.Drawing"/>
+    <Reference Include="System.Windows.Forms"/><Reference Include="System.Web.Extensions"/><Reference Include="System.Data"/><Reference Include="Microsoft.VisualBasic"/>
+    <Reference Include="ESRI.ArcGIS.Desktop.AddIns"><HintPath>$(ArcGISBin)\ESRI.ArcGIS.Desktop.AddIns.dll</HintPath><Private>False</Private></Reference>
+    <Reference Include="ESRI.ArcGIS.System"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.System\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.System.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.SystemUI"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.SystemUI\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.SystemUI.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.Framework"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.Framework\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.Framework.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.ArcMapUI"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.ArcMapUI\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.ArcMapUI.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.Carto"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.Carto\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.Carto.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.Geometry"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.Geometry\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.Geometry.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.Display"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.Display\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.Display.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.DataSourcesRaster"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.DataSourcesRaster\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.DataSourcesRaster.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.Geodatabase"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.Geodatabase\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.Geodatabase.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.DataSourcesFile"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.DataSourcesFile\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.DataSourcesFile.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+    <Reference Include="ESRI.ArcGIS.DataSourcesGDB"><HintPath>$(ArcGISGac)\ESRI.ArcGIS.DataSourcesGDB\v4.0_$(ArcGISAssemblyVersion)__8fc3cc631e44ad86\ESRI.ArcGIS.DataSourcesGDB.dll</HintPath><Private>False</Private><EmbedInteropTypes>False</EmbedInteropTypes></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EntryPoints.cs"/><Compile Include="StudioControl.cs"/><Compile Include="ArcMapAdapter.cs"/><Compile Include="JobClient.cs"/><Compile Include="ArtifactIntegrity.cs"/>
+    <Compile Include="MethodRegistry.cs"/><Compile Include="RegistryEditor.cs"/><Compile Include="WorkflowEditors.cs"/>
+    <Compile Include="StudioWorkflow.cs"/><Compile Include="StudioProjects.cs"/>
+    <Compile Include="ArtifactViewer.cs"/>
+    <Compile Include="OwnedProcessJob.cs"/>
+    <Compile Include="ModelExport.cs"/>
+    <Compile Include="McpPipeBridge.cs"/><Compile Include="StudioRemote.cs"/>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+</Project>
