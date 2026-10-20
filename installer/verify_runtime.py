@@ -71,8 +71,14 @@ if 'reference_r' in components:
         process.wait(timeout=10); raise
     assert process.returncode == 0, stdout + stderr
     assert 'SPS_REFERENCE_R_OK' in stdout; result['reference_r'] = stdout.strip()
-    assert r_crt_paths and all(path.is_relative_to(rr) for path in r_crt_paths), r_crt_paths
-    result['private_r_cpp_runtime_paths'] = [str(path.relative_to(root)) for path in sorted(r_crt_paths)]
+    # Windows searches System32 before PATH, so a C++ runtime installed in Windows is loaded first. Each
+    # runtime DLL must come from the private environment or from System32, and the environment must hold
+    # its own copies in Library\bin (on PATH for the kNNDM bridge) for computers without a system runtime.
+    system = Path(os.environ.get('SystemRoot', r'C:\Windows')).resolve() / 'System32'
+    assert r_crt_paths and all(path.is_relative_to(rr) or path.parent == system for path in r_crt_paths), r_crt_paths
+    assert all((rr / 'Library/bin' / name).is_file() for name in ('vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll'))
+    result['private_r_cpp_runtime_paths'] = [str(path.relative_to(root)) if path.is_relative_to(rr) else str(path)
+                                             for path in sorted(r_crt_paths)]
 if 'tabpfn' in components:
     # Payload fingerprints already cover checkpoint and license; no fit or network.
     manifest = json.loads((root / 'models/tabpfn-v2/weights-manifest.json').read_text(encoding='utf-8'))

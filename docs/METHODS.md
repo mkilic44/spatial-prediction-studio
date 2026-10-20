@@ -263,7 +263,7 @@ The transformation coefficient is learned from training data only.
 
 Cost: Increases with data size and number of folds.
 
-References: [Yeo (2000)](#ref-yeo2000).
+References: [Yeo and Johnson (2000)](#ref-yeo2000).
 
 No parameters.
 
@@ -1028,7 +1028,7 @@ Each record below comes from the DOI registration (doi.org) or, for a paper with
   Cited for: Design-based map validation (not implemented yet) and the limits of cross-validation as an estimate of map accuracy.
 - <a name="ref-webster2007"></a>Webster, R., Oliver, M. A. (2007). Geostatistics for Environmental Scientists. Wiley. https://doi.org/10.1002/9780470517277  
   Cited for: Ordinary kriging and semivariogram fitting.
-- <a name="ref-yeo2000"></a>Yeo, I. K. (2000). A new family of power transformations to improve normality or symmetry. *Biometrika*, 87(4), 954-959. https://doi.org/10.1093/biomet/87.4.954  
+- <a name="ref-yeo2000"></a>Yeo, I. K., Johnson, R. A. (2000). A new family of power transformations to improve normality or symmetry. *Biometrika*, 87(4), 954-959. https://doi.org/10.1093/biomet/87.4.954 (The DOI record names only Yeo; the other authors are taken from scikit-learn 1.5.1, reference [1] of sklearn.preprocessing.PowerTransformer, which cites the same DOI.)  
   Cited for: Yeo-Johnson target transformation.
 - <a name="ref-zou2005"></a>Zou, H., Hastie, T. (2005). Regularization and Variable Selection Via the Elastic Net. *Journal of the Royal Statistical Society Series B: Statistical Methodology*, 67(2), 301-320. https://doi.org/10.1111/j.1467-9868.2005.00503.x  
   Cited for: Elastic Net selection and Elastic Net regression.

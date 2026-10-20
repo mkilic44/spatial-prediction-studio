@@ -26,3 +26,16 @@ def test_every_cited_source_has_a_checked_record():
         assert references.problems(key, entries[key], entries[key]['metadata']) == [], key
     text = (ROOT / 'docs/METHODS.md').read_text(encoding='utf-8')
     assert all('#ref-' + key in text for key in generator.cited_keys())
+
+
+def test_author_supplements_are_backed_by_their_stated_source():
+    import importlib
+    import json
+    entries = json.loads((ROOT / 'docs/references.json').read_text(encoding='utf-8'))['references']
+    for key, entry in entries.items():
+        check = entry.get('supplement', {}).get('check')
+        if not check:
+            continue
+        module, _, name = check['python'].rpartition('.')
+        text = getattr(importlib.import_module(module), name).__doc__
+        assert all(item in text for item in check['contains']), key

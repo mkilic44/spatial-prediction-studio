@@ -460,7 +460,24 @@
         "type": "journal-article",
         "doi": "10.1093/biomet/87.4.954",
         "url": "https://doi.org/10.1093/biomet/87.4.954",
-        "authors_source": "doi"
+        "authors_source": "doi",
+        "author_lookup": "openalex: 1 author(s); doi landing page: uld not fetch https://doi.org/10.1093/biomet/87.4.954: HTTP Error 403: Forbidden"
+      },
+      "supplement": {
+        "authors": [
+          [
+            "Johnson",
+            "R. A."
+          ]
+        ],
+        "source": "scikit-learn 1.5.1, reference [1] of sklearn.preprocessing.PowerTransformer, which cites the same DOI",
+        "check": {
+          "python": "sklearn.preprocessing.PowerTransformer",
+          "contains": [
+            "R.A. Johnson",
+            "10.1093/biomet/87.4.954"
+          ]
+        }
       }
     },
     "dormann2013": {
@@ -620,7 +637,8 @@
         "type": "journal-article",
         "doi": "10.1371/journal.pone.0087357",
         "url": "https://doi.org/10.1371/journal.pone.0087357",
-        "authors_source": "doi"
+        "authors_source": "doi",
+        "author_lookup": "openalex: 1 author(s); doi landing page: 1 author(s)"
       }
     },
     "zou2005": {
@@ -860,7 +878,8 @@
         "type": "journal-article",
         "doi": "10.1023/a:1010933404324",
         "url": "https://doi.org/10.1023/A:1010933404324",
-        "authors_source": "doi"
+        "authors_source": "doi",
+        "author_lookup": "openalex: 1 author(s); doi landing page: 0 author(s)"
       }
     },
     "geurts2006": {
@@ -956,7 +975,8 @@
         "type": "journal-article",
         "doi": "10.1214/aos/1013203451",
         "url": "https://doi.org/10.1214/aos/1013203451",
-        "authors_source": "doi"
+        "authors_source": "doi",
+        "author_lookup": "openalex: 1 author(s); doi landing page: 1 author(s)"
       }
     },
     "chen2016": {
@@ -1116,7 +1136,8 @@
         "type": "book-chapter",
         "doi": "10.1016/b978-1-55860-307-3.50037-x",
         "url": "https://doi.org/10.1016/B978-1-55860-307-3.50037-X",
-        "authors_source": "doi"
+        "authors_source": "doi",
+        "author_lookup": "openalex: 1 author(s); doi landing page: 0 author(s)"
       }
     },
     "webster2007": {
@@ -1524,7 +1545,8 @@
         "type": "journal-article",
         "doi": "10.21105/joss.05976",
         "url": "https://doi.org/10.21105/joss.05976",
-        "authors_source": "doi"
+        "authors_source": "doi",
+        "author_lookup": "openalex: 1 author(s); doi landing page: 1 author(s)"
       }
     },
     "koenker1978": {
@@ -1660,7 +1682,8 @@
         "type": "journal-article",
         "doi": "10.1093/biomet/asac040",
         "url": "https://doi.org/10.1093/biomet/asac040",
-        "authors_source": "doi"
+        "authors_source": "doi",
+        "author_lookup": "openalex: 1 author(s); doi landing page: ould not fetch https://doi.org/10.1093/biomet/asac040: HTTP Error 403: Forbidden"
       }
     },
     "mao2024": {
@@ -1792,7 +1815,8 @@
         "type": "journal-article",
         "doi": "10.2307/2532051",
         "url": "https://doi.org/10.2307/2532051",
-        "authors_source": "doi"
+        "authors_source": "doi",
+        "author_lookup": "openalex: 1 author(s); doi landing page: 0 author(s)"
       }
     },
     "bellonmaurel2010": {

@@ -164,8 +164,13 @@ def record(references, key):
     return entry
 
 
-def names(meta):
-    families = [author[0] for author in meta['authors']]
+def authors_of(entry):
+    """Authors of the checked record, plus documented supplements for records that list too few."""
+    return entry['metadata']['authors'] + entry.get('supplement', {}).get('authors', [])
+
+
+def names(entry):
+    families = [author[0] for author in authors_of(entry)]
     return families[0] if len(families) == 1 else ('%s and %s' % tuple(families) if len(families) == 2 else families[0] + ' et al.')
 
 
@@ -174,7 +179,7 @@ def year_labels(references, keys):
     groups = {}
     for key in sorted(keys, key=lambda key: (record(references, key)['metadata']['title'].lower(), key)):
         meta = record(references, key)['metadata']
-        groups.setdefault((names(meta), meta['year']), []).append(key)
+        groups.setdefault((names(record(references, key)), meta['year']), []).append(key)
     labels = {}
     for (_, year), members in groups.items():
         for index, key in enumerate(members):
@@ -189,7 +194,7 @@ def short(references, key):
     """In-text citation with a link to the reference list, for example 'Roberts et al. (2017)'."""
     meta = record(references, key)['metadata']
     locator = record(references, key).get('locator')
-    return '[%s (%s%s)](#ref-%s)' % (names(meta), YEARS.get(key, meta['year']), ', ' + locator if locator else '', key)
+    return '[%s (%s%s)](#ref-%s)' % (names(record(references, key)), YEARS.get(key, meta['year']), ', ' + locator if locator else '', key)
 
 
 def cite(references, keys):
@@ -199,7 +204,7 @@ def cite(references, keys):
 def full(references, key):
     entry = record(references, key)
     meta = entry['metadata']
-    authors = ['%s, %s' % (family, given) if given else family for family, given in meta['authors']]
+    authors = ['%s, %s' % (family, given) if given else family for family, given in authors_of(entry)]
     author_text = ', '.join(authors[:6]) + (', et al.' if len(authors) > 6 else '')
     title = meta['title'].rstrip('.')
     text = '%s (%s). %s.' % (author_text, YEARS.get(key, meta['year']), title)
@@ -213,6 +218,9 @@ def full(references, key):
     elif meta['publisher']:
         text += ' %s.' % meta['publisher']
     text += ' ' + meta['url']
+    if entry.get('supplement'):
+        text += ' (The DOI record names only %s; the other authors are taken from %s.)' % (
+            meta['authors'][0][0], entry['supplement']['source'])
     return '- <a name="ref-%s"></a>%s  \n  Cited for: %s' % (key, text, entry['used_for'])
 
 
