@@ -42,6 +42,7 @@ Some tests need parts that are not on every machine:
 | `.github/workflows/tests.yml` | Ubuntu: backend tests, installer tests and MCP server tests with the pinned packages. The tests listed above that need the Windows R runtime or Windows are deselected by name. |
 | `.github/workflows/windows.yml` | Windows: runs the real installer (`installer/bootstrap.ps1`) with `-WithMcp -WithR` into a staging folder and compiles the add-in against the ArcObjects stand-ins. It then verifies the runtime and runs the backend tests with the installed runtime, deep-learning models and the R/CAST tests included and TabPFN excluded. Finally it compiles and runs the three C# contract test programs, runs the MCP tests including named pipes, and uninstalls. |
 | `.github/workflows/cast-reference.yml` | Windows, when the R pins or their scripts change: rebuilds the R environment with `tools/cast_reference.py`, installs CAST 1.0.4 and writes the CAST fixtures again. It fails when they differ from the committed files. |
+| `.github/workflows/references.yml` | Ubuntu, when `docs/references.json` or `tools/references.py` changes: resolves every DOI at doi.org and every publisher page, checks that each is the expected work and compares the records with the committed ones. |
 
 ## Building the add-in
 
@@ -65,7 +66,8 @@ tools\install.ps1                                              # copies dist\Spa
 
 ## Documentation
 
-- `docs/METHODS.md` is generated from the method registry: `python tools/make_methods_doc.py`. A test fails when it is out of date.
+- `docs/METHODS.md` is generated from the method registry and `docs/references.json`: `python tools/make_methods_doc.py`. A test fails when it is out of date or when it cites a source without a checked record.
+- `docs/references.json` lists each source with its DOI (or publisher page) and the first author, year and title words it must resolve to. The bibliographic records are written by `python tools/references.py update`, which needs internet access; the references workflow runs it. To cite a new source, add its entry, let the workflow fetch the record and commit the record it reports.
 - `docs/THIRD_PARTY_LICENSES.md` is generated from the Windows wheels of the pinned versions, the R lock file and the CRAN package list: `python tools/make_third_party_doc.py --wheels <folder>`. The licenses of the conda-forge packages come from `tools/reference-r-conda-licenses.json`, which holds the license fields of the conda-forge index.
 - `docs/TERMINOLOGY.md` fixes one English term for each Turkish term of the original interface. Use it for any new interface or report text.
 
