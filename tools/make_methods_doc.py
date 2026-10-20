@@ -50,7 +50,7 @@ CATEGORIES = [
 ]
 
 INSTALL_NOTES = {
-    'knndm': 'Needs the optional R and CAST 1.0.4 runtime; without it the run stops with a clear message. See docs/INSTALL.md.',
+    'knndm': 'Needs the optional R 4.4.3 and CAST 1.0.4 runtime, which Install.cmd -WithR installs; without it the run stops with a clear message. See docs/INSTALL.md.',
     'tabpfn': 'Needs the TabPFN v2 weights, which are installed only with Install.cmd -WithTabPFN -AcceptTabPFNLicense.',
 }
 

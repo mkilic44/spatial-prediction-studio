@@ -51,6 +51,10 @@ ADDIN_NS = '{http://schemas.esri.com/Desktop/AddIns}'
 # Longest file path inside the pinned Windows wheels (a PyTorch header), measured on 2026-10-20.
 LONGEST_PACKAGE_PATH = 119
 SITE_PACKAGES = 'runtime-d\\Scripts\\Lib\\site-packages\\'
+# Longest file path inside the optional R environment (a GCC header), measured by
+# tools/cast_reference.py in the cast-reference workflow on 2026-10-20.
+LONGEST_R_PATH = 138
+R_PREFIX = 'reference-r\\'
 MAX_PATH = 259
 REQUIRED_FREE_BYTES = 6 * 1024 ** 3
 REQUIRED_FREE_BYTES_R = 2 * 1024 ** 3
@@ -286,6 +290,8 @@ def preflight(args, app_root, log):
     if struct.calcsize('P') != 8:
         raise InstallError('The installer must run on 64-bit Python.')
     longest = len(str(app_root)) + 1 + len(SITE_PACKAGES) + LONGEST_PACKAGE_PATH
+    if getattr(args, 'with_r', False):
+        longest = max(longest, len(str(app_root)) + 1 + len(R_PREFIX) + LONGEST_R_PATH)
     if sys.platform == 'win32' and longest > MAX_PATH and not long_paths_enabled():
         raise InstallError('The installation folder path is too long for Windows (%d > %d characters). '
                            'Run Install.cmd -InstallRoot C:\\SPS or enable long paths in Windows.' % (longest, MAX_PATH))
@@ -410,12 +416,33 @@ def r_environment(prefix):
     return env
 
 
+def check_conda_lock(prefix, lock):
+    """The environment must hold exactly the packages of the explicit lock file, with the same MD5 sums."""
+    expected = {}
+    for line in Path(lock).read_text(encoding='utf-8').splitlines():
+        if line.startswith('https://'):
+            url, _, md5 = line.strip().partition('#')
+            expected[url.rsplit('/', 1)[1]] = md5
+    found = {}
+    for meta in (Path(prefix) / 'conda-meta').glob('*.json'):
+        data = read_json(meta)
+        found[data.get('fn') or str(data.get('url', '')).rsplit('/', 1)[-1]] = data.get('md5')
+    if found != expected:
+        missing, extra = sorted(set(expected) - set(found)), sorted(set(found) - set(expected))
+        different = sorted(name for name in set(expected) & set(found) if expected[name] != found[name])
+        raise InstallError('The R environment does not match reference-r-conda-lock.txt. Missing: %s; extra: %s; '
+                           'different MD5: %s' % (missing or 'none', extra or 'none', different or 'none'))
+    return len(found)
+
+
 def create_r_environment(prefix, cache, source, pins, log, runtime_dlls=()):
     """Create the R 4.4.3 environment exactly from reference-r-conda-lock.txt (URLs with MD5 sums)."""
     exe = micromamba(cache, pins, log, runtime_dlls)
     prefix = Path(prefix)
     run([exe, 'create', '--yes', '--no-rc', '--prefix', prefix, '--root-prefix', Path(cache) / 'mamba',
          '--file', Path(source) / 'reference-r-conda-lock.txt'], log, timeout=3600, env=mamba_environment(cache))
+    log('    %d conda-forge packages match reference-r-conda-lock.txt'
+        % check_conda_lock(prefix, Path(source) / 'reference-r-conda-lock.txt'))
     rscript = prefix / 'lib/R/bin/Rscript.exe'
     if not rscript.is_file():
         raise InstallError('The R environment was created, but Rscript.exe was not found in ' + str(rscript.parent))

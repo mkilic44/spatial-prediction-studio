@@ -27,9 +27,9 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Install with Install.cmd's script (staging, ArcObjects stand-ins, MCP server)
+      - name: Install with Install.cmd's script (staging, ArcObjects stand-ins, MCP server, R runtime)
         run: |
-          .\installer\bootstrap.ps1 -Action Install -InstallRoot "$env:RUNNER_TEMP\sps" -Staging "$env:RUNNER_TEMP\stage" -EsriStubs -WithMcp
+          .\installer\bootstrap.ps1 -Action Install -InstallRoot "$env:RUNNER_TEMP\sps" -Staging "$env:RUNNER_TEMP\stage" -EsriStubs -WithMcp -WithR
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify the installation
@@ -40,8 +40,8 @@ jobs:
       # Each test command runs through annotate_failure.py, which repeats the end of a failing
       # command's output as annotations, because job logs are not readable from every environment.
       - name: Backend tests with the installed runtime
-        # R/CAST tests need the optional R runtime. TabPFN tests need the licensed weights; the model
-        # comparison test is deselected by name because it includes TabPFN.
+        # The R/CAST tests use the R runtime installed with -WithR. TabPFN tests need the licensed
+        # weights; the model comparison test is deselected by name because it includes TabPFN.
         run: |
           $app = (Get-Content "$env:RUNNER_TEMP\sps\current.json" -Raw | ConvertFrom-Json).application_root
           $py = "$app\runtime-d\Scripts\python.exe"
@@ -49,13 +49,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & $py -I -X utf8 .github\scripts\annotate_failure.py backend-tests `
             $py -m pytest tests installer\test_sps_install.py -q -rfE --tb=short -p no:cacheprovider --ignore=tests\test_package.py -k "not tabpfn" `
-            --deselect tests/test_applicability_c.py::test_cast_104_intermediate_distances_threshold_and_mask `
-            --deselect tests/test_applicability_c.py::test_applicability_prediction_does_not_change_training_threshold `
-            --deselect tests/test_applicability_c.py::test_applicability_rejects_repeated_or_invalid_folds_and_constant_design `
-            --deselect tests/test_engine_c.py::test_knndm_mapping_domain_and_nested_training `
-            --deselect tests/test_knndm_c.py::test_real_cast_bridge_matches_reference_folds_and_three_distance_distributions `
-            --deselect tests/test_knndm_c.py::test_real_cast_reads_unicode_work_paths_with_c_parent_locale `
-            --deselect tests/test_knndm_c.py::test_folds_preserve_reference_distances_and_reject_group_splitting `
             --deselect tests/test_models_d.py::test_actual_models_and_baselines_share_identical_heldout_folds
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -107,7 +100,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $addin = Get-ChildItem -Recurse "$env:RUNNER_TEMP\stage\Documents" -Filter *.esriAddIn -ErrorAction SilentlyContinue
           if ($addin) { throw 'The add-in was not removed.' }
-          if (Test-Path $app) { throw 'The application folder was not removed.' }
+          if (Test-Path -LiteralPath ('\\?\' + $app)) { throw 'The application folder was not removed.' }
 
       - name: Keep the installer logs
         if: always()

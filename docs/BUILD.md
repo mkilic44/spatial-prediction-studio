@@ -30,7 +30,7 @@ cd mcp-server && python -m pip install -r <requirements-mcp-lock.txt without pyw
 
 Some tests need parts that are not on every machine:
 
-- R with CAST 1.0.4 and its reference fixtures (`tests/fixtures/cast-1.0.4`): three tests in `test_applicability_c.py`, three in `test_knndm_c.py`, one in `test_engine_c.py`.
+- The private Windows R runtime with CAST 1.0.4 (`Install.cmd -WithR`): three tests in `test_knndm_c.py` and one in `test_engine_c.py` call CAST through it. Run them with the installed runtime, as the windows-install workflow does. The area of applicability tests in `test_applicability_c.py` compare the Python implementation with the CAST 1.0.4 values in `tests/fixtures/cast-1.0.4` and need no R.
 - The deep-learning environment (`requirements-d-lock.txt`, PyTorch 2.8.0+cpu) for `test_models_d.py`, `test_model_integration_d.py`, `test_publication_models_d.py`; the TabPFN weights for `test_tabpfn_d.py`, the TabPFN cases and `test_models_d.py::test_actual_models_and_baselines_share_identical_heldout_folds`.
 - Windows for the named-pipe MCP tests and for `installer/test_deploy.py`.
 - A built package for `tests/test_package.py`.
@@ -39,8 +39,9 @@ Some tests need parts that are not on every machine:
 
 | Workflow | What it does |
 |---|---|
-| `.github/workflows/tests.yml` | Ubuntu: backend tests, installer tests and MCP server tests with the pinned packages. The tests listed above that need R/CAST or Windows are deselected by name. |
-| `.github/workflows/windows.yml` | Windows: runs the real installer (`installer/bootstrap.ps1`) into a staging folder and compiles the add-in against the ArcObjects stand-ins. It then verifies the runtime and runs the backend tests with the installed runtime, deep-learning models included and TabPFN and R/CAST excluded. Finally it compiles and runs the three C# contract test programs, runs the MCP tests including named pipes, and uninstalls. |
+| `.github/workflows/tests.yml` | Ubuntu: backend tests, installer tests and MCP server tests with the pinned packages. The tests listed above that need the Windows R runtime or Windows are deselected by name. |
+| `.github/workflows/windows.yml` | Windows: runs the real installer (`installer/bootstrap.ps1`) with `-WithMcp -WithR` into a staging folder and compiles the add-in against the ArcObjects stand-ins. It then verifies the runtime and runs the backend tests with the installed runtime, deep-learning models and the R/CAST tests included and TabPFN excluded. Finally it compiles and runs the three C# contract test programs, runs the MCP tests including named pipes, and uninstalls. |
+| `.github/workflows/cast-reference.yml` | Windows, when the R pins or their scripts change: rebuilds the R environment with `tools/cast_reference.py`, installs CAST 1.0.4 and writes the CAST fixtures again. It fails when they differ from the committed files. |
 
 ## Building the add-in
 
@@ -60,17 +61,24 @@ tools\build.ps1                                                # MSBuild, native
 tools\install.ps1                                              # copies dist\SpatialPredictionStudio.esriAddIn into ArcMap
 ```
 
-`tools\build.ps1` packages `dist\SpatialPredictionStudio.esriAddIn` with a `runtime.json` that points to the repository's `runtime-d`. That package is for the developer's own computer. `tools/setup-cast.ps1` sets up the optional R and CAST runtime with Conda; it needs `reference-r-packages.csv`, which is not yet in this repository.
+`tools\build.ps1` packages `dist\SpatialPredictionStudio.esriAddIn` with a `runtime.json` that points to the repository's `runtime-d`. That package is for the developer's own computer. `tools\setup-cast.ps1` creates the optional R runtime in `reference-r\` of the repository with `tools/cast_reference.py`, the same way `Install.cmd -WithR` does.
 
 ## Documentation
 
 - `docs/METHODS.md` is generated from the method registry: `python tools/make_methods_doc.py`. A test fails when it is out of date.
-- `docs/THIRD_PARTY_LICENSES.md` is generated from the Windows wheels of the pinned versions: `python tools/make_third_party_doc.py --wheels <folder>`.
+- `docs/THIRD_PARTY_LICENSES.md` is generated from the Windows wheels of the pinned versions, the R lock file and the CRAN package list: `python tools/make_third_party_doc.py --wheels <folder>`. The licenses of the conda-forge packages come from `tools/reference-r-conda-licenses.json`, which holds the license fields of the conda-forge index.
 - `docs/TERMINOLOGY.md` fixes one English term for each Turkish term of the original interface. Use it for any new interface or report text.
 
 ## Pinned downloads
 
-`installer/pins.json` stores the URL and SHA-512 digest of the CPython, Roslyn and .NET reference assembly packages from nuget.org. Each digest matches the `packageHash` that nuget.org publishes for the package. `sps_install.py` stores the longest file path in the pinned wheels (`LONGEST_PACKAGE_PATH`) to check the Windows path limit; measure it again when the lock files change.
+`installer/pins.json` stores the URL and SHA-512 digest of the CPython, Roslyn and .NET reference assembly packages from nuget.org and of micromamba from conda-forge. Each nuget.org digest matches the `packageHash` that nuget.org publishes for the package; the micromamba package also matches the SHA-256 in the conda-forge index. `sps_install.py` stores the longest file path in the pinned wheels (`LONGEST_PACKAGE_PATH`) and in the R environment (`LONGEST_R_PATH`) to check the Windows path limit; measure them again when the lock files change. The cast-reference workflow prints the R value.
+
+The R runtime has two pin files:
+
+- `reference-r-conda-lock.txt`: an explicit conda lock of R 4.4.3 and its system libraries (URLs with MD5 sums).
+- `reference-r-packages.csv`: CAST 1.0.4 and its dependencies as CRAN Windows binaries for R 4.4, with the SHA-256 digest of each file.
+
+CRAN no longer rebuilds R 4.4 binaries, so the list stays fixed. To list the packages again, run `python tools/cast_reference.py --plan --fixtures` on Windows and review the changes with `git diff`.
 
 ## Releasing
 

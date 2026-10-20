@@ -50,7 +50,7 @@ To remove it, run **`Uninstall.cmd`**. Your projects and results are kept. Optio
 
 The method registry (`backend/sps/registry.json`) lists every method with its parameters, status and known limits; [docs/METHODS.md](docs/METHODS.md) is generated from it. Version 0.5.0 enables:
 
-- **Validation:** random k-fold, repeated random k-fold, grouped k-fold, spatial blocks, buffered spatial blocks, user-defined folds, k-fold nearest neighbor distance matching (kNNDM, with CAST 1.0.4 in an optional R runtime), time-ordered validation with new groups. Outer folds estimate performance; inner folds select variables and tune settings.
+- **Validation:** random k-fold, repeated random k-fold, grouped k-fold, spatial blocks, buffered spatial blocks, user-defined folds, k-fold nearest neighbor distance matching (kNNDM, with CAST 1.0.4 in an optional R runtime: `Install.cmd -WithR`), time-ordered validation with new groups. Outer folds estimate performance; inner folds select variables and tune settings.
 - **Preprocessing:** imputation, scaling, handling of unknown categories; target transformation (none, log, Yeo-Johnson).
 - **Multicollinearity and variable selection:** variance inflation factor (diagnostic or iterative elimination); Pearson, Spearman, mutual information, Elastic Net, sequential forward selection, recursive feature elimination, Boruta, principal component analysis.
 - **Models:** training mean and median (reference), ridge, Elastic Net, random forest, extra trees, support vector regression, histogram gradient boosting, XGBoost, LightGBM, CatBoost, Cubist, ordinary kriging, regression kriging; experimental TabPFN v2, TabM and RealMLP.

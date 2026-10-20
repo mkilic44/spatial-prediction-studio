@@ -9,8 +9,8 @@ Spatial Prediction Studio installs for the current Windows user with one double-
 | Operating system | Windows 10 or 11, 64-bit |
 | ArcGIS | ArcGIS Desktop 10.8.x (ArcMap), installed and licensed |
 | .NET Framework | 4.8 or later; the installer checks it |
-| Disk space | 6 GB free; the installed application takes about 2.5 GB |
-| Internet | Needed for the first installation; about 700 MB is downloaded |
+| Disk space | 6 GB free; the installed application takes about 2.5 GB. With `-WithR`, 8 GB free |
+| Internet | Needed for the first installation; about 700 MB is downloaded. `-WithR` downloads about 560 MB more |
 | Rights | A normal user account; no administrator rights |
 
 The analysis itself runs offline after installation.
@@ -18,7 +18,7 @@ The analysis itself runs offline after installation.
 ## Install in three steps
 
 1. **Download.** On the GitHub page of the repository, choose **Code > Download ZIP**, or download a release. Right-click the ZIP file, choose **Properties**, tick **Unblock** if it is shown, then extract the ZIP to a folder.
-2. **Close ArcMap and double-click `Install.cmd`.** If Windows shows "Windows protected your PC", choose **More info > Run anyway**. A window shows eight steps. The first installation takes 10 to 30 minutes, mostly to download Python packages.
+2. **Close ArcMap and double-click `Install.cmd`.** If Windows shows "Windows protected your PC", choose **More info > Run anyway**. A window shows nine steps. The first installation takes 10 to 30 minutes, mostly to download Python packages.
 3. **Start ArcMap.** The **Spatial Prediction Studio** toolbar appears. Click **Spatial Prediction** to open the panel. To try it, open the **1 Project** tab and click **Load example**.
 
 If the toolbar does not appear, open **Customize > Toolbars > Spatial Prediction Studio**.
@@ -32,9 +32,10 @@ If the toolbar does not appear, open **Customize > Toolbars > Spatial Prediction
 5. Places the add-in where ArcMap looks for add-ins.
 6. Optionally installs the local MCP server (see below).
 7. Optionally downloads the TabPFN weights (see below).
-8. Verifies the runtime: package versions, a small model fit and a raster read-back.
+8. Optionally installs R 4.4.3 with CAST 1.0.4 for the kNNDM validation design (see below).
+9. Verifies the runtime: package versions, a small model fit and a raster read-back; with `-WithR` also the R packages and CAST.
 
-Every download is pinned. The Python runtime, the C# compiler and the .NET reference assemblies come from nuget.org and are checked against SHA-512 digests stored in `installer/pins.json`. Python packages are installed with exact versions from the lock files.
+Every download is pinned. The Python runtime, the C# compiler and the .NET reference assemblies come from nuget.org and are checked against SHA-512 digests stored in `installer/pins.json`. Python packages are installed with exact versions from the lock files. The R runtime is described in the kNNDM section below.
 
 ## Where things go
 
@@ -55,6 +56,7 @@ Open a Command Prompt in the downloaded folder and add options after `Install.cm
 |---|---|
 | `-WithMcp` | Also installs the local Model Context Protocol (MCP) server, so AI clients can drive the panel. See [MCP.md](MCP.md). |
 | `-McpClient <name>` | Registers the MCP server in a client: `claude_desktop`, `claude_code`, `codex`, `chatgpt_desktop`, `opencode`, `antigravity` or `pycharm`. Repeat for several clients. Needs `-WithMcp`. |
+| `-WithR` | Also installs R 4.4.3 with CAST 1.0.4, which the kNNDM validation design needs. See below. |
 | `-WithTabPFN -AcceptTabPFNLicense` | Downloads the pinned TabPFN v2 regression weights. Read the Prior Labs License 1.1 first; the second option records that you accept it. Without the weights the TabPFN model is unavailable; all other models work. |
 | `-InstallRoot <folder>` | Installs somewhere else, for example `C:\SPS` when your user folder path is very long. |
 
@@ -74,14 +76,28 @@ Close ArcMap and double-click `Uninstall.cmd`, either in the downloaded folder o
 
 ## Optional: kNNDM validation (R and CAST)
 
-The k-fold nearest neighbor distance matching (kNNDM) validation design calls CAST 1.0.4 in a pinned R 4.4.3 runtime. `Install.cmd` does not set up this runtime yet: this repository does not include the list of R packages and versions it needs (`reference-r-packages.csv`). Without it, kNNDM stops with the message "The pinned local R/CAST runtime environment was not found." All other validation designs, and the area of applicability, work without R.
+The k-fold nearest neighbor distance matching (kNNDM) validation design calls CAST 1.0.4 in a private R 4.4.3 runtime. Install it with:
+
+```
+Install.cmd -WithR
+```
+
+The installer then does three things:
+
+1. It downloads micromamba from conda-forge and checks it against the SHA-512 digest in `installer/pins.json`. micromamba is a small package manager.
+2. micromamba creates R 4.4.3 in the `reference-r` folder of the application from the conda-forge packages listed in `reference-r-conda-lock.txt`. The installer then checks that the environment records exactly these packages, with the package names and MD5 sums of the lock file.
+3. The installer downloads CAST 1.0.4 and its 85 dependencies as CRAN Windows binaries for R 4.4. It checks each file against the SHA-256 digest in `reference-r-packages.csv` before R installs it.
+
+This R is used only by Spatial Prediction Studio and is not added to the PATH. It runs with `Rscript --vanilla`, so R profiles and site files are not read. CAST and its dependencies load from the private library first; the installation check confirms that each of them comes from the `reference-r` folder.
+
+Without `-WithR`, kNNDM stops with the message "The pinned local R/CAST runtime environment was not found." All other validation designs work without R. The area of applicability is computed in Python and needs no R either; its tests compare it with values written by CAST 1.0.4.
 
 ## Troubleshooting
 
 | Problem | What to do |
 |---|---|
 | "Windows protected your PC" | Choose **More info > Run anyway**, or unblock the ZIP before extracting it. |
-| A download fails | Check the internet connection. Behind a proxy or firewall, allow `api.nuget.org`, `pypi.org`, `files.pythonhosted.org` and `download.pytorch.org` (and `huggingface.co` for TabPFN). If your network needs a proxy, set the `HTTPS_PROXY` environment variable before running `Install.cmd`. Then run `Install.cmd` again; finished downloads are reused. |
+| A download fails | Check the internet connection. Behind a proxy or firewall, allow `api.nuget.org`, `pypi.org`, `files.pythonhosted.org` and `download.pytorch.org` (`huggingface.co` for TabPFN; `conda.anaconda.org` and `cloud.r-project.org` for `-WithR`). If your network needs a proxy, set the `HTTPS_PROXY` environment variable before running `Install.cmd`. Then run `Install.cmd` again; finished downloads are reused. |
 | "The installation folder path is too long" | Run `Install.cmd -InstallRoot C:\SPS`, or enable long paths in Windows. |
 | "ArcGIS Desktop 10.8 (ArcMap) was not found" or an ArcObjects assembly is missing | Install or repair ArcGIS Desktop 10.8 including its .NET support. |
 | "Close ArcMap" | Close every ArcMap window and run the installer again. |

@@ -232,3 +232,20 @@ def test_cran_binaries_are_checked_against_the_pinned_sha256(tmp_path):
     plan.write_text(plan.read_text(encoding='utf-8').replace(good, '0' * 64), encoding='utf-8')
     with pytest.raises(installer.InstallError, match='SHA-256'):
         installer.cran_binaries(plan, tmp_path / 'other-cache', installer.Log(None))
+
+
+def test_r_environment_must_match_the_conda_lock_exactly(tmp_path):
+    lock = tmp_path / 'lock.txt'
+    lock.write_text('# comment\n@EXPLICIT\nhttps://conda.anaconda.org/conda-forge/win-64/r-base-4.4.3-h_11.conda#aaa\n'
+                    'https://conda.anaconda.org/conda-forge/noarch/tzdata-2026a-h_0.conda#bbb\n', encoding='utf-8')
+    meta = tmp_path / 'env/conda-meta'
+    meta.mkdir(parents=True)
+    (meta / 'r-base.json').write_text(json.dumps({'fn': 'r-base-4.4.3-h_11.conda', 'md5': 'aaa'}), encoding='utf-8')
+    (meta / 'tzdata.json').write_text(json.dumps({'url': 'https://x/noarch/tzdata-2026a-h_0.conda', 'md5': 'bbb'}), encoding='utf-8')
+    assert installer.check_conda_lock(tmp_path / 'env', lock) == 2
+    (meta / 'tzdata.json').write_text(json.dumps({'fn': 'tzdata-2026a-h_0.conda', 'md5': 'ccc'}), encoding='utf-8')
+    with pytest.raises(installer.InstallError, match='different MD5'):
+        installer.check_conda_lock(tmp_path / 'env', lock)
+    (meta / 'extra.json').write_text(json.dumps({'fn': 'extra-1-0.conda', 'md5': 'ddd'}), encoding='utf-8')
+    with pytest.raises(installer.InstallError, match="extra: \\['extra-1-0.conda'\\]"):
+        installer.check_conda_lock(tmp_path / 'env', lock)
