@@ -78,7 +78,8 @@
         "publisher": "Wiley",
         "type": "journal-article",
         "doi": "10.1111/ecog.02881",
-        "url": "https://doi.org/10.1111/ecog.02881"
+        "url": "https://doi.org/10.1111/ecog.02881",
+        "authors_source": "doi"
       }
     },
     "valavi2019": {
@@ -117,7 +118,8 @@
         "publisher": "Wiley",
         "type": "journal-article",
         "doi": "10.1111/2041-210x.13107",
-        "url": "https://doi.org/10.1111/2041-210X.13107"
+        "url": "https://doi.org/10.1111/2041-210X.13107",
+        "authors_source": "doi"
       }
     },
     "lerest2014": {
@@ -160,7 +162,8 @@
         "publisher": "Wiley",
         "type": "journal-article",
         "doi": "10.1111/geb.12161",
-        "url": "https://doi.org/10.1111/geb.12161"
+        "url": "https://doi.org/10.1111/geb.12161",
+        "authors_source": "doi"
       }
     },
     "linnenbrink2024": {
@@ -199,7 +202,8 @@
         "publisher": "Copernicus GmbH",
         "type": "journal-article",
         "doi": "10.5194/gmd-17-5897-2024",
-        "url": "https://doi.org/10.5194/gmd-17-5897-2024"
+        "url": "https://doi.org/10.5194/gmd-17-5897-2024",
+        "authors_source": "doi"
       }
     },
     "mila2022": {
@@ -238,7 +242,8 @@
         "publisher": "Wiley",
         "type": "journal-article",
         "doi": "10.1111/2041-210x.13851",
-        "url": "https://doi.org/10.1111/2041-210X.13851"
+        "url": "https://doi.org/10.1111/2041-210X.13851",
+        "authors_source": "doi"
       }
     },
     "cast": {
@@ -281,7 +286,8 @@
         "publisher": "The R Foundation",
         "type": "dataset",
         "doi": "10.32614/cran.package.cast",
-        "url": "https://doi.org/10.32614/CRAN.package.CAST"
+        "url": "https://doi.org/10.32614/CRAN.package.CAST",
+        "authors_source": "doi"
       }
     },
     "brus2011": {
@@ -316,7 +322,8 @@
         "publisher": "Wiley",
         "type": "journal-article",
         "doi": "10.1111/j.1365-2389.2011.01364.x",
-        "url": "https://doi.org/10.1111/j.1365-2389.2011.01364.x"
+        "url": "https://doi.org/10.1111/j.1365-2389.2011.01364.x",
+        "authors_source": "doi"
       }
     },
     "wadoux2021": {
@@ -331,7 +338,7 @@
         "authors": [
           [
             "Wadoux",
-            "A. M. J. -."
+            "A. M. J. C."
           ],
           [
             "Heuvelink",
@@ -355,7 +362,8 @@
         "publisher": "Elsevier BV",
         "type": "journal-article",
         "doi": "10.1016/j.ecolmodel.2021.109692",
-        "url": "https://doi.org/10.1016/j.ecolmodel.2021.109692"
+        "url": "https://doi.org/10.1016/j.ecolmodel.2021.109692",
+        "authors_source": "doi"
       }
     },
     "varma2006": {
@@ -386,7 +394,8 @@
         "publisher": "Springer Science and Business Media LLC",
         "type": "journal-article",
         "doi": "10.1186/1471-2105-7-91",
-        "url": "https://doi.org/10.1186/1471-2105-7-91"
+        "url": "https://doi.org/10.1186/1471-2105-7-91",
+        "authors_source": "doi"
       }
     },
     "hastie2009": {
@@ -422,7 +431,8 @@
         "publisher": "Springer New York",
         "type": "book",
         "doi": "10.1007/978-0-387-84858-7",
-        "url": "https://doi.org/10.1007/978-0-387-84858-7"
+        "url": "https://doi.org/10.1007/978-0-387-84858-7",
+        "authors_source": "doi"
       }
     },
     "yeo2000": {
@@ -437,7 +447,7 @@
         "authors": [
           [
             "Yeo",
-            "I. -."
+            "I. K."
           ]
         ],
         "year": 2000,
@@ -449,7 +459,8 @@
         "publisher": "Oxford University Press (OUP)",
         "type": "journal-article",
         "doi": "10.1093/biomet/87.4.954",
-        "url": "https://doi.org/10.1093/biomet/87.4.954"
+        "url": "https://doi.org/10.1093/biomet/87.4.954",
+        "authors_source": "doi"
       }
     },
     "dormann2013": {
@@ -544,7 +555,8 @@
         "publisher": "Wiley",
         "type": "journal-article",
         "doi": "10.1111/j.1600-0587.2012.07348.x",
-        "url": "https://doi.org/10.1111/j.1600-0587.2012.07348.x"
+        "url": "https://doi.org/10.1111/j.1600-0587.2012.07348.x",
+        "authors_source": "doi"
       }
     },
     "kraskov2004": {
@@ -579,7 +591,8 @@
         "publisher": "American Physical Society (APS)",
         "type": "journal-article",
         "doi": "10.1103/physreve.69.066138",
-        "url": "https://doi.org/10.1103/PhysRevE.69.066138"
+        "url": "https://doi.org/10.1103/PhysRevE.69.066138",
+        "authors_source": "doi"
       }
     },
     "ross2014": {
@@ -606,7 +619,8 @@
         "publisher": "Public Library of Science (PLoS)",
         "type": "journal-article",
         "doi": "10.1371/journal.pone.0087357",
-        "url": "https://doi.org/10.1371/journal.pone.0087357"
+        "url": "https://doi.org/10.1371/journal.pone.0087357",
+        "authors_source": "doi"
       }
     },
     "zou2005": {
@@ -637,7 +651,8 @@
         "publisher": "Oxford University Press (OUP)",
         "type": "journal-article",
         "doi": "10.1111/j.1467-9868.2005.00503.x",
-        "url": "https://doi.org/10.1111/j.1467-9868.2005.00503.x"
+        "url": "https://doi.org/10.1111/j.1467-9868.2005.00503.x",
+        "authors_source": "doi"
       }
     },
     "meyer2018": {
@@ -680,7 +695,8 @@
         "publisher": "Elsevier BV",
         "type": "journal-article",
         "doi": "10.1016/j.envsoft.2017.12.001",
-        "url": "https://doi.org/10.1016/j.envsoft.2017.12.001"
+        "url": "https://doi.org/10.1016/j.envsoft.2017.12.001",
+        "authors_source": "doi"
       }
     },
     "guyon2002": {
@@ -719,7 +735,8 @@
         "publisher": "Springer Science and Business Media LLC",
         "type": "journal-article",
         "doi": "10.1023/a:1012487302797",
-        "url": "https://doi.org/10.1023/A:1012487302797"
+        "url": "https://doi.org/10.1023/A:1012487302797",
+        "authors_source": "doi"
       }
     },
     "kursa2010": {
@@ -750,7 +767,8 @@
         "publisher": "Foundation for Open Access Statistic",
         "type": "journal-article",
         "doi": "10.18637/jss.v036.i11",
-        "url": "https://doi.org/10.18637/jss.v036.i11"
+        "url": "https://doi.org/10.18637/jss.v036.i11",
+        "authors_source": "doi"
       }
     },
     "jolliffe2016": {
@@ -781,7 +799,8 @@
         "publisher": "The Royal Society",
         "type": "journal-article",
         "doi": "10.1098/rsta.2015.0202",
-        "url": "https://doi.org/10.1098/rsta.2015.0202"
+        "url": "https://doi.org/10.1098/rsta.2015.0202",
+        "authors_source": "doi"
       }
     },
     "hoerl1970": {
@@ -812,7 +831,8 @@
         "publisher": "Informa UK Limited",
         "type": "journal-article",
         "doi": "10.1080/00401706.1970.10488634",
-        "url": "https://doi.org/10.1080/00401706.1970.10488634"
+        "url": "https://doi.org/10.1080/00401706.1970.10488634",
+        "authors_source": "doi"
       }
     },
     "breiman2001": {
@@ -839,7 +859,8 @@
         "publisher": "Springer Science and Business Media LLC",
         "type": "journal-article",
         "doi": "10.1023/a:1010933404324",
-        "url": "https://doi.org/10.1023/A:1010933404324"
+        "url": "https://doi.org/10.1023/A:1010933404324",
+        "authors_source": "doi"
       }
     },
     "geurts2006": {
@@ -874,7 +895,8 @@
         "publisher": "Springer Science and Business Media LLC",
         "type": "journal-article",
         "doi": "10.1007/s10994-006-6226-1",
-        "url": "https://doi.org/10.1007/s10994-006-6226-1"
+        "url": "https://doi.org/10.1007/s10994-006-6226-1",
+        "authors_source": "doi"
       }
     },
     "smola2004": {
@@ -905,7 +927,8 @@
         "publisher": "Springer Science and Business Media LLC",
         "type": "journal-article",
         "doi": "10.1023/b:stco.0000035301.49549.88",
-        "url": "https://doi.org/10.1023/B:STCO.0000035301.49549.88"
+        "url": "https://doi.org/10.1023/B:STCO.0000035301.49549.88",
+        "authors_source": "doi"
       }
     },
     "friedman2001": {
@@ -932,7 +955,8 @@
         "publisher": "Institute of Mathematical Statistics",
         "type": "journal-article",
         "doi": "10.1214/aos/1013203451",
-        "url": "https://doi.org/10.1214/aos/1013203451"
+        "url": "https://doi.org/10.1214/aos/1013203451",
+        "authors_source": "doi"
       }
     },
     "chen2016": {
@@ -955,7 +979,7 @@
           ]
         ],
         "year": 2016,
-        "title": "XGBoost",
+        "title": "XGBoost: A Scalable Tree Boosting System",
         "container": "Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining",
         "volume": "",
         "issue": "",
@@ -963,7 +987,8 @@
         "publisher": "ACM",
         "type": "proceedings-article",
         "doi": "10.1145/2939672.2939785",
-        "url": "https://doi.org/10.1145/2939672.2939785"
+        "url": "https://doi.org/10.1145/2939672.2939785",
+        "authors_source": "doi"
       }
     },
     "ke2017": {
@@ -1006,7 +1031,7 @@
           ],
           [
             "Liu",
-            "T."
+            "T.-Y."
           ]
         ],
         "year": 2017,
@@ -1018,7 +1043,8 @@
         "publisher": "",
         "type": "article-journal",
         "doi": "",
-        "url": "https://proceedings.neurips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html"
+        "url": "https://proceedings.neurips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html",
+        "authors_source": "publisher page"
       }
     },
     "prokhorenkova2018": {
@@ -1061,7 +1087,8 @@
         "publisher": "arXiv",
         "type": "article",
         "doi": "10.48550/arxiv.1706.09516",
-        "url": "https://doi.org/10.48550/arXiv.1706.09516"
+        "url": "https://doi.org/10.48550/arXiv.1706.09516",
+        "authors_source": "doi"
       }
     },
     "quinlan1993": {
@@ -1088,7 +1115,8 @@
         "publisher": "Elsevier",
         "type": "book-chapter",
         "doi": "10.1016/b978-1-55860-307-3.50037-x",
-        "url": "https://doi.org/10.1016/B978-1-55860-307-3.50037-X"
+        "url": "https://doi.org/10.1016/B978-1-55860-307-3.50037-X",
+        "authors_source": "doi"
       }
     },
     "webster2007": {
@@ -1119,7 +1147,8 @@
         "publisher": "Wiley",
         "type": "monograph",
         "doi": "10.1002/9780470517277",
-        "url": "https://doi.org/10.1002/9780470517277"
+        "url": "https://doi.org/10.1002/9780470517277",
+        "authors_source": "doi"
       }
     },
     "odeh1995": {
@@ -1154,7 +1183,8 @@
         "publisher": "Elsevier BV",
         "type": "journal-article",
         "doi": "10.1016/0016-7061(95)00007-b",
-        "url": "https://doi.org/10.1016/0016-7061(95)00007-B"
+        "url": "https://doi.org/10.1016/0016-7061(95)00007-B",
+        "authors_source": "doi"
       }
     },
     "hengl2004": {
@@ -1189,7 +1219,8 @@
         "publisher": "Elsevier BV",
         "type": "journal-article",
         "doi": "10.1016/j.geoderma.2003.08.018",
-        "url": "https://doi.org/10.1016/j.geoderma.2003.08.018"
+        "url": "https://doi.org/10.1016/j.geoderma.2003.08.018",
+        "authors_source": "doi"
       }
     },
     "hollmann2025": {
@@ -1244,7 +1275,8 @@
         "publisher": "Springer Science and Business Media LLC",
         "type": "journal-article",
         "doi": "10.1038/s41586-024-08328-6",
-        "url": "https://doi.org/10.1038/s41586-024-08328-6"
+        "url": "https://doi.org/10.1038/s41586-024-08328-6",
+        "authors_source": "doi"
       }
     },
     "gorishniy2024": {
@@ -1279,7 +1311,8 @@
         "publisher": "arXiv",
         "type": "article",
         "doi": "10.48550/arxiv.2410.24210",
-        "url": "https://doi.org/10.48550/arXiv.2410.24210"
+        "url": "https://doi.org/10.48550/arXiv.2410.24210",
+        "authors_source": "doi"
       }
     },
     "holzmuller2024": {
@@ -1314,7 +1347,8 @@
         "publisher": "arXiv",
         "type": "article",
         "doi": "10.48550/arxiv.2407.04491",
-        "url": "https://doi.org/10.48550/arXiv.2407.04491"
+        "url": "https://doi.org/10.48550/arXiv.2407.04491",
+        "authors_source": "doi"
       }
     },
     "bergstra2012": {
@@ -1345,7 +1379,8 @@
         "publisher": "",
         "type": "article-journal",
         "doi": "",
-        "url": "https://jmlr.org/papers/v13/bergstra12a.html"
+        "url": "https://jmlr.org/papers/v13/bergstra12a.html",
+        "authors_source": "publisher page"
       }
     },
     "akiba2019": {
@@ -1380,7 +1415,7 @@
           ]
         ],
         "year": 2019,
-        "title": "Optuna",
+        "title": "Optuna: A Next-generation Hyperparameter Optimization Framework",
         "container": "Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining",
         "volume": "",
         "issue": "",
@@ -1388,7 +1423,8 @@
         "publisher": "ACM",
         "type": "proceedings-article",
         "doi": "10.1145/3292500.3330701",
-        "url": "https://doi.org/10.1145/3292500.3330701"
+        "url": "https://doi.org/10.1145/3292500.3330701",
+        "authors_source": "doi"
       }
     },
     "lei2018": {
@@ -1431,7 +1467,8 @@
         "publisher": "Informa UK Limited",
         "type": "journal-article",
         "doi": "10.1080/01621459.2017.1307116",
-        "url": "https://doi.org/10.1080/01621459.2017.1307116"
+        "url": "https://doi.org/10.1080/01621459.2017.1307116",
+        "authors_source": "doi"
       }
     },
     "meinshausen2006": {
@@ -1458,7 +1495,8 @@
         "publisher": "",
         "type": "article-journal",
         "doi": "",
-        "url": "https://jmlr.org/papers/v7/meinshausen06a.html"
+        "url": "https://jmlr.org/papers/v7/meinshausen06a.html",
+        "authors_source": "publisher page"
       }
     },
     "johnson2024": {
@@ -1485,7 +1523,8 @@
         "publisher": "The Open Journal",
         "type": "journal-article",
         "doi": "10.21105/joss.05976",
-        "url": "https://doi.org/10.21105/joss.05976"
+        "url": "https://doi.org/10.21105/joss.05976",
+        "authors_source": "doi"
       }
     },
     "koenker1978": {
@@ -1516,7 +1555,8 @@
         "publisher": "JSTOR",
         "type": "journal-article",
         "doi": "10.2307/1913643",
-        "url": "https://doi.org/10.2307/1913643"
+        "url": "https://doi.org/10.2307/1913643",
+        "authors_source": "doi"
       }
     },
     "romano2019": {
@@ -1551,7 +1591,8 @@
         "publisher": "arXiv",
         "type": "article",
         "doi": "10.48550/arxiv.1905.03222",
-        "url": "https://doi.org/10.48550/arXiv.1905.03222"
+        "url": "https://doi.org/10.48550/arXiv.1905.03222",
+        "authors_source": "doi"
       }
     },
     "tibshirani2019": {
@@ -1590,7 +1631,8 @@
         "publisher": "arXiv",
         "type": "article",
         "doi": "10.48550/arxiv.1904.06019",
-        "url": "https://doi.org/10.48550/arXiv.1904.06019"
+        "url": "https://doi.org/10.48550/arXiv.1904.06019",
+        "authors_source": "doi"
       }
     },
     "guan2023": {
@@ -1617,7 +1659,8 @@
         "publisher": "Oxford University Press (OUP)",
         "type": "journal-article",
         "doi": "10.1093/biomet/asac040",
-        "url": "https://doi.org/10.1093/biomet/asac040"
+        "url": "https://doi.org/10.1093/biomet/asac040",
+        "authors_source": "doi"
       }
     },
     "mao2024": {
@@ -1652,7 +1695,8 @@
         "publisher": "Informa UK Limited",
         "type": "journal-article",
         "doi": "10.1080/01621459.2022.2147531",
-        "url": "https://doi.org/10.1080/01621459.2022.2147531"
+        "url": "https://doi.org/10.1080/01621459.2022.2147531",
+        "authors_source": "doi"
       }
     },
     "meyer2021": {
@@ -1683,7 +1727,8 @@
         "publisher": "Wiley",
         "type": "journal-article",
         "doi": "10.1111/2041-210x.13650",
-        "url": "https://doi.org/10.1111/2041-210X.13650"
+        "url": "https://doi.org/10.1111/2041-210X.13650",
+        "authors_source": "doi"
       }
     },
     "fisher2019": {
@@ -1718,7 +1763,8 @@
         "publisher": "",
         "type": "article-journal",
         "doi": "",
-        "url": "https://jmlr.org/papers/v20/18-760.html"
+        "url": "https://jmlr.org/papers/v20/18-760.html",
+        "authors_source": "publisher page"
       }
     },
     "lin1989": {
@@ -1733,7 +1779,7 @@
         "authors": [
           [
             "Lin",
-            "L. I."
+            "L. I.-K."
           ]
         ],
         "year": 1989,
@@ -1745,7 +1791,8 @@
         "publisher": "JSTOR",
         "type": "journal-article",
         "doi": "10.2307/2532051",
-        "url": "https://doi.org/10.2307/2532051"
+        "url": "https://doi.org/10.2307/2532051",
+        "authors_source": "doi"
       }
     },
     "bellonmaurel2010": {
@@ -1772,7 +1819,7 @@
           ],
           [
             "Roger",
-            "J."
+            "J.-M."
           ],
           [
             "McBratney",
@@ -1788,7 +1835,8 @@
         "publisher": "Elsevier BV",
         "type": "journal-article",
         "doi": "10.1016/j.trac.2010.05.006",
-        "url": "https://doi.org/10.1016/j.trac.2010.05.006"
+        "url": "https://doi.org/10.1016/j.trac.2010.05.006",
+        "authors_source": "doi"
       }
     },
     "gneiting2007": {
@@ -1819,7 +1867,8 @@
         "publisher": "Informa UK Limited",
         "type": "journal-article",
         "doi": "10.1198/016214506000001437",
-        "url": "https://doi.org/10.1198/016214506000001437"
+        "url": "https://doi.org/10.1198/016214506000001437",
+        "authors_source": "doi"
       }
     }
   }

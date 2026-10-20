@@ -934,9 +934,9 @@ The diagnostics and metrics are described in [OUTPUTS.md](OUTPUTS.md) and [USER_
 
 Each record below comes from the DOI registration (doi.org) or, for a paper without DOI, from the citation tags of the publisher page. `tools/references.py` checks in the references workflow that each one is the expected work. "Cited for" states what the source supports here.
 
-- <a name="ref-akiba2019"></a>Akiba, T., Sano, S., Yanase, T., Ohta, T., Koyama, M. (2019). Optuna. *Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining*, 2623-2631. https://doi.org/10.1145/3292500.3330701  
+- <a name="ref-akiba2019"></a>Akiba, T., Sano, S., Yanase, T., Ohta, T., Koyama, M. (2019). Optuna: A Next-generation Hyperparameter Optimization Framework. *Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining*, 2623-2631. https://doi.org/10.1145/3292500.3330701  
   Cited for: Optuna search with the Tree-structured Parzen Estimator.
-- <a name="ref-bellonmaurel2010"></a>Bellon-Maurel, V., Fernandez-Ahumada, E., Palagos, B., Roger, J., McBratney, A. (2010). Critical review of chemometric indicators commonly used for assessing the quality of the prediction of soil attributes by NIR spectroscopy. *TrAC Trends in Analytical Chemistry*, 29(9), 1073-1081. https://doi.org/10.1016/j.trac.2010.05.006  
+- <a name="ref-bellonmaurel2010"></a>Bellon-Maurel, V., Fernandez-Ahumada, E., Palagos, B., Roger, J.-M., McBratney, A. (2010). Critical review of chemometric indicators commonly used for assessing the quality of the prediction of soil attributes by NIR spectroscopy. *TrAC Trends in Analytical Chemistry*, 29(9), 1073-1081. https://doi.org/10.1016/j.trac.2010.05.006  
   Cited for: RPD and RPIQ for soil property predictions.
 - <a name="ref-bergstra2012"></a>Bergstra, J., Bengio, Y. (2012). Random Search for Hyper-Parameter Optimization. *Journal of Machine Learning Research*, 13(10), 281-305. https://jmlr.org/papers/v13/bergstra12a.html  
   Cited for: Random search.
@@ -944,7 +944,7 @@ Each record below comes from the DOI registration (doi.org) or, for a paper with
   Cited for: Random forest, and permutation variable importance in random forests.
 - <a name="ref-brus2011"></a>Brus, D. J., Kempen, B., Heuvelink, G. B. M. (2011). Sampling for validation of digital soil maps. *European Journal of Soil Science*, 62(3), 394-407. https://doi.org/10.1111/j.1365-2389.2011.01364.x  
   Cited for: Design-based map validation with a probability sample (not implemented yet).
-- <a name="ref-chen2016"></a>Chen, T., Guestrin, C. (2016). XGBoost. *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 785-794. https://doi.org/10.1145/2939672.2939785  
+- <a name="ref-chen2016"></a>Chen, T., Guestrin, C. (2016). XGBoost: A Scalable Tree Boosting System. *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 785-794. https://doi.org/10.1145/2939672.2939785  
   Cited for: XGBoost.
 - <a name="ref-dormann2013"></a>Dormann, C. F., Elith, J., Bacher, S., Buchmann, C., Carl, G., Carré, G., et al. (2013). Collinearity: a review of methods to deal with it and a simulation study evaluating their performance. *Ecography*, 36(1), 27-46. https://doi.org/10.1111/j.1600-0587.2012.07348.x  
   Cited for: Variance inflation factor as a collinearity diagnostic and its thresholds.
@@ -988,7 +988,7 @@ Each record below comes from the DOI registration (doi.org) or, for a paper with
   Cited for: Buffered spatial validation: removing training observations within a buffer distance of the test observations.
 - <a name="ref-lei2018"></a>Lei, J., G’Sell, M., Rinaldo, A., Tibshirani, R. J., Wasserman, L. (2018). Distribution-Free Predictive Inference for Regression. *Journal of the American Statistical Association*, 113(523), 1094-1111. https://doi.org/10.1080/01621459.2017.1307116  
   Cited for: Split conformal prediction intervals.
-- <a name="ref-lin1989"></a>Lin, L. I. (1989). A Concordance Correlation Coefficient to Evaluate Reproducibility. *Biometrics*, 45(1), 255. https://doi.org/10.2307/2532051  
+- <a name="ref-lin1989"></a>Lin, L. I.-K. (1989). A Concordance Correlation Coefficient to Evaluate Reproducibility. *Biometrics*, 45(1), 255. https://doi.org/10.2307/2532051  
   Cited for: Lin's concordance correlation coefficient (CCC).
 - <a name="ref-linnenbrink2024"></a>Linnenbrink, J., Milà, C., Ludwig, M., Meyer, H. (2024). kNNDM CV: k-fold nearest-neighbour distance matching cross-validation for map accuracy estimation. *Geoscientific Model Development*, 17(15), 5897-5912. https://doi.org/10.5194/gmd-17-5897-2024  
   Cited for: kNNDM validation design (the method that CAST 1.0.4 implements).
@@ -1024,11 +1024,11 @@ Each record below comes from the DOI registration (doi.org) or, for a paper with
   Cited for: Spatial block validation: assignment of spatial blocks to folds.
 - <a name="ref-varma2006"></a>Varma, S., Simon, R. (2006). Bias in error estimation when using cross-validation for model selection. *BMC Bioinformatics*, 7(1). https://doi.org/10.1186/1471-2105-7-91  
   Cited for: Nested cross-validation: tuning and selection inside the outer training folds.
-- <a name="ref-wadoux2021"></a>Wadoux, A. M. J. -., Heuvelink, G. B. M., de Bruin, S., Brus, D. J. (2021). Spatial cross-validation is not the right way to evaluate map accuracy. *Ecological Modelling*, 457, 109692. https://doi.org/10.1016/j.ecolmodel.2021.109692  
+- <a name="ref-wadoux2021"></a>Wadoux, A. M. J. C., Heuvelink, G. B. M., de Bruin, S., Brus, D. J. (2021). Spatial cross-validation is not the right way to evaluate map accuracy. *Ecological Modelling*, 457, 109692. https://doi.org/10.1016/j.ecolmodel.2021.109692  
   Cited for: Design-based map validation (not implemented yet) and the limits of cross-validation as an estimate of map accuracy.
 - <a name="ref-webster2007"></a>Webster, R., Oliver, M. A. (2007). Geostatistics for Environmental Scientists. Wiley. https://doi.org/10.1002/9780470517277  
   Cited for: Ordinary kriging and semivariogram fitting.
-- <a name="ref-yeo2000"></a>Yeo, I. -. (2000). A new family of power transformations to improve normality or symmetry. *Biometrika*, 87(4), 954-959. https://doi.org/10.1093/biomet/87.4.954  
+- <a name="ref-yeo2000"></a>Yeo, I. K. (2000). A new family of power transformations to improve normality or symmetry. *Biometrika*, 87(4), 954-959. https://doi.org/10.1093/biomet/87.4.954  
   Cited for: Yeo-Johnson target transformation.
 - <a name="ref-zou2005"></a>Zou, H., Hastie, T. (2005). Regularization and Variable Selection Via the Elastic Net. *Journal of the Royal Statistical Society Series B: Statistical Methodology*, 67(2), 301-320. https://doi.org/10.1111/j.1467-9868.2005.00503.x  
   Cited for: Elastic Net selection and Elastic Net regression.

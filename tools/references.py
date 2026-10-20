@@ -138,15 +138,25 @@ def record(entry):
         metadata = from_csl(data, entry['doi'])
         metadata['authors_source'] = 'doi'
         if len(metadata['authors']) == 1 and data.get('type') not in ('dataset',):
-            # Some DOI records list only the first author. OpenAlex completes the list when its first
-            # author is the same person; the record then says where the authors come from.
-            try:
-                others = openalex_authors(entry['doi'])
-            except RuntimeError:
-                others = []
-            if len(others) > 1 and simple(others[0][0]) == simple(metadata['authors'][0][0]):
-                metadata['authors'] = metadata['authors'] + others[1:]
-                metadata['authors_source'] = 'doi+openalex'
+            # Some DOI records list only the first author. OpenAlex or the citation tags of the page the
+            # DOI leads to complete the list when their first author is the same person; the record
+            # says where the authors come from, or why the list stayed short.
+            lookups = (('openalex', lambda: openalex_authors(entry['doi'])),
+                       ('doi landing page', lambda: from_page(fetch('https://doi.org/' + entry['doi'], 'text/html'), '')['authors']))
+            notes = []
+            for source, lookup in lookups:
+                try:
+                    others = lookup()
+                except RuntimeError as error:
+                    notes.append('%s: %s' % (source, str(error)[-80:]))
+                    continue
+                if len(others) > 1 and simple(others[0][0]) == simple(metadata['authors'][0][0]):
+                    metadata['authors'] = metadata['authors'] + others[1:]
+                    metadata['authors_source'] = 'doi+' + source
+                    break
+                notes.append('%s: %d author(s)' % (source, len(others)))
+            else:
+                metadata['author_lookup'] = '; '.join(notes)
         return metadata
     metadata = from_page(fetch(entry['url'], 'text/html'), entry['url'])
     metadata['authors_source'] = 'publisher page'
