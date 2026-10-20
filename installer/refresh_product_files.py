@@ -35,7 +35,7 @@ def main():
             sources.append((source,'corresponding-source/'+source.relative_to(ROOT/'installer/corresponding-source').as_posix(),'core'))
     for name in ('deploy.py','verify_runtime.py','verify_r.R','THIRD_PARTY_NOTICE.txt','native-library-probe.json'):
         sources.append((ROOT/'installer'/name,'installer/'+name,'core'))
-    sources.extend((ROOT/name,name,'core') for name in ('README.md','LISANSLAR.md'))
+    sources.extend((ROOT/name,name,'core') for name in ('README.md','docs/THIRD_PARTY_LICENSES.md'))
     sources.append((ROOT/'requirements-mcp-lock.txt','requirements-mcp-lock.txt','mcp'))
     sources.append((ROOT/'runtime-d/Lib/site-packages/sklearn/.libs/msvcp140.dll','runtime-d/Scripts/msvcp140.dll','core'))
     for source in (ROOT/'reference-r/Library/bin').glob('*.dll'):

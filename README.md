@@ -1,35 +1,56 @@
 # Spatial Prediction Studio
 
-Spatial Prediction Studio is an ArcMap 10.8 add-in for spatial prediction of soil properties from point observations and raster covariates. It runs the full digital soil mapping workflow inside ArcMap: data checks, validation design, preprocessing, variable selection, model fitting and tuning, prediction intervals, mapping, and reports.
+Spatial Prediction Studio is an ArcMap 10.8 add-in for spatial prediction of soil properties from point observations and raster covariates. It runs the digital soil mapping workflow inside ArcMap: data checks, validation design, preprocessing, variable selection, model fitting and tuning, prediction intervals, mapping and reports.
 
-The add-in keeps model development, independent testing and later use of the model apart. Every preprocessing step, selection step and tuning step is learned inside the training part of each fold. Reports state what each number means and what it does not show.
+The add-in keeps model development, independent testing and later use of the model apart. Every preprocessing, selection and tuning step is learned inside the training part of each fold. Reports state what each number means and what it does not show.
 
-Version 0.5.0. Research software. The interface and reports are in English. The original Turkish version is kept at the tag [`v0.5.0-tr`](../../tree/v0.5.0-tr).
+Version 0.5.0. Research software. The original Turkish version is kept at the tag [`v0.5.0-tr`](../../tree/v0.5.0-tr).
 
-## Workflow in the ArcMap panel
+## Install
 
-The panel opens from the **Spatial Prediction** toolbar button. It has ten tabs:
+You need Windows 10 or 11 (64-bit) with ArcGIS Desktop 10.8 (ArcMap). No administrator rights are needed.
+
+1. Download this repository: **Code > Download ZIP**, then extract it.
+2. Close ArcMap and double-click **`Install.cmd`**. The first installation downloads about 700 MB and takes 10 to 30 minutes.
+3. Start ArcMap and click **Spatial Prediction** on the Spatial Prediction Studio toolbar. To try it, click **Load example** on the first tab.
+
+To remove it, run **`Uninstall.cmd`**. Your projects and results are kept. Options, troubleshooting and what goes where: [docs/INSTALL.md](docs/INSTALL.md).
+
+## Documentation
+
+| Document | Content |
+|---|---|
+| [Installation](docs/INSTALL.md) | Requirements, installation options, updating, uninstalling, troubleshooting |
+| [User guide](docs/USER_GUIDE.md) | The panel tab by tab, from data to report |
+| [Methods reference](docs/METHODS.md) | Every validation design, preprocessing step, selection method, model, search and interval method with its parameters |
+| [Outputs](docs/OUTPUTS.md) | Rasters, reports, tables, model and study packages, metric definitions |
+| [MCP server](docs/MCP.md) | Optional connection for local AI clients |
+| [Development and releases](docs/BUILD.md) | Repository layout, tests, continuous integration, building |
+| [Third-party components](docs/THIRD_PARTY_LICENSES.md) | Packages that the installer downloads and their licenses |
+| [Terminology](docs/TERMINOLOGY.md) | English terms used in the interface and reports |
+
+## Workflow in the panel
 
 | Tab | Purpose |
 |---|---|
-| 1 Project | Refresh layers, load the synthetic example, open or save a project, choose the output folder |
-| 2 Data and target | Point layer or CSV/GeoJSON table with coordinates, target field and unit, observation ID, groups (profile, parcel, farm), depth, measurement method, sampling date, sample support, raster covariates and their metadata |
-| 3 Validation | Fold design, prediction purpose, locked independent test set, user-defined folds |
+| 1 Project | Refresh layers, load the synthetic example, open or save a project, choose the output folder, enable the local MCP connection |
+| 2 Data and target | Point layer or CSV table with coordinates, target field and unit, observation ID, groups (profile, parcel, farm), depth, measurement method, sampling date, sample support, independent test file, raster covariates and their metadata |
+| 3 Validation | Validation design, prediction purpose, locked independent test set, user-defined folds |
 | 4 Preprocessing | Imputation, scaling, unknown categories, target transformation |
-| 5 Variable selection | Multicollinearity (VIF), variable selection or reduction, permutation variable importance |
-| 6 Model and search | Model, candidate settings, hyperparameter search |
-| 7 Evaluation | Outer-fold, out-of-fold, independent test and search tables; subgroup diagnostics |
-| 8 Uncertainty | Prediction interval method and nominal coverage |
-| 9 Mapping | Reference grid, processing window, physical bounds, area of applicability, figure resolution |
-| 10 Report and log | Report, study package, model export, log |
+| 5 Variable selection | Multicollinearity (variance inflation factor), variable selection or reduction |
+| 6 Model and search | Model, candidate settings, hyperparameter search, permutation variable importance |
+| 7 Evaluation | Outer-fold, out-of-fold, independent test and search tables of the completed run |
+| 8 Uncertainty | Prediction interval method, nominal coverage, subgroup diagnostics |
+| 9 Mapping | Reference grid, masking, processing window, physical bounds, area of applicability, figure resolution |
+| 10 Report and log | Report, study package, model export, log, previous results |
 
 **Show folds** draws the fold preview on the map. **Run model** needs a current fold preview. Results of earlier runs stay available as previous results.
 
 ## Methods
 
-The method registry ([`backend/sps/registry.json`](backend/sps/registry.json)) lists every method, its parameters, its status and its known limits. Version 0.5.0 enables these methods:
+The method registry (`backend/sps/registry.json`) lists every method with its parameters, status and known limits; [docs/METHODS.md](docs/METHODS.md) is generated from it. Version 0.5.0 enables:
 
-- **Validation:** random k-fold, repeated random k-fold, grouped k-fold, spatial blocks, buffered spatial blocks, user-defined folds, k-fold nearest neighbor distance matching (kNNDM, through a local R installation of CAST 1.0.4), time-ordered validation with new groups. Outer folds estimate performance; inner folds select variables and tune settings.
+- **Validation:** random k-fold, repeated random k-fold, grouped k-fold, spatial blocks, buffered spatial blocks, user-defined folds, k-fold nearest neighbor distance matching (kNNDM, with CAST 1.0.4 in an optional R runtime), time-ordered validation with new groups. Outer folds estimate performance; inner folds select variables and tune settings.
 - **Preprocessing:** imputation, scaling, handling of unknown categories; target transformation (none, log, Yeo-Johnson).
 - **Multicollinearity and variable selection:** variance inflation factor (diagnostic or iterative elimination); Pearson, Spearman, mutual information, Elastic Net, sequential forward selection, recursive feature elimination, Boruta, principal component analysis.
 - **Models:** training mean and median (reference), ridge, Elastic Net, random forest, extra trees, support vector regression, histogram gradient boosting, XGBoost, LightGBM, CatBoost, Cubist, ordinary kriging, regression kriging; experimental TabPFN v2, TabM and RealMLP.
@@ -39,70 +60,26 @@ The method registry ([`backend/sps/registry.json`](backend/sps/registry.json)) l
 
 Environmental clusters, design-based map validation and group bootstrap spread are listed in the registry but not implemented.
 
-## Outputs
+## How it works
 
-- Run report (HTML) with figures, tables and metric definitions.
-- Detailed study report: a multi-page HTML report with every setting, fold, metric and model record, written for the methods section of a paper.
-- Study package: a ZIP archive of the run with SHA-256 digests of all members.
-- Model package (`*.spsmodel.zip`) that can be read back and checked.
-- Rasters added to the ArcMap document.
-
-## Architecture
+ArcMap is a 32-bit application. The panel writes each job as a JSON request and starts `backend/worker.py` in a private 64-bit Python runtime with pinned packages. The worker reports progress as JSON lines and writes every output with its SHA-256 digest. The panel checks these digests before it shows or maps an output. The installer compiles the add-in on your computer against your own ArcGIS Desktop assemblies.
 
 | Folder | Content |
 |---|---|
-| `native/` | C# add-in: WinForms panel, ArcObjects adapter, job client, MCP pipe bridge (.NET Framework 4.8, x86) |
-| `backend/` | Python 3.12 worker that runs every computation in a separate 64-bit process |
-| `mcp-server/` | Local Model Context Protocol (MCP) server with 15 tools, so AI clients can drive the panel and read verified outputs |
-| `installer/` | Inno Setup script and payload tools |
-| `tools/` | Build, runtime setup, registry generation and example data scripts |
-| `tests/`, `native/tests/` | Python tests and C# contract tests |
-| `build/` | Read-back scripts for the 0.5.0 acceptance evidence |
-| `docs/` | [Terminology](docs/TERMINOLOGY.md) used in the interface and reports |
-
-ArcMap is a 32-bit application. The panel therefore writes each job as a JSON request and starts `backend/worker.py` in a private 64-bit Python environment. The worker reports progress as JSON lines. The panel verifies the SHA-256 digests of the outputs before it shows or maps them.
-
-## Requirements
-
-- Windows 10 or later, x64
-- ArcGIS Desktop 10.8 (ArcMap)
-- .NET Framework 4.8; MSBuild (Visual Studio 2019 Build Tools) to build
-- Python 3.12, 64-bit, for the worker environments
-- Optional: Conda, for the R and CAST 1.0.4 reference environment used by kNNDM and its tests
-- Optional: Inno Setup, to build the installer
-
-Dependency versions are pinned in `requirements-lock.txt`, `requirements-d-lock.txt` (deep-learning models) and `requirements-mcp-lock.txt`.
-
-## Build and install from source
-
-Run from PowerShell in the repository root:
-
-```powershell
-tools\setup-runtime.ps1 -BasePython C:\Path\To\python.exe      # core worker environment (runtime\)
-tools\setup-runtime-d.ps1 -BasePython C:\Path\To\python.exe    # worker environment with deep-learning models (runtime-d\)
-tools\setup-cast.ps1 -Conda C:\Path\To\conda.exe               # optional: R and CAST reference environment
-tools\build.ps1                                                # compile, run native tests, build the add-in package
-tools\install.ps1                                              # copy the add-in to the ArcMap add-in folder
-```
-
-Restart ArcMap after installation. The MCP server has its own environment: `tools\setup-runtime-mcp.ps1 -BasePython C:\Path\To\python.exe`.
-
-TabPFN needs its model weights, which are not in this repository. `tools/setup-tabpfn-weights.py` downloads the pinned TabPFN v2 regression weights and the Prior Labs License 1.1 into `models/tabpfn-v2/`. Read that license before you use TabPFN. The model adapter never downloads anything by itself.
-
-## Tests
-
-```bash
-python tools/make_examples.py --output examples      # synthetic example data used by the tests
-python -m pytest tests -q
-cd mcp-server && python -m pytest tests -q
-```
-
-`tools/test-backend.ps1` runs the backend suite in groups and writes JUnit XML evidence. `tools/test-native.ps1` builds and runs the C# contract tests. Tests that need R and CAST, Windows named pipes or the TabPFN weights do not run without them.
+| `native/` | C# add-in (.NET Framework 4.8, x86) and its contract tests |
+| `backend/` | Python worker and the method registry |
+| `mcp-server/` | Optional local Model Context Protocol (MCP) server with 15 tools |
+| `installer/` | `Install.cmd` back end, runtime verification, offline installer of the maintainer |
+| `tools/`, `tests/`, `build/`, `docs/` | Development scripts, tests, archived acceptance scripts, documentation |
 
 ## Data
 
 The example data are synthetic and generated by `tools/make_examples.py`. They are not field observations.
 
+## Third-party components
+
+The installer downloads open-source packages with pinned versions; each keeps its own license (see [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md)). The experimental TabPFN model is licensed under the Prior Labs License 1.1: **Built with PriorLabs-TabPFN.** Its weights are downloaded only with `Install.cmd -WithTabPFN -AcceptTabPFNLicense`.
+
 ## License
 
-No license has been chosen yet. Third-party components keep their own licenses; `tools/collect_licenses.py` collects their notices for the installer.
+No license has been chosen for Spatial Prediction Studio yet.

@@ -82,7 +82,7 @@ def prepare(args):
     component('core', 'runtime-d')
     for folder in ('backend', 'examples', 'examples-d', 'licenses', 'licenses-d', 'docs'):
         copy_tree(ROOT / folder, payload / folder); component('core', folder)
-    for name in ('requirements-d-lock.txt', 'requirements-lock.txt', 'reference-r-packages.csv', 'reference-r-conda-lock.txt', 'README.md', 'LISANSLAR.md'):
+    for name in ('requirements-d-lock.txt', 'requirements-lock.txt', 'reference-r-packages.csv', 'reference-r-conda-lock.txt', 'README.md'):
         shutil.copy2(ROOT / name, payload / name); component('core', name)
     for name in ('deploy.py', 'verify_runtime.py', 'verify_r.R', 'THIRD_PARTY_NOTICE.txt', 'native-library-probe.json'):
         (payload / 'installer').mkdir(exist_ok=True); shutil.copy2(ROOT / 'installer' / name, payload / 'installer' / name)

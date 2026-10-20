@@ -50,18 +50,20 @@ def main():
         if path.is_file():members['Install/'+path.relative_to(ROOT).as_posix()]=path.read_bytes()
     for path in sorted((ROOT/'licenses-d').rglob('*')):
         if path.is_file():members['Install/'+path.relative_to(ROOT).as_posix()]=path.read_bytes()
-    if (ROOT/'docs/LISANSLAR_D.md').is_file():members['Install/docs/LISANSLAR_D.md']=(ROOT/'docs/LISANSLAR_D.md').read_bytes()
-    if (ROOT/'docs/RAPOR_VE_MODEL.md').is_file():members['Install/docs/RAPOR_VE_MODEL.md']=(ROOT/'docs/RAPOR_VE_MODEL.md').read_bytes()
-    for name in ('README.md','YONTEM_KILAVUZU.md','LISANSLAR.md'):
-        if (ROOT/name).is_file():members['Install/docs/'+name]=(ROOT/name).read_bytes()
+    # English user documentation: README plus docs/*.md (install, user guide, methods, outputs, MCP, licenses).
+    members['Install/docs/README.md']=(ROOT/'README.md').read_bytes()
+    for path in sorted((ROOT/'docs').glob('*.md')):members['Install/docs/'+path.name]=path.read_bytes()
     sources = {}
     for folder, extension in [('native','*.cs'),('native','*.csproj'),('native','*.sln'),('backend','*.py'),('backend','*.json'),('backend','*.R'),('tools','*.R'),('tools','*.py'),('tools','*.ps1'),('tests','*.py')]:
         for path in sorted((ROOT/folder).rglob(extension)):
             if any(p in ('bin','obj','__pycache__') for p in path.parts):
                 continue
             sources[path.relative_to(ROOT).as_posix()] = digest(path.read_bytes())
-    for name in ('Config.xml','requirements-lock.txt','requirements-d-lock.txt','reference-r-conda-lock.txt','reference-r-packages.csv','models/tabpfn-v2/weights-manifest.json','models/tabpfn-v2/LICENSE.txt'):
+    for name in ('Config.xml','requirements-lock.txt','requirements-d-lock.txt','reference-r-conda-lock.txt'):
         sources[name] = digest((ROOT/name).read_bytes())
+    # Generated on the maintainer's computer; recorded when present.
+    for name in ('reference-r-packages.csv','models/tabpfn-v2/weights-manifest.json','models/tabpfn-v2/LICENSE.txt'):
+        if (ROOT/name).is_file():sources[name] = digest((ROOT/name).read_bytes())
     for path in sorted((ROOT/'tests/fixtures').rglob('*')):
         if path.is_file():sources[path.relative_to(ROOT).as_posix()]=digest(path.read_bytes())
     config=ET.fromstring(members['Config.xml'])

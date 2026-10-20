@@ -52,7 +52,8 @@ class PackageAcceptance(unittest.TestCase):
             self.assertIn("Install/backend/sps/model_bundle.py", names)
             self.assertIn("Install/backend/sps/publication_report.py", names)
             self.assertIn("Install/backend/sps/study_export.py", names)
-            self.assertIn("Install/docs/RAPOR_VE_MODEL.md", names)
+            self.assertIn("Install/docs/OUTPUTS.md", names)
+            self.assertIn("Install/docs/USER_GUIDE.md", names)
 
 if __name__ == "__main__":
     unittest.main()
