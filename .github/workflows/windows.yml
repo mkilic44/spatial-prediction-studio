@@ -32,6 +32,20 @@ jobs:
           .\installer\bootstrap.ps1 -Action Install -InstallRoot "$env:RUNNER_TEMP\sps" -Staging "$env:RUNNER_TEMP\stage" -EsriStubs -WithMcp -WithR
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Show the end of the installer log
+        if: failure()
+        run: |
+          $log = Get-ChildItem "$env:RUNNER_TEMP\sps\logs\*.log" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1
+          if (-not $log) { exit 0 }
+          $text = Get-Content -LiteralPath $log.FullName -Raw
+          if ($text.Length -gt 36000) { $text = $text.Substring($text.Length - 36000) }
+          $count = [Math]::Ceiling($text.Length / 4000)
+          for ($i = 0; $i -lt $count; $i++) {
+            $part = $text.Substring($i * 4000, [Math]::Min(4000, $text.Length - $i * 4000))
+            $part = $part.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Output ('::error title=installer log {0}/{1}::{2}' -f ($i + 1), $count, $part)
+          }
+
       - name: Verify the installation
         run: |
           .\installer\bootstrap.ps1 -Action Verify -InstallRoot "$env:RUNNER_TEMP\sps" -Staging "$env:RUNNER_TEMP\stage"

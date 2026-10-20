@@ -20,12 +20,13 @@
     "member_prefix": "build/.NETFramework/v4.8/"
   },
   "micromamba": {
-    "version": "2.6.2",
-    "url": "https://conda.anaconda.org/conda-forge/win-64/micromamba-2.6.2-1.tar.bz2",
-    "sha256": "b2648ee0a873e916b1bfbbcb00e3f4cbd546d6295247c62fd453876c788c0a78",
-    "sha512": "969f1d483c0d60a83df11da7ee1d07761fb60ffd6bda4516270d5d34e869ffaf2e6ba615f111a3b11a7fdf39a0c9fcf385e976244f1f3336f957742c0f6f46f2",
+    "version": "2.3.0",
+    "url": "https://conda.anaconda.org/conda-forge/win-64/micromamba-2.3.0-1.tar.bz2",
+    "sha256": "dacc5c8b505d73afbff788fd4677789a6c920b578398c9ae6ef31db721581943",
+    "sha512": "88b5593d30ba598681464cbe3f29b083cb957cfd05d94a57309f34278a07c34c838cdd6e6d383430e77f1cffdf8cdb190f4f5af278ff39c0769b2551943677e5",
     "member": "Library/bin/micromamba.exe",
-    "license": "BSD-3-Clause AND MIT AND OpenSSL"
+    "license": "BSD-3-Clause AND MIT AND OpenSSL",
+    "comment": "Build 1 of 2.3.0 needs the C++ runtime 14.29 or newer. The installer places the runtime DLLs of the private Python (vcruntime140 14.38, msvcp140 14.40) next to it; later builds need 14.44."
   },
   "pytorch_cpu_index": "https://download.pytorch.org/whl/cpu"
 }

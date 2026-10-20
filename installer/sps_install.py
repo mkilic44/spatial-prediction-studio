@@ -378,7 +378,9 @@ def install_mcp_runtime(base, app_root, source, log):
 
 def micromamba(cache, pins, log, runtime_dlls=()):
     """Return the pinned micromamba.exe. It needs the 64-bit C++ runtime, which ArcGIS does not always
-    install; copies of the DLLs that come with the private Python runtime are placed next to it."""
+    install. Copies of the DLLs that come with the private Python runtime (vcruntime140 14.38 from
+    CPython, msvcp140 14.40 from scikit-learn) are placed next to it, so the pinned micromamba build
+    must not need a newer runtime (see installer/pins.json)."""
     item = pins['micromamba']
     package = download(item['url'], Path(cache) / Path(item['url']).name, item['sha512'], log)
     folder = Path(cache) / ('micromamba-' + item['version'])

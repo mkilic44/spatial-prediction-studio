@@ -163,7 +163,7 @@ Packages installed into `runtime-mcp` from `requirements-mcp-lock.txt` when you 
 
 ## R and CAST (optional)
 
-Installed only with `Install.cmd -WithR`, for the kNNDM validation design. micromamba 2.6.2 (conda-forge, license BSD-3-Clause AND MIT AND OpenSSL) creates R 4.4.3 from the conda-forge packages in `reference-r-conda-lock.txt`. CAST 1.0.4 and its dependencies are the CRAN Windows binaries listed in `reference-r-packages.csv`. Licenses are as declared in the conda-forge index and in the CRAN package index.
+Installed only with `Install.cmd -WithR`, for the kNNDM validation design. micromamba 2.3.0 (conda-forge, license BSD-3-Clause AND MIT AND OpenSSL) creates R 4.4.3 from the conda-forge packages in `reference-r-conda-lock.txt`. CAST 1.0.4 and its dependencies are the CRAN Windows binaries listed in `reference-r-packages.csv`. Licenses are as declared in the conda-forge index and in the CRAN package index.
 
 ### conda-forge packages
 
