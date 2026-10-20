@@ -1,0 +1,20 @@
+name: diagnostics
+
+on:
+  push:
+    branches: [ci-diagnostics]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+      - name: Diagnose encodings
+        run: .\.github\diag.ps1
