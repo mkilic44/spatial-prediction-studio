@@ -4,6 +4,7 @@ import importlib
 import importlib.util
 import hashlib
 import json
+import os
 import sys
 
 import joblib
@@ -65,7 +66,9 @@ def test_approved_weight_and_license_readback():
 
 def test_external_models_directory_is_used_without_fallback(monkeypatch, tmp_path):
     d = module()
-    root = Path(__file__).resolve().parents[1] / 'models'
+    # The folder that holds the installed weights: SPS_MODELS_DIR of an installed runtime, otherwise the
+    # models folder of the repository (tools/setup-tabpfn-weights.py).
+    root = Path(os.environ.get('SPS_MODELS_DIR') or Path(__file__).resolve().parents[1] / 'models')
     monkeypatch.setenv('SPS_MODELS_DIR', str(root))
     assert Path(d.verify_weights()['path']) == root / 'tabpfn-v2' / d.WEIGHT_NAME
     monkeypatch.setenv('SPS_MODELS_DIR', str(tmp_path))
