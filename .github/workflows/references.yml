@@ -1,0 +1,41 @@
+name: references
+
+# Resolves every DOI (doi.org, CSL JSON) and publisher page of docs/references.json and checks that it
+# is the expected work: first author, year and title. The job fails when a reference does not match,
+# or when the records in the registry differ from the committed records.
+
+on:
+  push:
+    paths:
+      - docs/references.json
+      - tools/references.py
+      - .github/workflows/references.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch and check every reference
+        run: python .github/scripts/annotate_failure.py references python tools/references.py update
+
+      - name: Report the records
+        if: always()
+        run: python .github/scripts/annotate_files.py reference-records docs/references.json
+
+      - name: Compare with the committed records
+        run: |
+          if ! git diff --stat --exit-code -- docs/references.json; then
+            echo "::error::The fetched reference records differ from docs/references.json."
+            exit 1
+          fi

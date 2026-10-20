@@ -1,0 +1,457 @@
+{
+  "schema_version": 1,
+  "comment": "Sources cited in docs/METHODS.md. \"expect\" is what each DOI or page must resolve to; \"metadata\" is written by tools/references.py update from doi.org (CSL JSON) or from the citation tags of the publisher page.",
+  "references": {
+    "roberts2017": {
+      "doi": "10.1111/ecog.02881",
+      "expect": {
+        "family": "Roberts",
+        "year": 2017,
+        "title": "Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure"
+      },
+      "used_for": "Grouped, spatial block, buffered and time-ordered validation: blocking dependent observations into folds."
+    },
+    "valavi2019": {
+      "doi": "10.1111/2041-210X.13107",
+      "expect": {
+        "family": "Valavi",
+        "year": 2019,
+        "title": "blockCV"
+      },
+      "used_for": "Spatial block validation: assignment of spatial blocks to folds."
+    },
+    "lerest2014": {
+      "doi": "10.1111/geb.12161",
+      "expect": {
+        "family": "Le Rest",
+        "year": 2014,
+        "title": "Spatial leave-one-out cross-validation for variable selection in the presence of spatial autocorrelation"
+      },
+      "used_for": "Buffered spatial validation: removing training observations within a buffer distance of the test observations."
+    },
+    "linnenbrink2024": {
+      "doi": "10.5194/gmd-17-5897-2024",
+      "expect": {
+        "family": "Linnenbrink",
+        "year": 2024,
+        "title": "kNNDM CV"
+      },
+      "used_for": "kNNDM validation design (the method that CAST 1.0.4 implements)."
+    },
+    "mila2022": {
+      "doi": "10.1111/2041-210X.13851",
+      "expect": {
+        "family": "Mila",
+        "year": 2022,
+        "title": "Nearest neighbour distance matching Leave-One-Out Cross-Validation for map validation"
+      },
+      "used_for": "kNNDM validation design: the nearest neighbour distance matching that kNNDM extends to k folds."
+    },
+    "cast": {
+      "doi": "10.32614/CRAN.package.CAST",
+      "expect": {
+        "family": "Meyer",
+        "year": 2024,
+        "title": "CAST"
+      },
+      "used_for": "CAST R package, used through the private R runtime for kNNDM and as the reference for the area of applicability."
+    },
+    "brus2011": {
+      "doi": "10.1111/j.1365-2389.2011.01364.x",
+      "expect": {
+        "family": "Brus",
+        "year": 2011,
+        "title": "Sampling for validation of digital soil maps"
+      },
+      "used_for": "Design-based map validation with a probability sample (not implemented yet)."
+    },
+    "wadoux2021": {
+      "doi": "10.1016/j.ecolmodel.2021.109692",
+      "expect": {
+        "family": "Wadoux",
+        "year": 2021,
+        "title": "Spatial cross-validation is not the right way to evaluate map accuracy"
+      },
+      "used_for": "Design-based map validation (not implemented yet) and the limits of cross-validation as an estimate of map accuracy."
+    },
+    "varma2006": {
+      "doi": "10.1186/1471-2105-7-91",
+      "expect": {
+        "family": "Varma",
+        "year": 2006,
+        "title": "Bias in error estimation when using cross-validation for model selection"
+      },
+      "used_for": "Nested cross-validation: tuning and selection inside the outer training folds."
+    },
+    "hastie2009": {
+      "doi": "10.1007/978-0-387-84858-7",
+      "expect": {
+        "family": "Hastie",
+        "year": 2009,
+        "title": "The Elements of Statistical Learning"
+      },
+      "used_for": "Preprocessing and variable selection inside each training fold (\"the wrong and the right way to do cross-validation\").",
+      "locator": "Section 7.10.2"
+    },
+    "yeo2000": {
+      "doi": "10.1093/biomet/87.4.954",
+      "expect": {
+        "family": "Yeo",
+        "year": 2000,
+        "title": "A new family of power transformations to improve normality or symmetry"
+      },
+      "used_for": "Yeo-Johnson target transformation."
+    },
+    "dormann2013": {
+      "doi": "10.1111/j.1600-0587.2012.07348.x",
+      "expect": {
+        "family": "Dormann",
+        "year": 2013,
+        "title": "Collinearity"
+      },
+      "used_for": "Variance inflation factor as a collinearity diagnostic and its thresholds."
+    },
+    "kraskov2004": {
+      "doi": "10.1103/PhysRevE.69.066138",
+      "expect": {
+        "family": "Kraskov",
+        "year": 2004,
+        "title": "Estimating mutual information"
+      },
+      "used_for": "Mutual information filter: nearest-neighbour estimator for continuous variables (scikit-learn mutual_info_regression)."
+    },
+    "ross2014": {
+      "doi": "10.1371/journal.pone.0087357",
+      "expect": {
+        "family": "Ross",
+        "year": 2014,
+        "title": "Mutual information between discrete and continuous data sets"
+      },
+      "used_for": "Mutual information filter: estimator for discrete covariates and a continuous target (scikit-learn mutual_info_regression)."
+    },
+    "zou2005": {
+      "doi": "10.1111/j.1467-9868.2005.00503.x",
+      "expect": {
+        "family": "Zou",
+        "year": 2005,
+        "title": "Regularization and variable selection via the elastic net"
+      },
+      "used_for": "Elastic Net selection and Elastic Net regression."
+    },
+    "meyer2018": {
+      "doi": "10.1016/j.envsoft.2017.12.001",
+      "expect": {
+        "family": "Meyer",
+        "year": 2018,
+        "title": "Improving performance of spatio-temporal machine learning models using forward feature selection and target-oriented validation"
+      },
+      "used_for": "Sequential forward selection evaluated with spatially separated folds."
+    },
+    "guyon2002": {
+      "doi": "10.1023/A:1012487302797",
+      "expect": {
+        "family": "Guyon",
+        "year": 2002,
+        "title": "Gene selection for cancer classification using support vector machines"
+      },
+      "used_for": "Recursive feature elimination."
+    },
+    "kursa2010": {
+      "doi": "10.18637/jss.v036.i11",
+      "expect": {
+        "family": "Kursa",
+        "year": 2010,
+        "title": "Feature Selection with the Boruta Package"
+      },
+      "used_for": "Boruta selection (BorutaPy implements this algorithm)."
+    },
+    "jolliffe2016": {
+      "doi": "10.1098/rsta.2015.0202",
+      "expect": {
+        "family": "Jolliffe",
+        "year": 2016,
+        "title": "Principal component analysis"
+      },
+      "used_for": "Principal component analysis."
+    },
+    "hoerl1970": {
+      "doi": "10.1080/00401706.1970.10488634",
+      "expect": {
+        "family": "Hoerl",
+        "year": 1970,
+        "title": "Ridge regression"
+      },
+      "used_for": "Ridge regression."
+    },
+    "breiman2001": {
+      "doi": "10.1023/A:1010933404324",
+      "expect": {
+        "family": "Breiman",
+        "year": 2001,
+        "title": "Random Forests"
+      },
+      "used_for": "Random forest, and permutation variable importance in random forests."
+    },
+    "geurts2006": {
+      "doi": "10.1007/s10994-006-6226-1",
+      "expect": {
+        "family": "Geurts",
+        "year": 2006,
+        "title": "Extremely randomized trees"
+      },
+      "used_for": "Extremely randomized trees."
+    },
+    "smola2004": {
+      "doi": "10.1023/B:STCO.0000035301.49549.88",
+      "expect": {
+        "family": "Smola",
+        "year": 2004,
+        "title": "A tutorial on support vector regression"
+      },
+      "used_for": "Support vector regression."
+    },
+    "friedman2001": {
+      "doi": "10.1214/aos/1013203451",
+      "expect": {
+        "family": "Friedman",
+        "year": 2001,
+        "title": "Greedy function approximation"
+      },
+      "used_for": "Gradient boosting: histogram-based gradient boosting and boosting with quantile loss."
+    },
+    "chen2016": {
+      "doi": "10.1145/2939672.2939785",
+      "expect": {
+        "family": "Chen",
+        "year": 2016,
+        "title": "XGBoost"
+      },
+      "used_for": "XGBoost."
+    },
+    "ke2017": {
+      "url": "https://proceedings.neurips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html",
+      "expect": {
+        "family": "Ke",
+        "year": 2017,
+        "title": "LightGBM"
+      },
+      "used_for": "LightGBM, and the histogram binning of histogram-based gradient boosting."
+    },
+    "prokhorenkova2018": {
+      "doi": "10.48550/arXiv.1706.09516",
+      "expect": {
+        "family": "Prokhorenkova",
+        "year": 2017,
+        "title": "CatBoost"
+      },
+      "used_for": "CatBoost (preprint of the NeurIPS 2018 paper)."
+    },
+    "quinlan1993": {
+      "doi": "10.1016/B978-1-55860-307-3.50037-X",
+      "expect": {
+        "family": "Quinlan",
+        "year": 1993,
+        "title": "Combining Instance-Based and Model-Based Learning"
+      },
+      "used_for": "Cubist: rule-based model trees with instance-based correction."
+    },
+    "webster2007": {
+      "doi": "10.1002/9780470517277",
+      "expect": {
+        "family": "Webster",
+        "year": 2007,
+        "title": "Geostatistics for Environmental Scientists"
+      },
+      "used_for": "Ordinary kriging and semivariogram fitting."
+    },
+    "odeh1995": {
+      "doi": "10.1016/0016-7061(95)00007-B",
+      "expect": {
+        "family": "Odeh",
+        "year": 1995,
+        "title": "Further results on prediction of soil properties from terrain attributes"
+      },
+      "used_for": "Regression kriging of soil properties."
+    },
+    "hengl2004": {
+      "doi": "10.1016/j.geoderma.2003.08.018",
+      "expect": {
+        "family": "Hengl",
+        "year": 2004,
+        "title": "A generic framework for spatial prediction of soil variables based on regression-kriging"
+      },
+      "used_for": "Regression kriging of soil properties."
+    },
+    "hollmann2025": {
+      "doi": "10.1038/s41586-024-08328-6",
+      "expect": {
+        "family": "Hollmann",
+        "year": 2025,
+        "title": "Accurate predictions on small data with a tabular foundation model"
+      },
+      "used_for": "TabPFN v2."
+    },
+    "gorishniy2024": {
+      "doi": "10.48550/arXiv.2410.24210",
+      "expect": {
+        "family": "Gorishniy",
+        "year": 2024,
+        "title": "TabM"
+      },
+      "used_for": "TabM (preprint of the ICLR 2025 paper)."
+    },
+    "holzmuller2024": {
+      "doi": "10.48550/arXiv.2407.04491",
+      "expect": {
+        "family": "Holzmuller",
+        "year": 2024,
+        "title": "Better by Default"
+      },
+      "used_for": "RealMLP (preprint of the NeurIPS 2024 paper)."
+    },
+    "bergstra2012": {
+      "url": "https://jmlr.org/papers/v13/bergstra12a.html",
+      "expect": {
+        "family": "Bergstra",
+        "year": 2012,
+        "title": "Random Search for Hyper-Parameter Optimization"
+      },
+      "used_for": "Random search."
+    },
+    "akiba2019": {
+      "doi": "10.1145/3292500.3330701",
+      "expect": {
+        "family": "Akiba",
+        "year": 2019,
+        "title": "Optuna"
+      },
+      "used_for": "Optuna search with the Tree-structured Parzen Estimator."
+    },
+    "lei2018": {
+      "doi": "10.1080/01621459.2017.1307116",
+      "expect": {
+        "family": "Lei",
+        "year": 2018,
+        "title": "Distribution-Free Predictive Inference for Regression"
+      },
+      "used_for": "Split conformal prediction intervals."
+    },
+    "vovk2005": {
+      "doi": "10.1007/b106715",
+      "expect": {
+        "family": "Vovk",
+        "year": 2005,
+        "title": "Algorithmic Learning in a Random World"
+      },
+      "used_for": "Conformal prediction."
+    },
+    "meinshausen2006": {
+      "url": "https://jmlr.org/papers/v7/meinshausen06a.html",
+      "expect": {
+        "family": "Meinshausen",
+        "year": 2006,
+        "title": "Quantile Regression Forests"
+      },
+      "used_for": "Quantile regression forest."
+    },
+    "johnson2024": {
+      "doi": "10.21105/joss.05976",
+      "expect": {
+        "family": "Johnson",
+        "year": 2024,
+        "title": "quantile-forest"
+      },
+      "used_for": "Quantile regression forest implementation used here (quantile-forest package)."
+    },
+    "koenker1978": {
+      "doi": "10.2307/1913643",
+      "expect": {
+        "family": "Koenker",
+        "year": 1978,
+        "title": "Regression Quantiles"
+      },
+      "used_for": "Quantile loss (pinball loss) of quantile boosting and of the interval metrics."
+    },
+    "romano2019": {
+      "doi": "10.48550/arXiv.1905.03222",
+      "expect": {
+        "family": "Romano",
+        "year": 2019,
+        "title": "Conformalized Quantile Regression"
+      },
+      "used_for": "Conformalized quantile regression (preprint of the NeurIPS 2019 paper)."
+    },
+    "tibshirani2019": {
+      "doi": "10.48550/arXiv.1904.06019",
+      "expect": {
+        "family": "Tibshirani",
+        "year": 2019,
+        "title": "Conformal Prediction Under Covariate Shift"
+      },
+      "used_for": "Spatially weighted conformal: weighted conformal quantile with the test point mass at infinity."
+    },
+    "guan2023": {
+      "doi": "10.1093/biomet/asac040",
+      "expect": {
+        "family": "Guan",
+        "year": 2023,
+        "title": "Localized conformal prediction"
+      },
+      "used_for": "Spatially weighted conformal: localization of conformal calibration with kernel weights."
+    },
+    "mao2024": {
+      "doi": "10.1080/01621459.2022.2147531",
+      "expect": {
+        "family": "Mao",
+        "year": 2024,
+        "title": "Valid model-free spatial prediction"
+      },
+      "used_for": "Spatially weighted conformal: related spatial method whose coverage results are not claimed here."
+    },
+    "meyer2021": {
+      "doi": "10.1111/2041-210X.13650",
+      "expect": {
+        "family": "Meyer",
+        "year": 2021,
+        "title": "Predicting into unknown space"
+      },
+      "used_for": "Area of applicability (AOA) and dissimilarity index (DI)."
+    },
+    "fisher2019": {
+      "url": "https://jmlr.org/papers/v20/18-760.html",
+      "expect": {
+        "family": "Fisher",
+        "year": 2019,
+        "title": "All Models are Wrong, but Many are Useful"
+      },
+      "used_for": "Model-agnostic permutation variable importance."
+    },
+    "lin1989": {
+      "doi": "10.2307/2532051",
+      "expect": {
+        "family": "Lin",
+        "year": 1989,
+        "title": "A concordance correlation coefficient to evaluate reproducibility"
+      },
+      "used_for": "Lin's concordance correlation coefficient (CCC)."
+    },
+    "bellonmaurel2010": {
+      "doi": "10.1016/j.trac.2010.05.006",
+      "expect": {
+        "family": "Bellon-Maurel",
+        "year": 2010,
+        "title": "Critical review of chemometric indicators commonly used for assessing the quality of the prediction of soil attributes by NIR spectroscopy"
+      },
+      "used_for": "RPD and RPIQ for soil property predictions."
+    },
+    "gneiting2007": {
+      "doi": "10.1198/016214506000000437",
+      "expect": {
+        "family": "Gneiting",
+        "year": 2007,
+        "title": "Strictly Proper Scoring Rules, Prediction, and Estimation"
+      },
+      "used_for": "Interval score."
+    }
+  }
+}
