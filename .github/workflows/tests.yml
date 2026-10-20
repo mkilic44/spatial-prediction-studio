@@ -21,11 +21,11 @@ jobs:
       - name: Generate synthetic example data
         run: python tools/make_examples.py --output examples
       # The deselected tests need R with CAST 1.0.4 and its reference fixtures
-      # (tools/setup-cast.ps1, tools/create_cast_reference.R). They run on the Windows build machine.
+      # (tools/setup-cast.ps1, tools/create_cast_reference.R). They run only where R and CAST are installed.
       # The deep-learning and package tests need requirements-d-lock.txt and a built add-in package.
-      - name: Run backend tests
+      - name: Run backend and installer tests
         run: >
-          python -m pytest tests -q -p no:cacheprovider
+          python -m pytest tests installer/test_sps_install.py -q -p no:cacheprovider
           --ignore=tests/test_package.py --ignore=tests/test_models_d.py --ignore=tests/test_tabpfn_d.py
           --ignore=tests/test_model_integration_d.py --ignore=tests/test_publication_models_d.py
           --deselect tests/test_applicability_c.py::test_cast_104_intermediate_distances_threshold_and_mask

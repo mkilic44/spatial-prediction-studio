@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "comment": "Pinned downloads used by Install.cmd. Each SHA-512 matches the packageHash in the nuget.org catalog.",
+  "python": {
+    "version": "3.12.3",
+    "url": "https://api.nuget.org/v3-flatcontainer/python/3.12.3/python.3.12.3.nupkg",
+    "sha512": "42fc209083396c60a485e56ce450e34f3cef5f3c939f11fa498f7ad0d2d9b1200d03310fc65acd9a1644ce4fad19b072e86afe7ddde79059916e8e3a9eb32b5e",
+    "member_prefix": "tools/"
+  },
+  "csharp_compiler": {
+    "version": "4.14.0",
+    "url": "https://api.nuget.org/v3-flatcontainer/microsoft.net.compilers.toolset/4.14.0/microsoft.net.compilers.toolset.4.14.0.nupkg",
+    "sha512": "879184c42ddfc747e6d2a1f0f2b43acb9734ba4e9c0a202ca2b2e5f47abff55968b44becbffa16eb444da3c1ce600a6feba90da89ab8060fd391202c8100306d",
+    "member_prefix": "tasks/net472/"
+  },
+  "net48_reference_assemblies": {
+    "version": "1.0.3",
+    "url": "https://api.nuget.org/v3-flatcontainer/microsoft.netframework.referenceassemblies.net48/1.0.3/microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg",
+    "sha512": "5d62a0c9e35a74d71341a215bd007c06b74236b11aafa7e8fdd7b539d41167d1c5cb48dc05268cf08579abae196a6a6c4a70bc0254ec002686654ba8170e3544",
+    "member_prefix": "build/.NETFramework/v4.8/"
+  },
+  "pytorch_cpu_index": "https://download.pytorch.org/whl/cpu"
+}

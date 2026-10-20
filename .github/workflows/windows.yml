@@ -1,0 +1,108 @@
+name: windows-install
+
+# Runs the real installer on a clean Windows machine. GitHub runners have no ArcGIS Desktop, so the
+# add-in is compiled against the ArcObjects stand-ins in native/ci and installed into a staging
+# Documents folder. Everything else is the same path a user takes with Install.cmd.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install with Install.cmd's script (staging, ArcObjects stand-ins, MCP server)
+        run: |
+          .\installer\bootstrap.ps1 -Action Install -InstallRoot "$env:RUNNER_TEMP\sps" -Staging "$env:RUNNER_TEMP\stage" -EsriStubs -WithMcp
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify the installation
+        run: |
+          .\installer\bootstrap.ps1 -Action Verify -InstallRoot "$env:RUNNER_TEMP\sps" -Staging "$env:RUNNER_TEMP\stage"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Backend tests with the installed runtime
+        # R/CAST tests need the optional R runtime; TabPFN tests need the licensed weights.
+        run: |
+          $app = (Get-Content "$env:RUNNER_TEMP\sps\current.json" -Raw | ConvertFrom-Json).application_root
+          $py = "$app\runtime-d\Scripts\python.exe"
+          & $py -I tools\make_examples.py --output examples
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $py -m pytest tests installer\test_sps_install.py -q -p no:cacheprovider --ignore=tests\test_package.py -k "not tabpfn" `
+            --deselect tests/test_applicability_c.py::test_cast_104_intermediate_distances_threshold_and_mask `
+            --deselect tests/test_applicability_c.py::test_applicability_prediction_does_not_change_training_threshold `
+            --deselect tests/test_applicability_c.py::test_applicability_rejects_repeated_or_invalid_folds_and_constant_design `
+            --deselect tests/test_engine_c.py::test_knndm_mapping_domain_and_nested_training `
+            --deselect tests/test_knndm_c.py::test_real_cast_bridge_matches_reference_folds_and_three_distance_distributions `
+            --deselect tests/test_knndm_c.py::test_real_cast_reads_unicode_work_paths_with_c_parent_locale `
+            --deselect tests/test_knndm_c.py::test_folds_preserve_reference_distances_and_reject_group_splitting
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Native contract tests (C# panel, job client, process ownership)
+        run: |
+          $app = (Get-Content "$env:RUNNER_TEMP\sps\current.json" -Raw | ConvertFrom-Json).application_root
+          $cache = "$env:RUNNER_TEMP\sps\cache"
+          $csc = (Get-ChildItem "$cache\csharp-compiler-*\csc.exe" | Select-Object -First 1).FullName
+          $ref = (Get-ChildItem "$cache\net48-reference-assemblies-*" -Directory | Select-Object -First 1).FullName
+          $out = "$env:RUNNER_TEMP\native"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $common = @('-nologo', '-noconfig', '-nostdlib+', '-target:exe', '-platform:x86', '-langversion:7.3')
+          foreach ($name in 'mscorlib', 'System', 'System.Core', 'System.Web.Extensions', 'System.Windows.Forms', 'System.Drawing', 'System.Data', 'Microsoft.VisualBasic') {
+            $common += "-reference:$ref\$name.dll"
+          }
+          $s = 'native\SpatialPredictionStudio'
+          & $csc @common "-out:$out\NativeContracts.exe" native\tests\NativeContracts.cs "$s\JobClient.cs" "$s\ArtifactIntegrity.cs" native\tests\RegistryContracts.cs native\tests\ModelExportContracts.cs "$s\MethodRegistry.cs" "$s\RegistryEditor.cs" "$s\WorkflowEditors.cs" "$s\ArtifactViewer.cs" native\tests\ArtifactViewerContracts.cs native\tests\McpBridgeContracts.cs "$s\McpPipeBridge.cs" "$s\OwnedProcessJob.cs" "$s\ModelExport.cs"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $csc @common "-out:$out\OwnedProcessContracts.exe" native\tests\OwnedProcessContracts.cs "$s\JobClient.cs" "$s\OwnedProcessJob.cs"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $csc @common "-out:$out\PanelContracts.exe" native\tests\PanelContracts.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item "$app\build\SpatialPredictionStudio.dll" $out
+          Copy-Item "$app\build\esri-stubs\*.dll" $out
+          $py = "$app\runtime-d\Scripts\python.exe"
+          $evidence = "$out\evidence"
+          & "$out\NativeContracts.exe" $py native\tests\worker_stub.py $evidence backend\sps\registry.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & "$out\PanelContracts.exe" "$out\SpatialPredictionStudio.dll" "$evidence\accepted_methods.fixture.json" "$evidence\panel"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & "$out\OwnedProcessContracts.exe" $py native\tests\owned_worker_stub.py "$evidence\owned-process"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: MCP server tests on Windows (named pipes included)
+        run: |
+          $app = (Get-Content "$env:RUNNER_TEMP\sps\current.json" -Raw | ConvertFrom-Json).application_root
+          $py = "$app\runtime-mcp\Scripts\python.exe"
+          Push-Location mcp-server
+          & $py -m pytest tests -q -p no:cacheprovider
+          $code = $LASTEXITCODE
+          Pop-Location
+          exit $code
+
+      - name: Uninstall and check that nothing owned is left
+        run: |
+          $app = (Get-Content "$env:RUNNER_TEMP\sps\current.json" -Raw | ConvertFrom-Json).application_root
+          .\installer\bootstrap.ps1 -Action Uninstall -InstallRoot "$env:RUNNER_TEMP\sps" -Staging "$env:RUNNER_TEMP\stage"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $addin = Get-ChildItem -Recurse "$env:RUNNER_TEMP\stage\Documents" -Filter *.esriAddIn -ErrorAction SilentlyContinue
+          if ($addin) { throw 'The add-in was not removed.' }
+          if (Test-Path $app) { throw 'The application folder was not removed.' }
+
+      - name: Keep the installer logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-logs
+          path: ${{ runner.temp }}\sps\logs
+          if-no-files-found: ignore
