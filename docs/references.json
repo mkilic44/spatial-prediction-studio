@@ -16,7 +16,7 @@
       "expect": {
         "family": "Valavi",
         "year": 2019,
-        "title": "blockCV"
+        "title": "An r package for generating spatially or environmentally separated folds"
       },
       "used_for": "Spatial block validation: assignment of spatial blocks to folds."
     },
@@ -51,10 +51,10 @@
       "doi": "10.32614/CRAN.package.CAST",
       "expect": {
         "family": "Meyer",
-        "year": 2024,
+        "year": 2018,
         "title": "CAST"
       },
-      "used_for": "CAST R package, used through the private R runtime for kNNDM and as the reference for the area of applicability."
+      "used_for": "CAST R package (version 1.0.4 is used), through the private R runtime for kNNDM and as the reference for the area of applicability."
     },
     "brus2011": {
       "doi": "10.1111/j.1365-2389.2011.01364.x",
@@ -336,15 +336,6 @@
       },
       "used_for": "Split conformal prediction intervals."
     },
-    "vovk2005": {
-      "doi": "10.1007/b106715",
-      "expect": {
-        "family": "Vovk",
-        "year": 2005,
-        "title": "Algorithmic Learning in a Random World"
-      },
-      "used_for": "Conformal prediction."
-    },
     "meinshausen2006": {
       "url": "https://jmlr.org/papers/v7/meinshausen06a.html",
       "expect": {
@@ -445,7 +436,7 @@
       "used_for": "RPD and RPIQ for soil property predictions."
     },
     "gneiting2007": {
-      "doi": "10.1198/016214506000000437",
+      "doi": "10.1198/016214506000001437",
       "expect": {
         "family": "Gneiting",
         "year": 2007,

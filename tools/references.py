@@ -14,6 +14,7 @@ Both commands need internet access to doi.org and the publisher pages; they run 
 from __future__ import annotations
 
 import argparse
+import html
 from html.parser import HTMLParser
 import json
 from pathlib import Path
@@ -30,10 +31,12 @@ USER_AGENT = 'SpatialPredictionStudio-reference-check/1.0 (https://github.com/mk
 
 
 def clean(text):
-    """Plain text without markup, with ASCII hyphens instead of dashes and single spaces."""
-    text = re.sub(r'<[^>]+>', '', str(text or ''))
-    text = text.translate(DASHES)
-    return re.sub(r'\s+', ' ', text).strip()
+    """Plain text without markup or entities, with ASCII hyphens instead of dashes and single spaces."""
+    text = html.unescape(re.sub(r'<[^>]+>', '', str(text or '')))
+    text = re.sub(r'\s+', ' ', text.translate(DASHES)).strip()
+    # Markup in registry titles leaves spaces such as "k -fold" or "CV :".
+    text = re.sub(r'(\w) -(\w)', r'\1-\2', text)
+    return re.sub(r'\s+([:;,.?!])', r'\1', text)
 
 
 def simple(text):
