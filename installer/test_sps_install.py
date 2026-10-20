@@ -139,7 +139,8 @@ def test_portable_runtime_is_isolated_with_a_pth_file(tmp_path):
     (base / 'python312._pth').write_text('stale', encoding='utf-8')
     python = installer.portable_runtime(base, tmp_path / 'app/runtime-d', '../../backend', installer.Log(None))
     assert python == tmp_path / 'app/runtime-d/Scripts/python.exe' and python.is_file()
-    assert (python.parent / 'python312._pth').read_text(encoding='utf-8').splitlines() == ['Lib', 'DLLs', '.', '../../backend', 'import site']
+    assert (python.parent / 'python312._pth').read_text(encoding='utf-8').splitlines() == [
+        'Lib', 'DLLs', '.', 'Lib/site-packages', '../../backend', 'import site']
     # The layout keeps the application root two levels above the interpreter, as the R lookup expects.
     assert python.parents[2] == tmp_path / 'app'
 

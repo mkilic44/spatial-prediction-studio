@@ -292,12 +292,15 @@ def portable_runtime(base, target, extra_path, log):
 
     The layout matches the runtime of the 0.5.0 installer: the worker finds the R runtime and the
     application root relative to sys.executable, which is <root>/runtime-d/Scripts/python.exe.
+    A ._pth file does not switch off the user's own site-packages folder (%APPDATA%\\Python), which
+    the site module appends. Listing the runtime's site-packages before 'import site' keeps the
+    pinned packages ahead of it; the add-in also starts the worker with -s.
     """
     scripts = Path(target) / 'Scripts'
     if Path(target).exists():
         shutil.rmtree(target)
     shutil.copytree(base, scripts, ignore=shutil.ignore_patterns('__pycache__', '*._pth'))
-    lines = ['Lib', 'DLLs', '.', extra_path, 'import site']
+    lines = ['Lib', 'DLLs', '.', 'Lib/site-packages', extra_path, 'import site']
     (scripts / 'python312._pth').write_text('\n'.join(lines) + '\n', encoding='utf-8')
     log('    private Python copied to ' + str(scripts))
     return scripts / 'python.exe'

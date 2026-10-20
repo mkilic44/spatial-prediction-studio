@@ -75,7 +75,8 @@ namespace SpatialPredictionStudio
                 {
                     var info = new ProcessStartInfo {
                         FileName = runtime.PythonPath,
-                        Arguments = "-u " + Quote(runtime.WorkerPath) + " " + Quote(requestPath),
+                        // -s: the user's own site-packages folder (%APPDATA%\Python) must not shadow the pinned packages.
+                        Arguments = "-u -s " + Quote(runtime.WorkerPath) + " " + Quote(requestPath),
                         WorkingDirectory = Path.GetDirectoryName(runtime.WorkerPath),
                         UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden,
                         RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = true,
