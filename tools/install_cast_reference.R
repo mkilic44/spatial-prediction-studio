@@ -1,27 +1,19 @@
-# Installs the CRAN packages of reference-r-packages.csv into reference-r/library-extra.
+# Installs the CRAN packages of reference-r-packages.csv into reference-r/library-extra from a folder
+# of Windows binaries whose SHA-256 digests the caller has already checked (installer/sps_install.py
+# or tools/cast_reference.py). Nothing is downloaded here.
+# Usage: Rscript --vanilla install_cast_reference.R <binaries folder>
 # Run with the private Rscript and the folder that contains reference-r as working directory.
-# Versions and MD5 sums of the downloaded Windows binaries must match the recorded plan.
-options(repos=c(CRAN="https://cloud.r-project.org"), timeout=600,
-        install.packages.check.source="no")
+args <- commandArgs(trailingOnly=TRUE)
+stopifnot(length(args) == 1)
+binaries <- normalizePath(args[1], winslash="/", mustWork=TRUE)
 lib <- normalizePath("reference-r", winslash="/")
 lib <- paste0(lib, "/library-extra")
 dir.create(lib, recursive=TRUE, showWarnings=FALSE)
 .libPaths(c(lib,.libPaths()))
 plan <- read.csv("reference-r-packages.csv", stringsAsFactors=FALSE)
-available <- available.packages(type="win.binary")
-stopifnot(all(plan$Package %in% rownames(available)))
-stopifnot(all(available[plan$Package,"Version"]==plan$Version))
-stopifnot("MD5sum" %in% names(plan), all(available[plan$Package,"MD5sum"]==plan$MD5sum))
-downloads <- file.path(tempdir(), "cast-binaries")
-dir.create(downloads, showWarnings=FALSE)
-files <- download.packages(plan$Package, destdir=downloads, available=available, type="win.binary")
-stopifnot(nrow(files)==nrow(plan), setequal(files[,1], plan$Package))
-md5 <- unname(tools::md5sum(files[,2]))
-expected <- plan$MD5sum[match(files[,1], plan$Package)]
-if (!all(md5 == expected)) stop("MD5 mismatch: ", paste(files[md5 != expected, 1], collapse=", "))
-install.packages(files[,2], lib=lib, repos=NULL, type="win.binary")
-dir.create('build',showWarnings=FALSE)
-writeLines(format(sum(file.size(files[,2])), scientific=FALSE), "build/reference-cast-download-bytes.txt")
+files <- file.path(binaries, paste0(plan$Package, "_", plan$Version, ".zip"))
+stopifnot(all(file.exists(files)))
+install.packages(files, lib=lib, repos=NULL, type="win.binary")
 library(CAST)
 stopifnot(as.character(packageVersion("CAST"))=="1.0.4")
 actual <- do.call(rbind,lapply(plan$Package,function(package) {

@@ -7,21 +7,24 @@ Windows only, because reference-r-conda-lock.txt pins win-64 packages. Run from 
 
 1. Creates reference-r\\ from reference-r-conda-lock.txt with the pinned micromamba (installer/pins.json).
 2. --plan lists CAST 1.0.4 and its dependencies from CRAN's R 4.4 Windows binaries again and writes
-   reference-r-packages.csv with versions and MD5 sums. Without --plan the committed list is used;
-   when the list is missing, it is created.
-3. Installs those packages into reference-r\\library-extra and checks versions and MD5 sums.
+   reference-r-packages.csv with versions and the SHA-256 digest of every binary. Without --plan the
+   committed list is used; when the list is missing, it is created.
+3. Downloads the binaries, checks their SHA-256 digests and installs them into
+   reference-r\\library-extra, as Install.cmd -WithR does.
 4. --fixtures writes tests/fixtures/cast-1.0.4 with CAST itself (tools/create_cast_reference.R).
 
 The last line of the output is a JSON summary with the longest file path inside reference-r, which
 installer/sps_install.py uses for its Windows path length check.
 """
 import argparse
+import csv
+import hashlib
 import importlib.util
 import json
 import os
 from pathlib import Path
-import shutil
 import sys
+import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location('sps_install', ROOT / 'installer/sps_install.py')
@@ -39,6 +42,27 @@ def longest_relative_path(prefix):
             if len(relative) > longest:
                 longest, name = len(relative), relative
     return longest, name
+
+
+def pin_binaries(plan_csv, target_csv, cache, log):
+    """Download every planned binary once and record its SHA-256 digest."""
+    with Path(plan_csv).open(newline='', encoding='utf-8') as stream:
+        rows = list(csv.DictReader(stream))
+    folder = Path(cache) / 'cran'
+    folder.mkdir(parents=True, exist_ok=True)
+    for row in rows:
+        name = '%s_%s.zip' % (row['Package'], row['Version'])
+        url = row['Repository'].rstrip('/') + '/' + name
+        log('    pinning ' + url)
+        with urllib.request.urlopen(url, timeout=120) as response:
+            data = response.read()
+        (folder / name).write_bytes(data)
+        row['SHA256'] = hashlib.sha256(data).hexdigest()
+    with Path(target_csv).open('w', newline='', encoding='utf-8') as stream:
+        writer = csv.DictWriter(stream, fieldnames=['Package', 'Version', 'License', 'Repository', 'SHA256'],
+                                quoting=csv.QUOTE_ALL, lineterminator='\n')
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def main(argv=None):
@@ -61,9 +85,11 @@ def main(argv=None):
     if plan:
         log('Listing CAST 1.0.4 and its dependencies from CRAN')
         installer.run([rscript, '--vanilla', ROOT / 'tools/plan_cast_reference.R'], log, cwd=ROOT, timeout=600, env=env)
-        shutil.copyfile(ROOT / 'build/reference-cast-packages-plan.csv', ROOT / 'reference-r-packages.csv')
+        pin_binaries(ROOT / 'build/reference-cast-packages-plan.csv', ROOT / 'reference-r-packages.csv', args.cache, log)
     log('Installing the planned packages into reference-r/library-extra')
-    installer.run([rscript, '--vanilla', ROOT / 'tools/install_cast_reference.R'], log, cwd=ROOT, timeout=3600, env=env)
+    binaries = installer.cran_binaries(ROOT / 'reference-r-packages.csv', Path(args.cache), log)
+    installer.run([rscript, '--vanilla', ROOT / 'tools/install_cast_reference.R', binaries], log, cwd=ROOT,
+                  timeout=3600, env=env)
     if args.fixtures:
         log('Writing tests/fixtures/cast-1.0.4 with CAST 1.0.4')
         installer.run([rscript, '--vanilla', ROOT / 'tools/create_cast_reference.R'], log, cwd=ROOT, timeout=600, env=env)
@@ -71,7 +97,7 @@ def main(argv=None):
     packages = len((ROOT / 'reference-r-packages.csv').read_text(encoding='utf-8').splitlines()) - 1
     conda_bytes = sum(path.stat().st_size for path in (Path(args.cache) / 'mamba/pkgs').glob('*')
                       if path.name.endswith(('.conda', '.tar.bz2')))
-    cran_bytes = int((ROOT / 'build/reference-cast-download-bytes.txt').read_text(encoding='utf-8').strip())
+    cran_bytes = sum(path.stat().st_size for path in binaries.glob('*.zip'))
     summary = {'planned': plan, 'fixtures': args.fixtures, 'cran_packages': packages,
                'download_mb': {'conda': round(conda_bytes / 1e6, 1), 'cran': round(cran_bytes / 1e6, 1)},
                'longest_reference_r_path': longest, 'longest_reference_r_file': name}

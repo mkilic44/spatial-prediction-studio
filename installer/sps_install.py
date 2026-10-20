@@ -24,6 +24,7 @@ writes to %LOCALAPPDATA%\\SpatialPredictionStudio are never touched by this scri
 from __future__ import annotations
 
 import argparse
+import csv
 import datetime as _dt
 import hashlib
 import importlib.util
@@ -153,10 +154,12 @@ def run(command, log, *, cwd=None, timeout=None, capture=False, env=None):
 # Downloads
 
 
-def download(url, destination, expected_sha512, log):
-    """Download once into the cache and verify the pinned SHA-512 digest."""
+def download(url, destination, expected_digest, log, algorithm='sha512'):
+    """Download once into the cache and verify the pinned digest (SHA-512 unless stated otherwise)."""
+    digest = {'sha512': sha512, 'sha256': sha256}[algorithm]
+    label = algorithm.upper().replace('SHA', 'SHA-')
     destination = Path(destination)
-    if destination.is_file() and sha512(destination) == expected_sha512:
+    if destination.is_file() and digest(destination) == expected_digest:
         return destination
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_name(destination.name + '.' + uuid.uuid4().hex + '.part')
@@ -172,10 +175,10 @@ def download(url, destination, expected_sha512, log):
             time.sleep(2 ** attempt)
     else:
         raise InstallError('Download failed: %s (%s). Check the internet connection or proxy settings.' % (url, last))
-    actual = sha512(temporary)
-    if actual != expected_sha512:
+    actual = digest(temporary)
+    if actual != expected_digest:
         temporary.unlink()
-        raise InstallError('The downloaded file does not match its pinned SHA-512 digest: ' + url)
+        raise InstallError('The downloaded file does not match its pinned %s digest: %s' % (label, url))
     os.replace(temporary, destination)
     return destination
 
@@ -419,6 +422,17 @@ def create_r_environment(prefix, cache, source, pins, log, runtime_dlls=()):
     return rscript
 
 
+def cran_binaries(package_list, cache, log):
+    """Download the CRAN Windows binaries of reference-r-packages.csv and check their SHA-256 digests."""
+    folder = Path(cache) / 'cran'
+    with Path(package_list).open(newline='', encoding='utf-8') as stream:
+        rows = list(csv.DictReader(stream))
+    for row in rows:
+        name = '%s_%s.zip' % (row['Package'], row['Version'])
+        download(row['Repository'].rstrip('/') + '/' + name, folder / name, row['SHA256'].lower(), log, 'sha256')
+    return folder
+
+
 def install_r_runtime(install_root, app_root, source, pins, log):
     """R and the pinned CRAN packages of reference-r-packages.csv in <app>\\reference-r."""
     scripts = app_root / 'runtime-d/Scripts'
@@ -427,8 +441,9 @@ def install_r_runtime(install_root, app_root, source, pins, log):
     rscript = create_r_environment(prefix, install_root / 'cache', source, pins, log, dlls)
     for name in ('reference-r-packages.csv', 'reference-r-conda-lock.txt'):
         shutil.copy2(source / name, app_root / name)
-    log('    installing CAST 1.0.4 and its dependencies from CRAN (versions and MD5 sums are checked)')
-    run([rscript, '--vanilla', source / 'tools/install_cast_reference.R'], log, cwd=app_root, timeout=3600,
+    log('    downloading CAST 1.0.4 and its dependencies from CRAN (SHA-256 checked)')
+    binaries = cran_binaries(source / 'reference-r-packages.csv', install_root / 'cache', log)
+    run([rscript, '--vanilla', source / 'tools/install_cast_reference.R', binaries], log, cwd=app_root, timeout=3600,
         env=r_environment(prefix))
     return rscript
 

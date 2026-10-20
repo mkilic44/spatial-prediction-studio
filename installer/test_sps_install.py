@@ -217,3 +217,18 @@ def test_r_component_is_recorded_and_its_environment_ignores_user_settings(setup
     mamba = installer.mamba_environment(setup['root'] / 'cache')
     assert 'CONDARC' not in mamba and mamba['MAMBA_ROOT_PREFIX'] == str(setup['root'] / 'cache/mamba')
     assert mamba['USERPROFILE'] == str(setup['root'] / 'cache/mamba-home')
+
+
+def test_cran_binaries_are_checked_against_the_pinned_sha256(tmp_path):
+    repository = tmp_path / 'cran'
+    repository.mkdir()
+    (repository / 'CAST_1.0.4.zip').write_bytes(b'cast binary')
+    good = hashlib.sha256(b'cast binary').hexdigest()
+    plan = tmp_path / 'reference-r-packages.csv'
+    plan.write_text('"Package","Version","License","Repository","SHA256"\n'
+                    '"CAST","1.0.4","GPL (>= 2)","%s","%s"\n' % (repository.as_uri(), good), encoding='utf-8')
+    folder = installer.cran_binaries(plan, tmp_path / 'cache', installer.Log(None))
+    assert (folder / 'CAST_1.0.4.zip').read_bytes() == b'cast binary'
+    plan.write_text(plan.read_text(encoding='utf-8').replace(good, '0' * 64), encoding='utf-8')
+    with pytest.raises(installer.InstallError, match='SHA-256'):
+        installer.cran_binaries(plan, tmp_path / 'other-cache', installer.Log(None))
