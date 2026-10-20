@@ -79,13 +79,20 @@ def test_install_builds_registers_and_records(setup):
     assert (setup['root'] / 'installer/bootstrap.ps1').is_file() and (setup['root'] / 'installer/sps_install.py').is_file()
 
 
+def package_members(path):
+    with zipfile.ZipFile(path) as archive:
+        return {name: archive.read(name) for name in archive.namelist()}
+
+
 def test_reinstall_replaces_the_previous_installation(setup):
     assert installer.main(['install'] + setup['common'] + setup['build']) == 0
-    first = json.loads((setup['root'] / VERSION / 'install-record.json').read_text(encoding='utf-8'))
+    first = package_members(setup['target'])
     assert installer.main(['install'] + setup['common'] + setup['build']) == 0
     second = json.loads((setup['root'] / VERSION / 'install-record.json').read_text(encoding='utf-8'))
     assert second['status'] == 'installed' and second['previous_addin_backup'] is None
-    assert first['addin_sha256'] == second['addin_sha256']
+    # The package keeps the time of packaging in its entries, so compare the content, not the file digest.
+    assert package_members(setup['target']) == first
+    assert hashlib.sha256(setup['target'].read_bytes()).hexdigest() == second['addin_sha256']
 
 
 def test_uninstall_removes_only_owned_files(setup, tmp_path):
