@@ -1,3 +1,6 @@
+# Installs the CRAN packages of reference-r-packages.csv into reference-r/library-extra.
+# Run with the private Rscript and the folder that contains reference-r as working directory.
+# Versions and MD5 sums of the downloaded Windows binaries must match the recorded plan.
 options(repos=c(CRAN="https://cloud.r-project.org"), timeout=600,
         install.packages.check.source="no")
 lib <- normalizePath("reference-r", winslash="/")
@@ -6,8 +9,19 @@ dir.create(lib, recursive=TRUE, showWarnings=FALSE)
 .libPaths(c(lib,.libPaths()))
 plan <- read.csv("reference-r-packages.csv", stringsAsFactors=FALSE)
 available <- available.packages(type="win.binary")
+stopifnot(all(plan$Package %in% rownames(available)))
 stopifnot(all(available[plan$Package,"Version"]==plan$Version))
-install.packages(plan$Package, lib=lib, type="win.binary", dependencies=FALSE)
+stopifnot("MD5sum" %in% names(plan), all(available[plan$Package,"MD5sum"]==plan$MD5sum))
+downloads <- file.path(tempdir(), "cast-binaries")
+dir.create(downloads, showWarnings=FALSE)
+files <- download.packages(plan$Package, destdir=downloads, available=available, type="win.binary")
+stopifnot(nrow(files)==nrow(plan), setequal(files[,1], plan$Package))
+md5 <- unname(tools::md5sum(files[,2]))
+expected <- plan$MD5sum[match(files[,1], plan$Package)]
+if (!all(md5 == expected)) stop("MD5 mismatch: ", paste(files[md5 != expected, 1], collapse=", "))
+install.packages(files[,2], lib=lib, repos=NULL, type="win.binary")
+dir.create('build',showWarnings=FALSE)
+writeLines(format(sum(file.size(files[,2])), scientific=FALSE), "build/reference-cast-download-bytes.txt")
 library(CAST)
 stopifnot(as.character(packageVersion("CAST"))=="1.0.4")
 actual <- do.call(rbind,lapply(plan$Package,function(package) {

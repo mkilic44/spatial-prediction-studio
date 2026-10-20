@@ -6,12 +6,13 @@ nuget.org and then runs this script with it. Only the Python standard library is
 Layout (the install root defaults to %LOCALAPPDATA%\\Programs\\SpatialPredictionStudio):
 
     <install root>\\bootstrap-python      private CPython that runs this installer
-    <install root>\\cache                 verified downloads (C# compiler, reference assemblies)
+    <install root>\\cache                 verified downloads (C# compiler, reference assemblies, micromamba)
     <install root>\\logs                  installer logs
     <install root>\\current.json          pointer to the installed version
     <install root>\\<version>\\           application root
         runtime-d\\Scripts\\python.exe     private worker runtime with the pinned packages
         runtime-mcp\\Scripts\\python.exe   optional runtime of the local MCP server
+        reference-r\\                    optional R 4.4.3 with CAST 1.0.4 for kNNDM
         backend\\ examples\\ models\\ docs\\ mcp-server\\ installer\\
         package\\SpatialPredictionStudio.esriAddIn
         install-record.json
@@ -33,6 +34,7 @@ import shutil
 import struct
 import subprocess
 import sys
+import tarfile
 import time
 import urllib.request
 import uuid
@@ -50,6 +52,7 @@ LONGEST_PACKAGE_PATH = 119
 SITE_PACKAGES = 'runtime-d\\Scripts\\Lib\\site-packages\\'
 MAX_PATH = 259
 REQUIRED_FREE_BYTES = 6 * 1024 ** 3
+REQUIRED_FREE_BYTES_R = 2 * 1024 ** 3
 NO_WINDOW = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
 
 
@@ -116,7 +119,11 @@ def remove_tree(path, owner_root):
     def retry(function, name, _):
         os.chmod(name, 0o700)
         function(name)
-    shutil.rmtree(path, onerror=retry)
+    target = str(path.resolve())
+    if sys.platform == 'win32' and not target.startswith('\\\\'):
+        # The extended-length form also removes files deeper than MAX_PATH (for example in reference-r).
+        target = '\\\\?\\' + target
+    shutil.rmtree(target, onerror=retry)
 
 
 def clean_environment():
@@ -129,9 +136,9 @@ def clean_environment():
     return env
 
 
-def run(command, log, *, cwd=None, timeout=None, capture=False):
+def run(command, log, *, cwd=None, timeout=None, capture=False, env=None):
     log('    $ ' + ' '.join('"' + str(part) + '"' if ' ' in str(part) else str(part) for part in command))
-    done = subprocess.run([str(part) for part in command], cwd=cwd, env=clean_environment(), timeout=timeout,
+    done = subprocess.run([str(part) for part in command], cwd=cwd, env=env or clean_environment(), timeout=timeout,
                           capture_output=True, text=True, encoding='utf-8', errors='replace', creationflags=NO_WINDOW)
     output = (done.stdout or '') + (done.stderr or '')
     if log.path:
@@ -191,6 +198,24 @@ def extract_member_tree(archive_path, prefix, destination):
             target.parent.mkdir(parents=True, exist_ok=True)
             with archive.open(info) as source, target.open('wb') as out:
                 shutil.copyfileobj(source, out)
+    return destination
+
+
+def extract_tar_member(archive_path, member, destination):
+    """Extract one regular file from a .tar.bz2 package (conda-forge) to destination."""
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(archive_path, 'r:bz2') as archive:
+        try:
+            info = archive.getmember(member)
+        except KeyError:
+            raise InstallError('The package does not contain ' + member) from None
+        if not info.isfile():
+            raise InstallError('Unsafe or unexpected archive member: ' + member)
+        temporary = destination.with_name(destination.name + '.' + uuid.uuid4().hex + '.part')
+        with archive.extractfile(info) as source, temporary.open('wb') as out:
+            shutil.copyfileobj(source, out)
+    os.replace(temporary, destination)
     return destination
 
 
@@ -262,8 +287,9 @@ def preflight(args, app_root, log):
         raise InstallError('The installation folder path is too long for Windows (%d > %d characters). '
                            'Run Install.cmd -InstallRoot C:\\SPS or enable long paths in Windows.' % (longest, MAX_PATH))
     free = shutil.disk_usage(app_root.parent if app_root.parent.exists() else Path(app_root.anchor)).free
-    if free < REQUIRED_FREE_BYTES and not args.skip_runtime:
-        raise InstallError('At least 6 GB of free disk space is required; %.1f GB is free.' % (free / 1024 ** 3))
+    required = REQUIRED_FREE_BYTES + (REQUIRED_FREE_BYTES_R if getattr(args, 'with_r', False) else 0)
+    if free < required and not args.skip_runtime:
+        raise InstallError('At least %d GB of free disk space is required; %.1f GB is free.' % (required // 1024 ** 3, free / 1024 ** 3))
     if args.staging:
         log('    staging mode: ArcMap and .NET checks are skipped; Documents is ' + str(Path(args.staging) / 'Documents'))
         return facts
@@ -335,6 +361,76 @@ def install_mcp_runtime(base, app_root, source, log):
                  '-r', source / 'requirements-mcp-lock.txt'], log)
     pip(python, ['check'], log)
     return python
+
+
+# ---------------------------------------------------------------------------------------------
+# Optional R runtime: R 4.4.3 from conda-forge and CAST 1.0.4 from CRAN, used only by kNNDM
+
+
+def micromamba(cache, pins, log, runtime_dlls=()):
+    """Return the pinned micromamba.exe. It needs the 64-bit C++ runtime, which ArcGIS does not always
+    install; copies of the DLLs that come with the private Python runtime are placed next to it."""
+    item = pins['micromamba']
+    package = download(item['url'], Path(cache) / Path(item['url']).name, item['sha512'], log)
+    folder = Path(cache) / ('micromamba-' + item['version'])
+    exe = folder / 'micromamba.exe'
+    if not exe.is_file():
+        extract_tar_member(package, item['member'], exe)
+    for dll in runtime_dlls:
+        if Path(dll).is_file() and not (folder / Path(dll).name).is_file():
+            shutil.copy2(dll, folder / Path(dll).name)
+    return exe
+
+
+def mamba_environment(cache):
+    """micromamba without user configuration; its records stay inside the cache folder."""
+    env = clean_environment()
+    for name in list(env):
+        if name.upper().startswith(('CONDA', 'MAMBA', 'R_LIBS')) or name.upper() in ('CONDARC', 'MAMBARC'):
+            env.pop(name)
+    home = Path(cache) / 'mamba-home'
+    home.mkdir(parents=True, exist_ok=True)
+    env.update({'MAMBA_ROOT_PREFIX': str(Path(cache) / 'mamba'), 'USERPROFILE': str(home), 'HOME': str(home)})
+    return env
+
+
+def r_environment(prefix):
+    """Environment for Rscript of the private R: no user libraries, profiles or site settings."""
+    prefix = Path(prefix)
+    env = clean_environment()
+    for name in list(env):
+        if name.upper().startswith(('R_LIBS', 'R_PROFILE', 'R_ENVIRON')):
+            env.pop(name)
+    env.update({'R_HOME': str(prefix / 'lib/R'), 'LC_ALL': 'en_US.UTF-8', 'LANG': 'en_US.UTF-8'})
+    env['PATH'] = os.pathsep.join(map(str, (prefix / 'lib/R/bin/x64', prefix / 'Library/bin', prefix / 'Scripts'))) \
+        + os.pathsep + env.get('PATH', '')
+    return env
+
+
+def create_r_environment(prefix, cache, source, pins, log, runtime_dlls=()):
+    """Create the R 4.4.3 environment exactly from reference-r-conda-lock.txt (URLs with MD5 sums)."""
+    exe = micromamba(cache, pins, log, runtime_dlls)
+    prefix = Path(prefix)
+    run([exe, 'create', '--yes', '--no-rc', '--prefix', prefix, '--root-prefix', Path(cache) / 'mamba',
+         '--file', Path(source) / 'reference-r-conda-lock.txt'], log, timeout=3600, env=mamba_environment(cache))
+    rscript = prefix / 'lib/R/bin/Rscript.exe'
+    if not rscript.is_file():
+        raise InstallError('The R environment was created, but Rscript.exe was not found in ' + str(rscript.parent))
+    return rscript
+
+
+def install_r_runtime(install_root, app_root, source, pins, log):
+    """R and the pinned CRAN packages of reference-r-packages.csv in <app>\\reference-r."""
+    scripts = app_root / 'runtime-d/Scripts'
+    dlls = [scripts / name for name in ('vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll')]
+    prefix = app_root / 'reference-r'
+    rscript = create_r_environment(prefix, install_root / 'cache', source, pins, log, dlls)
+    for name in ('reference-r-packages.csv', 'reference-r-conda-lock.txt'):
+        shutil.copy2(source / name, app_root / name)
+    log('    installing CAST 1.0.4 and its dependencies from CRAN (versions and MD5 sums are checked)')
+    run([rscript, '--vanilla', source / 'tools/install_cast_reference.R'], log, cwd=app_root, timeout=3600,
+        env=r_environment(prefix))
+    return rscript
 
 
 # ---------------------------------------------------------------------------------------------
@@ -511,6 +607,8 @@ def components(args):
         selected.append('mcp')
     if args.with_tabpfn:
         selected.append('tabpfn')
+    if args.with_r:
+        selected.append('reference_r')
     return selected
 
 
@@ -527,7 +625,7 @@ def install(args):
         raise InstallError('TabPFN weights need -AcceptTabPFNLicense after you have read the Prior Labs License 1.1.')
     if args.mcp_client and not args.with_mcp:
         raise InstallError('MCP clients can be registered only together with -WithMcp.')
-    steps = 8
+    steps = 9
     log('Spatial Prediction Studio %s: installing for this Windows user' % version)
     log('[1/%d] Checking this computer' % steps)
     facts = preflight(args, app_root, log)
@@ -592,10 +690,15 @@ def install(args):
              app_root / 'models/tabpfn-v2'], log, timeout=3600)
     else:
         log('[7/%d] TabPFN weights not selected (the TabPFN model stays unavailable)' % steps)
-    if args.skip_runtime or args.skip_verify:
-        log('[8/%d] Runtime verification skipped (test mode)' % steps)
+    if args.with_r and not args.skip_runtime:
+        log('[8/%d] Installing the optional R runtime for kNNDM (R 4.4.3, CAST 1.0.4)' % steps)
+        install_r_runtime(install_root, app_root, source, pins, log)
     else:
-        log('[8/%d] Verifying the private runtime' % steps)
+        log('[8/%d] R runtime not selected (kNNDM stays unavailable)' % steps)
+    if args.skip_runtime or args.skip_verify:
+        log('[9/%d] Runtime verification skipped (test mode)' % steps)
+    else:
+        log('[9/%d] Verifying the private runtime' % steps)
         output = run([python, '-I', '-X', 'utf8', app_root / 'installer/verify_runtime.py', '--root', app_root,
                       '--components', ','.join(selected)], log, timeout=900, capture=True)
         record['verification'] = json.loads(output.strip().splitlines()[-1])
@@ -692,6 +795,7 @@ def parser():
                    choices=('codex', 'chatgpt_desktop', 'antigravity', 'claude_desktop', 'claude_code', 'opencode', 'pycharm'))
     p.add_argument('--with-tabpfn', action='store_true', help='download the pinned TabPFN v2 weights')
     p.add_argument('--accept-tabpfn-license', action='store_true')
+    p.add_argument('--with-r', action='store_true', help='also install R 4.4.3 with CAST 1.0.4 for kNNDM validation')
     testing = p.add_argument_group('testing and continuous integration')
     testing.add_argument('--staging', help='redirect Documents into this folder and skip the ArcMap checks')
     testing.add_argument('--esri-reference-dir', help='folder with ESRI.ArcGIS.*.dll files to compile against')

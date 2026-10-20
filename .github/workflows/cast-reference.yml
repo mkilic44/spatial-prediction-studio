@@ -1,0 +1,81 @@
+name: cast-reference
+
+# Rebuilds the private R environment of the kNNDM bridge on Windows from the committed pins,
+# installs CAST 1.0.4 with version and MD5 checks and writes the CAST reference fixtures again.
+# The job fails when a committed fixture or package list differs from what is produced now. A
+# missing package list or missing fixtures are created and reported, so that they can be committed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - reference-r-conda-lock.txt
+      - reference-r-packages.csv
+      - tests/fixtures/cast-1.0.4/**
+      - tools/plan_cast_reference.R
+      - tools/install_cast_reference.R
+      - tools/create_cast_reference.R
+      - tools/cast_reference.py
+      - installer/pins.json
+      - installer/sps_install.py
+      - .github/workflows/cast-reference.yml
+  workflow_dispatch:
+    inputs:
+      plan:
+        description: List CAST 1.0.4 and its dependencies from CRAN again
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  regenerate:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Keep stored line endings on checkout
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Create the R environment, install CAST and write the fixtures
+        run: |
+          $extra = @()
+          if ('${{ inputs.plan }}' -eq 'true') { $extra += '--plan' }
+          python -I -X utf8 .github\scripts\annotate_failure.py cast-reference `
+            python -I -X utf8 tools\cast_reference.py --fixtures --cache "$env:RUNNER_TEMP\cast-cache" @extra
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Report the generated files
+        run: |
+          python -I -X utf8 .github\scripts\annotate_files.py reference-data build/cast-reference-summary.json `
+            reference-r-packages.csv tests/fixtures/cast-1.0.4 build/reference-cast-installed.csv build/reference-cast-session.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Compare with the committed files
+        # session.txt records the machine and is not compared.
+        run: |
+          git diff --stat --exit-code -- reference-r-packages.csv tests/fixtures/cast-1.0.4 ':(exclude)tests/fixtures/cast-1.0.4/session.txt'
+          if ($LASTEXITCODE -ne 0) { Write-Output '::error::The regenerated R pins or CAST fixtures differ from the committed files.'; exit 1 }
+
+      - name: Keep the generated files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cast-reference
+          path: |
+            reference-r-packages.csv
+            tests/fixtures/cast-1.0.4
+            build/reference-cast-*.csv
+            build/reference-cast-session.txt
+            build/cast-reference-summary.json
+            build/cast-reference.log
+          if-no-files-found: ignore

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "comment": "Pinned downloads used by Install.cmd. Each SHA-512 matches the packageHash in the nuget.org catalog.",
+  "comment": "Pinned downloads used by Install.cmd. The SHA-512 digests of the nuget.org packages match their packageHash in the nuget.org catalog; the micromamba package matches the sha256 in the conda-forge index.",
   "python": {
     "version": "3.12.3",
     "url": "https://api.nuget.org/v3-flatcontainer/python/3.12.3/python.3.12.3.nupkg",
@@ -18,6 +18,14 @@
     "url": "https://api.nuget.org/v3-flatcontainer/microsoft.netframework.referenceassemblies.net48/1.0.3/microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg",
     "sha512": "5d62a0c9e35a74d71341a215bd007c06b74236b11aafa7e8fdd7b539d41167d1c5cb48dc05268cf08579abae196a6a6c4a70bc0254ec002686654ba8170e3544",
     "member_prefix": "build/.NETFramework/v4.8/"
+  },
+  "micromamba": {
+    "version": "2.6.2",
+    "url": "https://conda.anaconda.org/conda-forge/win-64/micromamba-2.6.2-1.tar.bz2",
+    "sha256": "b2648ee0a873e916b1bfbbcb00e3f4cbd546d6295247c62fd453876c788c0a78",
+    "sha512": "969f1d483c0d60a83df11da7ee1d07761fb60ffd6bda4516270d5d34e869ffaf2e6ba615f111a3b11a7fdf39a0c9fcf385e976244f1f3336f957742c0f6f46f2",
+    "member": "Library/bin/micromamba.exe",
+    "license": "BSD-3-Clause AND MIT AND OpenSSL"
   },
   "pytorch_cpu_index": "https://download.pytorch.org/whl/cpu"
 }

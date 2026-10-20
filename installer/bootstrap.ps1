@@ -9,6 +9,10 @@ Uninstall.cmd in the repository root call this script.
 
 .EXAMPLE
 .\installer\bootstrap.ps1 -Action Install -WithMcp -McpClient claude_desktop
+
+.EXAMPLE
+.\installer\bootstrap.ps1 -Action Install -WithR
+Also installs R 4.4.3 with CAST 1.0.4, which the kNNDM validation design needs.
 #>
 [CmdletBinding()]
 param(
@@ -19,6 +23,7 @@ param(
     [string[]]$McpClient = @(),
     [switch]$WithTabPFN,
     [switch]$AcceptTabPFNLicense,
+    [switch]$WithR,
     # Testing and continuous integration only:
     [string]$Staging,
     [switch]$EsriStubs,
@@ -75,6 +80,7 @@ try {
     foreach ($client in $McpClient) { $arguments += @('--mcp-client', $client) }
     if ($WithTabPFN) { $arguments += '--with-tabpfn' }
     if ($AcceptTabPFNLicense) { $arguments += '--accept-tabpfn-license' }
+    if ($WithR) { $arguments += '--with-r' }
     if ($Staging) { $arguments += @('--staging', $Staging) }
     if ($EsriStubs) { $arguments += '--esri-stubs' }
     if ($EsriReferenceDir) { $arguments += @('--esri-reference-dir', $EsriReferenceDir) }
@@ -84,7 +90,8 @@ try {
     if ($Action -eq 'Uninstall' -and $code -eq 0 -and -not (Test-Path -LiteralPath (Join-Path $InstallRoot 'current.json'))) {
         foreach ($name in @('bootstrap-python', 'cache')) {
             $path = Join-Path $InstallRoot $name
-            if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force }
+            # rd with the extended-length form also removes package files deeper than MAX_PATH.
+            if (Test-Path -LiteralPath $path) { & cmd.exe /d /c rd /s /q ('\\?\' + $path) }
         }
     }
     exit $code

@@ -178,6 +178,42 @@ def test_pins_are_complete():
     pins = json.loads((ROOT / 'installer/pins.json').read_text(encoding='utf-8'))
     for key in ('python', 'csharp_compiler', 'net48_reference_assemblies'):
         assert pins[key]['url'].startswith('https://api.nuget.org/') and len(pins[key]['sha512']) == 128
+    micromamba = pins['micromamba']
+    assert micromamba['url'].startswith('https://conda.anaconda.org/conda-forge/win-64/micromamba-')
+    assert len(micromamba['sha512']) == 128 and len(micromamba['sha256']) == 64
+    assert micromamba['url'].endswith('.tar.bz2') and micromamba['member'] == 'Library/bin/micromamba.exe'
     assert pins['python']['version'] == '3.12.3'
     # verify_runtime.py checks the same interpreter version.
     assert 'sys.version_info[:3] == (3, 12, 3)' in (ROOT / 'installer/verify_runtime.py').read_text(encoding='utf-8')
+
+
+def test_tar_member_extraction_takes_only_the_named_regular_file(tmp_path):
+    import io
+    import tarfile
+    archive = tmp_path / 'micromamba.tar.bz2'
+    with tarfile.open(archive, 'w:bz2') as stream:
+        data = b'MZ micromamba'
+        info = tarfile.TarInfo('Library/bin/micromamba.exe'); info.size = len(data)
+        stream.addfile(info, io.BytesIO(data))
+        link = tarfile.TarInfo('Library/bin/link.exe'); link.type = tarfile.SYMTYPE; link.linkname = '../../../outside'
+        stream.addfile(link)
+    target = installer.extract_tar_member(archive, 'Library/bin/micromamba.exe', tmp_path / 'tool/micromamba.exe')
+    assert target.read_bytes() == b'MZ micromamba' and sorted(p.name for p in (tmp_path / 'tool').iterdir()) == ['micromamba.exe']
+    with pytest.raises(installer.InstallError, match='Unsafe'):
+        installer.extract_tar_member(archive, 'Library/bin/link.exe', tmp_path / 'tool/link.exe')
+    with pytest.raises(installer.InstallError, match='does not contain'):
+        installer.extract_tar_member(archive, 'Library/bin/other.exe', tmp_path / 'tool/other.exe')
+
+
+def test_r_component_is_recorded_and_its_environment_ignores_user_settings(setup, monkeypatch):
+    assert installer.main(['install', '--with-r'] + setup['common'] + setup['build']) == 0
+    record = json.loads((setup['root'] / VERSION / 'install-record.json').read_text(encoding='utf-8'))
+    assert record['components'] == ['core', 'reference_r']
+    for name in ('R_LIBS', 'R_LIBS_USER', 'R_PROFILE_USER', 'R_ENVIRON_USER', 'CONDARC', 'MAMBA_ROOT_PREFIX'):
+        monkeypatch.setenv(name, 'user setting')
+    env = installer.r_environment(setup['root'] / 'reference-r')
+    assert not any(name in env for name in ('R_LIBS', 'R_LIBS_USER', 'R_PROFILE_USER', 'R_ENVIRON_USER'))
+    assert env['R_HOME'] == str(setup['root'] / 'reference-r/lib/R') and env['LC_ALL'] == 'en_US.UTF-8'
+    mamba = installer.mamba_environment(setup['root'] / 'cache')
+    assert 'CONDARC' not in mamba and mamba['MAMBA_ROOT_PREFIX'] == str(setup['root'] / 'cache/mamba')
+    assert mamba['USERPROFILE'] == str(setup['root'] / 'cache/mamba-home')
